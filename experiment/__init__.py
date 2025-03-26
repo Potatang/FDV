@@ -33,8 +33,10 @@ class C(BaseConstants):
     
 
 class Subsession(BaseSubsession):
-    commission_product = models.StringField()
-    product_b_quality = models.StringField()
+    commission_product = models.StringField(blank=True)
+    product_b_quality = models.StringField(blank=True)
+    product_b_good_ball_probability = models.FloatField(blank=True)
+    product_b_ball_outcome = models.StringField(blank=True)
     
     # def before_round_start(self):
     #     import random
@@ -65,16 +67,32 @@ def creating_session(subsession: Subsession):
     if subsession.round_number == 1:
         paying_round = random.sample(range(1, C.NUM_ROUNDS + 1), 2)
         session.vars['paying_round'] = paying_round
+
     #每回合重新分組
     subsession.group_randomly(fixed_id_in_group=True)
+
     # 50-50 決定哪一個商品能獲得佣金
     commission_product = random.choice(['產品A', '產品B'])
     subsession.commission_product = commission_product
+
     # 50-50 決定 product B 的品質：high 或 low
     product_b_quality = random.choice(['高品質', '低品質'])
     subsession.product_b_quality = product_b_quality
-    # B是低品質有40%抽中好球 B是高品質有80%抽中好球
 
+    # 根據產品B的品質設定抽中好球的機率：
+    # 低品質：40% 機率抽中好球；高品質：80% 機率抽中好球
+    if product_b_quality == '低品質':
+        subsession.product_b_good_ball_probability = 0.4
+    else:
+        subsession.product_b_good_ball_probability = 0.8
+
+    # 進行抽球，根據設定的機率決定抽中好球("$2")還是壞球("$0")
+    draw = random.random()  # 生成 0 到 1 的隨機數
+    if draw < subsession.product_b_good_ball_probability:
+        subsession.product_b_ball_outcome = "$2"
+    else:
+        subsession.product_b_ball_outcome = "$0"
+        
 
 
 # def set_payoffs(group: Group):
@@ -163,6 +181,19 @@ class IncentivePage(Page):
         subsession = player.subsession
         return dict(commission_product=subsession.commission_product)
 
+class QualityPage(Page):
+
+    @staticmethod
+    def is_displayed(player):
+        return player.role == C.ADVISOR_ROLE
+    
+    @staticmethod
+    def vars_for_template(player: Player):
+        subsession = player.subsession
+        return dict(
+            product_b_ball_outcome=subsession.product_b_ball_outcome,
+            product_b_good_ball_probability=subsession.product_b_good_ball_probability)
+
 
 class RecommendationPage(Page):
 
@@ -172,6 +203,11 @@ class RecommendationPage(Page):
     @staticmethod
     def is_displayed(player):
         return player.role == C.ADVISOR_ROLE
+    
+    @staticmethod
+    def vars_for_template(player: Player):
+        subsession = player.subsession
+        return dict(commission_product=subsession.commission_product)
     
 class WaitforAdvisor(WaitPage):
     pass
@@ -191,7 +227,14 @@ class SelectionPage(Page):
         return dict(recommendation=group.recommendation)
 
 # class HistoryPage(Page):
-#     pass
+        
+#     @staticmethod
+#     def vars_for_template(player: Player):
+#         return dict(
+#             player_in_previous_rounds=player.in_previous_rounds(),
+#             # commission_product=player.subsession.commission_product,
+#             # product_b_quality=player.subsession.product_b_quality
+#             ) 
     
 class ShuffleWaitPage(WaitPage):
     wait_for_all_groups = True
@@ -206,6 +249,7 @@ page_sequence = [
     AdvisorPage,
     ClientPage,
     IncentivePage,
+    QualityPage,
     RecommendationPage,
     WaitforAdvisor,
     SelectionPage,
