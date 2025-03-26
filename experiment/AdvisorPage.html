@@ -1,0 +1,20 @@
+{{ block title }}Round {{ subsession.round_number }} of {{ C.NUM_ROUNDS }}{{ endblock }}
+{{ block content }}
+
+    You are the {{ player.role }}.
+    <h4>Round history</h4>
+    <table class="table">
+        <tr>
+            <th>Round</th>
+            <th>Player</th>
+        </tr>
+        {{ for p in player_in_previous_rounds }}
+            <tr>
+                <td>{{ p.round_number }}</td>
+                <td>You were the {{ p.role }}</td>
+            </tr>
+        {{ endfor }}
+    </table>
+    {{ next_button }}
+
+{{ endblock }}

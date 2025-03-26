@@ -12,7 +12,10 @@ SESSION_CONFIGS = [
         name='survey', app_sequence=['survey', 'payment_info'], num_demo_participants=1
     ),
     dict(
-        name='FDV', app_sequence=['experiment'], num_demo_participants=12
+        name='dictator', app_sequence=['dictator'], num_demo_participants=2
+    ),
+    dict(
+        name='FDV', app_sequence=['experiment'], num_demo_participants=6
     ),
 ]
 # if you set a property in SESSION_CONFIG_DEFAULTS, it will be inherited by all configs
@@ -21,7 +24,7 @@ SESSION_CONFIGS = [
 # e.g. self.session.config['participation_fee']
 
 SESSION_CONFIG_DEFAULTS = dict(
-    real_world_currency_per_point=1.00, participation_fee=250, doc=""
+    real_world_currency_per_point=5.00, participation_fee=250, doc=""
 )
 
 PARTICIPANT_FIELDS = []
