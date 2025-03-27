@@ -10,6 +10,7 @@
             <th>Quality Signal</th>
             <th>Recommendation</th>
             <th>Selection</th>
+            <th>Round Payoff</th>
         </tr>
         {{ for round in rounds_data }}
             <tr>
@@ -19,6 +20,7 @@
                 <td>{{ round.quality_signal }}</td>
                 <td>{{ round.recommendation }}</td>
                 <td>{{ round.selection }}</td>
+                <td>{{ round.round_payoff }}</td>
             </tr>
         {{ endfor }}
     </table>

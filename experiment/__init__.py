@@ -11,7 +11,6 @@ client看到advisor推薦後，直接選擇商品A或B，
 """
 
 #Models
-
 class C(BaseConstants):
     NAME_IN_URL = 'experiment'
     PLAYERS_PER_GROUP = 2
@@ -20,6 +19,8 @@ class C(BaseConstants):
     ADVISOR_ROLE = 'advisor'
     CLIENT_ROLE = 'client'
 
+    #車馬費
+    PARTICIPATION_FEE = 250
     # Product A: 抽到 $2 的機率
     PRODUCT_A_SUCCESS_PROB = 0.6
     # Product B: 依據品質狀態決定抽到 $2 的機率
@@ -29,20 +30,13 @@ class C(BaseConstants):
     COMMISSION = 10
     # 球的價值
     GOODBALL = 65
-    BADBALL = 0
-    
+    BADBALL = 0   
 
 class Subsession(BaseSubsession):
     commission_product = models.StringField(blank=True)
     product_b_quality = models.StringField(blank=True)
     product_b_good_ball_probability = models.FloatField(blank=True)
     quality_signal = models.StringField(blank=True)
-    
-    # def before_round_start(self):
-    #     import random
-    #     # 每回合重新抽取 commission_product 與 product_b_quality
-    #     self.commission_product = random.choice(['產品A', '產品B'])
-    #     self.product_b_quality = random.choice(['高品質', '低品質'])
 
 class Group(BaseGroup):
     recommendation = models.StringField(
@@ -57,16 +51,11 @@ class Group(BaseGroup):
     )
 
 class Player(BasePlayer):
-    pass
+    round_payoff = models.CurrencyField(initial=0)
 
 #FUNCTION
 def creating_session(subsession: Subsession):
-    session = subsession.session
     import random
-    #隨機決定支付回合
-    if subsession.round_number == 1:
-        paying_round = random.sample(range(1, C.NUM_ROUNDS + 1), 2)
-        session.vars['paying_round'] = paying_round
 
     #每回合重新分組
     subsession.group_randomly(fixed_id_in_group=True)
@@ -93,7 +82,43 @@ def creating_session(subsession: Subsession):
     else:
         subsession.quality_signal = "$0"
         
-
+def set_payoffs(group: Group):
+    subsession = group.subsession
+    
+    # 取得該組中兩位玩家
+    advisor = group.get_player_by_role(C.ADVISOR_ROLE)
+    client = group.get_player_by_role(C.CLIENT_ROLE)
+    
+    # ---------------------------
+    # Advisor 報酬計算：
+    # 固定： participation_fee + $15
+    # 額外：若 advisor 推薦的商品與 subsession.commission_product 相符，再加 $5
+    # ---------------------------
+    advisor_payoff = C.PARTICIPATION_FEE + 15
+    if group.recommendation == subsession.commission_product:
+        advisor_payoff += 5
+    advisor.round_payoff = cu(advisor_payoff)
+    
+    # ---------------------------
+    # Client 報酬計算：
+    # 固定： participation_fee
+    # 額外：根據所選產品抽球決定
+    # 產品 A：60% 機率得到 $65
+    # 產品 B：若品質為 '低品質' 40% 機率得到 $65；若品質為 '高品質' 80% 機率得到 $65
+    # ---------------------------
+    client_payoff = C.PARTICIPATION_FEE
+    rnd = random.random()  # 0～1 的隨機數
+    if group.selection == 'A':
+        if rnd < 0.6:
+            client_payoff += 65
+    elif group.selection == 'B':
+        if subsession.product_b_quality == '低品質':
+            if rnd < 0.4:
+                client_payoff += 65
+        elif subsession.product_b_quality == '高品質':
+            if rnd < 0.8:
+                client_payoff += 65
+    client.round_payoff = cu(client_payoff)
 
 # def set_payoffs(group: Group):
 #     subsession = group.subsession
@@ -137,7 +162,6 @@ def creating_session(subsession: Subsession):
 
 
 #Pages
-
 class AdvisorPage(Page):
     form_model = 'player'
 
@@ -151,8 +175,7 @@ class AdvisorPage(Page):
     
     @staticmethod
     def is_displayed(player):
-        return player.role == C.ADVISOR_ROLE   
-    
+        return player.role == C.ADVISOR_ROLE       
     
 class ClientPage(Page):
     form_model = 'player'
@@ -167,8 +190,7 @@ class ClientPage(Page):
     
     @staticmethod
     def is_displayed(player):
-        return player.role == C.CLIENT_ROLE
-    
+        return player.role == C.CLIENT_ROLE    
     
 class IncentivePage(Page):
 
@@ -194,7 +216,6 @@ class QualityPage(Page):
             quality_signal=subsession.quality_signal,
             product_b_good_ball_probability=subsession.product_b_good_ball_probability)
 
-
 class RecommendationPage(Page):
 
     form_model = 'group'
@@ -208,7 +229,7 @@ class RecommendationPage(Page):
     def vars_for_template(player: Player):
         subsession = player.subsession
         return dict(commission_product=subsession.commission_product)
-    
+
 class WaitforAdvisor(WaitPage):
     pass
 
@@ -226,31 +247,27 @@ class SelectionPage(Page):
         group = player.group
         return dict(recommendation=group.recommendation)
     
-    
 class WaitforClient(WaitPage):
     pass
-
 
 class HistoryPage(Page):
     @staticmethod
     def vars_for_template(player: Player):
-        # 將之前回合資料加上當前回合的資料
-        all_rounds = player.in_previous_rounds() + [player]
         rounds_data = []
-        for p in all_rounds:
-            subsession = p.subsession
-            group = p.group  # 取得該回合的群組資料
+        # 只取已完成的回合資料（in_previous_rounds 不包含當前回合）
+        for p in player.in_previous_rounds():
+            group = p.group
             rounds_data.append({
                 'round_number': p.round_number,
-                'commission_product': subsession.commission_product,
-                'product_b_quality': subsession.product_b_quality,
-                'quality_signal': subsession.quality_signal,
+                'commission_product': p.subsession.commission_product,
+                'product_b_quality': p.subsession.product_b_quality,
+                'quality_signal': p.subsession.quality_signal,
                 'recommendation': group.recommendation,
                 'selection': group.selection,
+                'round_payoff': p.round_payoff,
             })
         return dict(rounds_data=rounds_data)
 
-    
 class ShuffleWaitPage(WaitPage):
     wait_for_all_groups = True
 
@@ -259,7 +276,6 @@ class ShuffleWaitPage(WaitPage):
         subsession.group_randomly(fixed_id_in_group=True)
 
 #PageSequence
-
 page_sequence = [
     AdvisorPage,
     ClientPage,
