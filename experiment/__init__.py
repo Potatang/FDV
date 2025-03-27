@@ -7,7 +7,7 @@ SEE INCENTIVE FIRST
 在本實驗中，20位受試者中10位為advisor，10位為client。
 每回合advisor依據產品B的品質訊息與附加的佣金訊息決定推薦A或B，
 client看到advisor推薦後，直接選擇商品A或B，
-最終支付則依據每回合抽球結果決定，但只有從50回合中隨機抽取的10回合會計入最終報酬。
+最終支付則依據每回合抽球結果決定，並且所有50回合都會計入最終報酬。
 """
 
 #Models
@@ -36,7 +36,7 @@ class Subsession(BaseSubsession):
     commission_product = models.StringField(blank=True)
     product_b_quality = models.StringField(blank=True)
     product_b_good_ball_probability = models.FloatField(blank=True)
-    product_b_ball_outcome = models.StringField(blank=True)
+    quality_signal = models.StringField(blank=True)
     
     # def before_round_start(self):
     #     import random
@@ -89,9 +89,9 @@ def creating_session(subsession: Subsession):
     # 進行抽球，根據設定的機率決定抽中好球("$2")還是壞球("$0")
     draw = random.random()  # 生成 0 到 1 的隨機數
     if draw < subsession.product_b_good_ball_probability:
-        subsession.product_b_ball_outcome = "$2"
+        subsession.quality_signal = "$2"
     else:
-        subsession.product_b_ball_outcome = "$0"
+        subsession.quality_signal = "$0"
         
 
 
@@ -191,7 +191,7 @@ class QualityPage(Page):
     def vars_for_template(player: Player):
         subsession = player.subsession
         return dict(
-            product_b_ball_outcome=subsession.product_b_ball_outcome,
+            quality_signal=subsession.quality_signal,
             product_b_good_ball_probability=subsession.product_b_good_ball_probability)
 
 
@@ -225,16 +225,31 @@ class SelectionPage(Page):
     def vars_for_template(player: Player):
         group = player.group
         return dict(recommendation=group.recommendation)
+    
+    
+class WaitforClient(WaitPage):
+    pass
 
-# class HistoryPage(Page):
-        
-#     @staticmethod
-#     def vars_for_template(player: Player):
-#         return dict(
-#             player_in_previous_rounds=player.in_previous_rounds(),
-#             # commission_product=player.subsession.commission_product,
-#             # product_b_quality=player.subsession.product_b_quality
-#             ) 
+
+class HistoryPage(Page):
+    @staticmethod
+    def vars_for_template(player: Player):
+        # 將之前回合資料加上當前回合的資料
+        all_rounds = player.in_previous_rounds() + [player]
+        rounds_data = []
+        for p in all_rounds:
+            subsession = p.subsession
+            group = p.group  # 取得該回合的群組資料
+            rounds_data.append({
+                'round_number': p.round_number,
+                'commission_product': subsession.commission_product,
+                'product_b_quality': subsession.product_b_quality,
+                'quality_signal': subsession.quality_signal,
+                'recommendation': group.recommendation,
+                'selection': group.selection,
+            })
+        return dict(rounds_data=rounds_data)
+
     
 class ShuffleWaitPage(WaitPage):
     wait_for_all_groups = True
@@ -253,6 +268,7 @@ page_sequence = [
     RecommendationPage,
     WaitforAdvisor,
     SelectionPage,
-    # HistoryPage,
+    WaitforClient,
+    HistoryPage,
     ShuffleWaitPage,
 ]

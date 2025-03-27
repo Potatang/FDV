@@ -1,16 +1,24 @@
 {{ block title }}Round {{ subsession.round_number }} of {{ C.NUM_ROUNDS }}{{ endblock }}
 {{ block content }}
 
-    <h4>Round history</h4>
+    <h4>Round History</h4>
     <table class="table">
         <tr>
             <th>Round</th>
-            <th>Player</th>
+            <th>Commission Product</th>
+            <th>Product B Quality</th>
+            <th>Quality Signal</th>
+            <th>Recommendation</th>
+            <th>Selection</th>
         </tr>
-        {{ for p in player_in_previous_rounds }}
+        {{ for round in rounds_data }}
             <tr>
-                <td>{{ p.round_number }}</td>
-                <td>You were the {{ p.role }}</td>
+                <td>{{ round.round_number }}</td>
+                <td>{{ round.commission_product }}</td>
+                <td>{{ round.product_b_quality }}</td>
+                <td>{{ round.quality_signal }}</td>
+                <td>{{ round.recommendation }}</td>
+                <td>{{ round.selection }}</td>
             </tr>
         {{ endfor }}
     </table>
