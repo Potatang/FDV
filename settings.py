@@ -15,7 +15,7 @@ SESSION_CONFIGS = [
         name='dictator', app_sequence=['dictator'], num_demo_participants=2
     ),
     dict(
-        name='FDV', app_sequence=['experiment'], num_demo_participants=6
+        name='FDV', app_sequence=['experiment'], num_demo_participants=4
     ),
 ]
 # if you set a property in SESSION_CONFIG_DEFAULTS, it will be inherited by all configs

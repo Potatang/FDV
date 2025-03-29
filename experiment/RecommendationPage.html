@@ -9,6 +9,38 @@
     </p>
 {{ formfields }}
 
+    {{ if previous_decision_record }}
+    <h4>Round History</h4>
+    <div style="max-height: 400px; overflow-y: auto;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>回合</th>
+                    <th>Id in Group</th>
+                    <th>佣金產品</th>
+                    <th>產品B的實際品質</th>
+                    <th>推薦人決策</th>
+                    <th>客戶決策</th>
+                    <th>回合報酬</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{ for key, record in previous_decision_record.items() }}
+                    <tr>
+                        <td>{{ record.round_number }}</td>
+                        <td>{{ record.id_in_group }}</td>
+                        <td>{{ record.commission_product }}</td>
+                        <td>{{ record.product_b_quality }}</td>
+                        <td>{{ record.advisor_recommendation }}</td>
+                        <td>{{ record.client_selection }}</td>
+                        <td>{{ record.round_payoff }}</td>
+                    </tr>
+                {{ endfor }}
+            </tbody>
+        </table>
+    </div>
+    {{ endif }}
+
     <p>
         {{ next_button }}
     </p>
