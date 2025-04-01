@@ -1,11 +1,11 @@
-{{ block title }}Your Recommendation{{ endblock }}
+{{ block title }}您的推薦{{ endblock }}
 {{ block content }}
 
     <p>
-    You are Advisor. Which product  will you recommend to Client?
+        身為推薦人，你會推薦哪項產品給客戶？
     </p>
     <p>
-    Remind that if you recommend {{subsession.commission_product}} you can earn extra $2.
+        <b>提醒您，如果您推薦{{subsession.commission_product}}，您可以額外獲得65法幣</b>。
     </p>
 {{ formfields }}
 
@@ -41,9 +41,8 @@
     </div>
     {{ endif }}
 
-    <p>
-        {{ next_button }}
-    </p>
+<!-- 中文的下一頁按鈕 -->
+<button class="otree-btn-next btn btn-primary">下一頁</button>
     
 
 {{ endblock }}

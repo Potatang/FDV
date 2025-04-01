@@ -172,12 +172,33 @@ class QualityPage(Page):
     def is_displayed(player):
         return player.role == C.ADVISOR_ROLE
     
+    # @staticmethod
+    # def vars_for_template(player: Player):
+    #     subsession = player.subsession
+    #     # 根據 quality_signal 決定圖片檔名
+    #     if subsession.quality_signal == '高品質':
+    #         image_filename = 'blue_65.png'
+    #     else:
+    #         image_filename = 'red_0.png'
+        
+    #     return dict(
+    #         quality_signal=subsession.quality_signal,
+    #         product_b_good_ball_probability=subsession.product_b_good_ball_probability,
+    #         image_filename=image_filename
+    #     )
     @staticmethod
     def vars_for_template(player: Player):
         subsession = player.subsession
+        quality = player.subsession.quality_signal
+        if quality == "高品質":
+            image_path = '/Users/dylan/Desktop/otree/FDV/_static/experiment/blue_65.png'
+        else:
+            image_path = '/Users/dylan/Desktop/otree/FDV/_static/experiment/red_0.png'
+
         return dict(
             quality_signal=subsession.quality_signal,
-            product_b_good_ball_probability=subsession.product_b_good_ball_probability)
+            product_b_good_ball_probability=subsession.product_b_good_ball_probability,
+            image_path=image_path)
 
 class RecommendationPage(Page):
 

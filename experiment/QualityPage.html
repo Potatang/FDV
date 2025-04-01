@@ -1,17 +1,17 @@
-{{ block title }}Ball {{ endblock }}
+{% load static %}
+{{ block title }} B產品的品質訊息 {{ endblock }}
 {{ block content }}
-
+{{ load static }}
     <p>
-        Ball draw form pruduct b is: {{ subsession.quality_signal }}
+        本回合中，從 B 產品隨機抽出的球的金額是：<b>{{ subsession.quality_signal }}</b>。
     </p>
+    <img src="{{ static image_path }}" width="100px" />
     <p>
         This line will be remove: {{ subsession.product_b_good_ball_probability }}
     </p>
 {{ formfields }}
 
-    <p>
-        {{ next_button }}
-    </p>
-    
+<!-- 中文的下一頁按鈕 -->
+<button class="otree-btn-next btn btn-primary">下一頁</button>
 
 {{ endblock }}

@@ -1,4 +1,4 @@
-{{ block title }}Round {{ subsession.round_number }} of {{ C.NUM_ROUNDS }}{{ endblock }}
+{{ block title }} 第 {{ subsession.round_number }} 回合， 總共共 {{ C.NUM_ROUNDS }} 回合 {{ endblock }}
 {{ block content }}
 
     <h4>Round History</h4>
@@ -30,6 +30,7 @@
         </tbody>
     </table>
     </div>
-    {{ next_button }}
+<!-- 中文的下一頁按鈕 -->
+<button class="otree-btn-next btn btn-primary">下一頁</button>
 
 {{ endblock }}

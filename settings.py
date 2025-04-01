@@ -2,18 +2,18 @@ from os import environ
 
 
 SESSION_CONFIGS = [
-    dict(
-        name='matching_pennies',
-        display_name="Matching Pennies",
-        app_sequence=['matching_pennies'],
-        num_demo_participants=2,
-    ),
-    dict(
-        name='survey', app_sequence=['survey', 'payment_info'], num_demo_participants=1
-    ),
-    dict(
-        name='dictator', app_sequence=['dictator'], num_demo_participants=2
-    ),
+    # dict(
+    #     name='matching_pennies',
+    #     display_name="Matching Pennies",
+    #     app_sequence=['matching_pennies'],
+    #     num_demo_participants=2,
+    # ),
+    # dict(
+    #     name='survey', app_sequence=['survey', 'payment_info'], num_demo_participants=1
+    # ),
+    # dict(
+    #     name='dictator', app_sequence=['dictator'], num_demo_participants=2
+    # ),
     dict(
         name='FDV', app_sequence=['experiment'], num_demo_participants=4
     ),
@@ -32,11 +32,11 @@ SESSION_FIELDS = []
 
 # ISO-639 code
 # for example: de, fr, ja, ko, zh-hans
-LANGUAGE_CODE = 'en'
+LANGUAGE_CODE = 'zh-tw'
 
 # e.g. EUR, GBP, CNY, JPY
-REAL_WORLD_CURRENCY_CODE = 'USD'
 USE_POINTS = True
+POINTS_CUSTOM_NAME = '法幣'
 
 ROOMS = [
     dict(
