@@ -191,9 +191,9 @@ class QualityPage(Page):
         subsession = player.subsession
         quality = player.subsession.quality_signal
         if quality == "高品質":
-            image_path = '/Users/dylan/Desktop/otree/FDV/_static/experiment/blue_65.png'
+            image_path = 'blue_65.png'
         else:
-            image_path = '/Users/dylan/Desktop/otree/FDV/_static/experiment/red_0.png'
+            image_path = 'red_0.png'
 
         return dict(
             quality_signal=subsession.quality_signal,
