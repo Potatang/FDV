@@ -133,6 +133,10 @@ class ComputerPage(Page):
     form_model = 'player'
     form_fields = ['seat']
 
+    @staticmethod
+    def is_displayed(player):
+        return player.round_number == 1
+
 class AdvisorPage(Page):
     form_model = 'player'
 
