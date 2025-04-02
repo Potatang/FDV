@@ -54,6 +54,7 @@ class Player(BasePlayer):
     advisor_recommendation = models.StringField(blank=True)
     client_selection = models.StringField(blank=True)
     round_payoff = models.CurrencyField(initial=0)
+    roundsum_payoff = models.CurrencyField(initial=0)
     seat = models.IntegerField(label='請輸入座位電腦號碼', min=1, max=34)
 
 #FUNCTION
@@ -81,21 +82,12 @@ def creating_session(subsession: Subsession):
     # 進行抽球，根據設定的機率決定抽中好球("$2")還是壞球("$0")
     draw = random.random()  # 生成 0 到 1 的隨機數
     if draw < subsession.product_b_good_ball_probability:
-        subsession.quality_signal = "$2"
+        subsession.quality_signal = "$65"
     else:
         subsession.quality_signal = "$0"
         
 def set_payoffs(group: Group):
     subsession = group.subsession
-    # session = group.session
-
-    # p1 = group.get_player_by_id(1)
-    # p2 = group.get_player_by_id(2)
-
-    # p1.advisor_recommendation = p1.group.recommendation
-    # p1.client_selection = p1.group.selection
-    # p2.advisor_recommendation = p2.group.recommendation
-    # p2.client_selection = p2.group.selection
     
     for p in group.get_players():
         p.advisor_recommendation = p.group.recommendation
@@ -126,6 +118,13 @@ def set_payoffs(group: Group):
             # print(f"{rnd = }")
         # 記錄當回合報酬（轉換為 Currency 型態）
         p.round_payoff = cu(payoff)
+
+        # Compute cumulative (round sum) payoff.
+        if p.round_number == 1:
+            p.roundsum_payoff = p.round_payoff
+        else:
+            previous_round = p.in_round(p.round_number - 1)
+            p.roundsum_payoff = previous_round.roundsum_payoff + p.round_payoff
 
 
 #Pages
@@ -176,25 +175,11 @@ class QualityPage(Page):
     def is_displayed(player):
         return player.role == C.ADVISOR_ROLE
     
-    # @staticmethod
-    # def vars_for_template(player: Player):
-    #     subsession = player.subsession
-    #     # 根據 quality_signal 決定圖片檔名
-    #     if subsession.quality_signal == '高品質':
-    #         image_filename = 'blue_65.png'
-    #     else:
-    #         image_filename = 'red_0.png'
-        
-    #     return dict(
-    #         quality_signal=subsession.quality_signal,
-    #         product_b_good_ball_probability=subsession.product_b_good_ball_probability,
-    #         image_filename=image_filename
-    #     )
     @staticmethod
     def vars_for_template(player: Player):
         subsession = player.subsession
         quality = player.subsession.quality_signal
-        if quality == "高品質":
+        if quality == "$65":
             image_path = 'blue_65.png'
         else:
             image_path = 'red_0.png'
@@ -226,6 +211,7 @@ class RecommendationPage(Page):
                 "commission_product": p.subsession.commission_product,
                 "product_b_quality": p.subsession.product_b_quality,
                 "round_payoff": p.round_payoff,
+                "roundsum_payoff": p.roundsum_payoff,
             }
             for p in player.in_previous_rounds()
         }
@@ -257,6 +243,7 @@ class SelectionPage(Page):
                 "commission_product": p.subsession.commission_product,
                 "product_b_quality": p.subsession.product_b_quality,
                 "round_payoff": p.round_payoff,
+                "roundsum_payoff": p.roundsum_payoff,
             }
             for p in player.in_previous_rounds()
         }
@@ -287,6 +274,7 @@ class HistoryPage(Page):
                 "commission_product": p.subsession.commission_product,
                 "product_b_quality": p.subsession.product_b_quality,
                 "round_payoff": p.round_payoff,
+                "roundsum_payoff": p.roundsum_payoff,
             }
             for p in player.in_all_rounds()
         }
