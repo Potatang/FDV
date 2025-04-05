@@ -125,6 +125,8 @@ def set_payoffs(group: Group):
         else:
             previous_round = p.in_round(p.round_number - 1)
             p.roundsum_payoff = previous_round.roundsum_payoff + p.round_payoff
+        
+        p.participant.experiment_payoff = p.roundsum_payoff
 
 
 #Pages

@@ -15,7 +15,7 @@ SESSION_CONFIGS = [
     #     name='dictator', app_sequence=['dictator'], num_demo_participants=2
     # ),
     dict(
-        name='FDV', app_sequence=['experiment'], num_demo_participants=4
+        name='FDV', app_sequence=['experiment', 'moralcost'], num_demo_participants=2
     ),
 ]
 # if you set a property in SESSION_CONFIG_DEFAULTS, it will be inherited by all configs
@@ -27,7 +27,11 @@ SESSION_CONFIG_DEFAULTS = dict(
     real_world_currency_per_point=5.00, participation_fee=250, doc=""
 )
 
-PARTICIPANT_FIELDS = []
+PARTICIPANT_FIELDS = dict(
+    experiment_payoff = int(),
+    moralcost_payoff = int(),
+    total_payoff = int()
+)
 SESSION_FIELDS = []
 
 # ISO-639 code

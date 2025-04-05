@@ -1,0 +1,21 @@
+{{ block title }}領款收據{{ endblock }}
+{{ block content }}
+以下的問題為領款收據所需的資訊，請務必依指示確實填寫，否則我們無法給予你任何實驗報酬。
+
+註：本頁面的資訊只會提供給負責付款的報帳人員，報帳人員對於實驗設計與實驗結果毫不知情，僅能取得本頁面的資訊，加上這場實驗當中每個編號所對應的報酬金額，因此在這場實驗中，您的所有決策都是匿名的。
+
+<br></br>
+<p>
+    您在本次實驗所獲得的總報酬為：
+    <br>
+    主要實驗 50 回合共：experiment payoff = {{ experiment_payoff }}
+    <br>
+    額外實驗：moral cost payoff = {{ moralcost_payoff }}
+    <br>
+    總共：{{ total_payoff }}
+</p>
+
+    {{ formfields }}
+    {{ next_button }}
+
+{{ endblock }}
