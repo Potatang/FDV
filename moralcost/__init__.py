@@ -364,6 +364,11 @@ class QuestionnairePage(Page):
             errors.append('請在選擇「不會」後填寫您的原因')
 
         return errors if errors else None
+    
+    @staticmethod
+    def before_next_page(player, timeout_happened):
+        # fix client role KeyError: 'moralcost_payoff' since player.participant.moralcost_payoff is assigned in set_payoffs function
+        player.participant.moralcost_payoff = player.moralcost_payoff
 
 class ResultsWaitPage(WaitPage):    
     @staticmethod
