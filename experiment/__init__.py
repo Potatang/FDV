@@ -99,20 +99,20 @@ class Player(BasePlayer):
     question5 = models.StringField(
         label='5. 以下敘述何者正確？產品B…',
         choices=[
-            ('A', 'A. …是一個包含4 顆藍色球（$65）和 1 顆紅色球（$0）的容器（如果其品質為高品質），以及一個包含2 顆藍色球（$65）和 3 顆紅色球（$0）的容器（如果其品質為低品質）。'),
-            ('B', 'B. …是一個包含3 顆藍色球（$2）和 2 顆紅色球（$0）的容器（如果其品質為高品質），以及一個包含3 顆藍色球（$2）和 2 顆紅色球（$0）的容器（如果其品質為低品質）。'),
-            ('C', 'C. …是一個包含5 顆藍色球（$2）和 0 顆紅色球（$0）的容器（如果其品質為高品質），以及一個包含0 顆藍色球（$2）和 5 顆紅色球（$0）的容器（如果其品質為低品質）。'),
+            ('A', 'A. …是一個包含4 顆藍色球（$65）和 1 顆紅色球（$0）的產品（如果其品質為高品質），以及一個包含2 顆藍色球（$65）和 3 顆紅色球（$0）的產品（如果其品質為低品質）。'),
+            ('B', 'B. …是一個包含3 顆藍色球（$65）和 2 顆紅色球（$0）的產品（如果其品質為高品質），以及一個包含3 顆藍色球（$65）和 2 顆紅色球（$0）的產品（如果其品質為低品質）。'),
+            ('C', 'C. …是一個包含5 顆藍色球（$65）和 0 顆紅色球（$0）的產品（如果其品質為高品質），以及一個包含0 顆藍色球（$65）和 5 顆紅色球（$0）的產品（如果其品質為低品質）。'),
         ],
         widget=widgets.RadioSelect
     )
 
     question6 = models.StringField(
-        label='6. 假設客戶選擇了產品 A，客戶獲得 $2（即抽到藍色球）的機率是多少？？',
+        label='6. 假設客戶選擇了產品 A，客戶獲得 $65（即抽到藍色球）的機率是多少？？',
         choices=[
-            ('A', 'A. 1/5，因為產品 A 中 5 顆球中有 1 顆是藍色球（$2）。'),
-            ('B', 'B. 2/5，因為產品 A 中 5 顆球中有 2 顆是藍色球（$2）。'),
-            ('C', 'C. 3/5，因為產品 A 中 5 顆球中有 3 顆是藍色球（$2）。'),
-            ('D', 'D. 5/5，因為產品 A 中 5 顆球中有 5 顆是藍色球（$2）。'),
+            ('A', 'A. 1/5，因為產品 A 中 5 顆球中有 1 顆是藍色球（$65）。'),
+            ('B', 'B. 2/5，因為產品 A 中 5 顆球中有 2 顆是藍色球（$65）。'),
+            ('C', 'C. 3/5，因為產品 A 中 5 顆球中有 3 顆是藍色球（$65）。'),
+            ('D', 'D. 5/5，因為產品 A 中 5 顆球中有 5 顆是藍色球（$65）。'),
         ],
         widget=widgets.RadioSelect
     )
@@ -299,6 +299,7 @@ class RecommendationPage(Page):
                 "client_selection": p.client_selection,
                 "commission_product": p.subsession.commission_product,
                 "product_b_quality": p.subsession.product_b_quality,
+                "quality_signal": p.subsession.quality_signal,
                 "round_payoff": p.round_payoff,
                 "roundsum_payoff": p.roundsum_payoff,
             }
@@ -331,6 +332,7 @@ class SelectionPage(Page):
                 "client_selection": p.client_selection,
                 "commission_product": p.subsession.commission_product,
                 "product_b_quality": p.subsession.product_b_quality,
+                "quality_signal": p.subsession.quality_signal,
                 "round_payoff": p.round_payoff,
                 "roundsum_payoff": p.roundsum_payoff,
             }
@@ -362,6 +364,7 @@ class HistoryPage(Page):
                 "client_selection": p.client_selection,
                 "commission_product": p.subsession.commission_product,
                 "product_b_quality": p.subsession.product_b_quality,
+                "quality_signal": p.subsession.quality_signal,
                 "round_payoff": p.round_payoff,
                 "roundsum_payoff": p.roundsum_payoff,
             }

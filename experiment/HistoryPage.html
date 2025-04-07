@@ -7,7 +7,7 @@
         <thead>
         <tr>
             <th>回合</th>
-            <!-- <th>Id in Group</th> -->
+            <th>品質訊息</th>
             <th>佣金產品</th>
             <th>產品B的實際品質</th>
             <th>推薦人決策</th>
@@ -20,7 +20,7 @@
         {{ for key, record in decision_record.items() }}
             <tr>
             <td>{{ record.round_number }}</td>
-            <!-- <td>{{ record.id_in_group }}</td> -->
+            <td>{{ record.quality_signal }}</td>
             <td>{{ record.commission_product }}</td>
             <td>{{ record.product_b_quality }}</td>
             <td>{{ record.advisor_recommendation }}</td>
