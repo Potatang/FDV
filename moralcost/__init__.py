@@ -1,5 +1,5 @@
 from otree.api import *
-
+import re
 
 doc = """
 Your app description
@@ -65,6 +65,7 @@ class Player(BasePlayer):
 
     moralcost_payoff = models.CurrencyField(initial=0)
     total_payoff = models.CurrencyField(initial=0)
+    twd_payoff = models.CurrencyField(initial=0)
 
     age = models.IntegerField(
         min = 0,
@@ -192,18 +193,12 @@ class Player(BasePlayer):
     )
     reason2 = models.StringField(
         blank=True,
-        label='若您不會，請問原因為何？'
+        label='若您選擇不會，請問原因為何？'
     )
 
     email = models.StringField(
-        label="請輸入你常用的 Email(若領款資訊有任何問題，報帳人員將以此方式聯絡您。)",
-        blank=False,
-        # 自訂驗證函數
-        validate=lambda email: (
-            "請輸入有效的 Email 地址"
-            if not re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", email)
-            else None
-        )
+        label="請輸入您常用的 Email(若領款資訊有任何問題，報帳人員將以此方式聯絡您。)",
+        blank=False
     )
 
     name = models.StringField(
@@ -214,11 +209,6 @@ class Player(BasePlayer):
     id_number = models.StringField(
         label="身分證字號",
         blank=False,
-        validate=lambda s: (
-            "請輸入有效的身分證字號"
-            if not re.match(r'^[A-Z][12]\d{8}$', s.upper())
-            else None
-        )
     )
 
     student_id = models.StringField(
@@ -229,11 +219,6 @@ class Player(BasePlayer):
     zipcode = models.StringField(
         label="郵遞區號",
         blank=False,
-        validate=lambda z: (
-            "請輸入 3 或 5 碼的郵遞區號"
-            if not re.match(r'^\d{3}(\d{2})?$', z)
-            else None
-        )
     )
 
     address = models.LongStringField(
@@ -257,7 +242,7 @@ def set_payoffs(group: Group):
             import random
             # 從中隨機抽取一個
             chosen_recommendation = random.choice(recommendations)
-            print(f"{chosen_recommendation = }")
+            # print(f"{chosen_recommendation = }")
 
             # 根據推薦內容給報酬
             if chosen_recommendation == 'X':
@@ -270,6 +255,47 @@ def set_payoffs(group: Group):
             pass
         
         p.participant.moralcost_payoff = p.moralcost_payoff 
+
+def validate_id_number(id_number):
+    """
+    驗證台灣身分證字號的合法性
+    規則：
+      1. 總長度必須是 10 個字元
+      2. 第一個字母必須存在於 mapping 中
+      3. 第二個字元必須為 '1' 或 '2'
+      4. 後面 8 個字元必須全為數字
+      5. 驗證碼算法：
+         - 將第一個英文字母轉換為對應數值（mapping）
+         - 將該數值分為兩位數：十位數乘以 1、個位數乘以 9
+         - 後續各位數分別乘以權重：8, 7, 6, 5, 4, 3, 2, 1, 1
+         - 加總後如果 mod 10 為 0 則合法
+    """
+    if len(id_number) != 10:
+        return False
+    # 第一個必須是英文字母，第二個必須是 1 或 2
+    if not id_number[0].isalpha() or id_number[1] not in ['1', '2']:
+        return False
+    # 後面 8 位必須都是數字
+    if not id_number[2:].isdigit():
+        return False
+
+    mapping = {
+        'A':10, 'B':11, 'C':12, 'D':13, 'E':14, 'F':15, 'G':16, 'H':17,
+        'I':34, 'J':18, 'K':19, 'L':20, 'M':21, 'N':22, 'O':35, 'P':23,
+        'Q':24, 'R':25, 'S':26, 'T':27, 'U':28, 'V':29, 'W':32, 'X':30,
+        'Y':31, 'Z':33
+    }
+    letter = id_number[0].upper()
+    if letter not in mapping:
+        return False
+    first_value = mapping[letter]
+    # 計算 checksum：第一個數字拆成兩位，分別乘以 1 與 9
+    total = (first_value // 10) + (first_value % 10 * 9)
+    # 後面 9 位的權重依序為 8,7,6,5,4,3,2,1,1
+    weights = [8, 7, 6, 5, 4, 3, 2, 1, 1]
+    for i, weight in enumerate(weights):
+        total += int(id_number[i+1]) * weight
+    return total % 10 == 0
 
 # PAGES
 class InstructionPage(Page):
@@ -354,10 +380,47 @@ class ReceiptPage(Page):
     @staticmethod
     def vars_for_template(player):
         player.total_payoff = player.participant.experiment_payoff + player.participant.moralcost_payoff
+        player.twd_payoff = round(float(player.total_payoff) / 5) + 250
         player.participant.total_payoff = player.total_payoff
+        player.participant.twd_payoff = player.twd_payoff
+
         
         return dict(experiment_payoff=player.participant.experiment_payoff,
                     moralcost_payoff=player.participant.moralcost_payoff,
-                    total_payoff=player.participant.total_payoff)
+                    total_payoff=player.participant.total_payoff,
+                    twd_payoff=player.participant.twd_payoff,
+                    )
 
-page_sequence = [InstructionPage, RecommendationPage, ResultsWaitPage, QuestionnairePage, ReceiptPage]
+    @staticmethod
+    def error_message(player, values): # 使用 error_message() 來限制受試者回答的資料類型或範圍。
+        email = values.get('email', '')
+        # 使用正規表示式檢查 email 格式
+        if not re.fullmatch(r'[\w\.-]+@[\w\.-]+\.\w+', email):
+            return '請輸入有效的電子郵件地址'
+        
+        id_num = values.get('id_number', '')
+        if not validate_id_number(id_num):
+            return '請輸入有效的身分證字號'
+        
+        zipcode = values.get('zipcode', '')
+        if not re.fullmatch(r'\d{3}', zipcode):
+            return '請輸入有效的郵遞區號 (3位數字)'
+        
+class EndingPage(Page):
+    form_model = 'player'
+
+    @staticmethod
+    def vars_for_template(player):
+        player.total_payoff = player.participant.experiment_payoff + player.participant.moralcost_payoff
+        player.twd_payoff = round(float(player.total_payoff) / 5) + 250
+        player.participant.total_payoff = player.total_payoff
+        player.participant.twd_payoff = player.twd_payoff
+
+        
+        return dict(experiment_payoff=player.participant.experiment_payoff,
+                    moralcost_payoff=player.participant.moralcost_payoff,
+                    total_payoff=player.participant.total_payoff,
+                    twd_payoff=player.participant.twd_payoff,
+                    )
+
+page_sequence = [InstructionPage, RecommendationPage, ResultsWaitPage, QuestionnairePage, ReceiptPage, EndingPage]

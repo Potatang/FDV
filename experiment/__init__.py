@@ -56,7 +56,66 @@ class Player(BasePlayer):
     round_payoff = models.CurrencyField(initial=0)
     roundsum_payoff = models.CurrencyField(initial=0)
     seat = models.IntegerField(label='請輸入座位電腦號碼', min=1, max=34)
+    question1 = models.StringField(
+        label='1. 一顆紅色的球值多少錢？',
+        choices=[
+            ('A', 'A. $0'),
+            ('B', 'B. $15'),
+            ('C', 'C. $65'),
+        ],
+        widget=widgets.RadioSelect
+    )
 
+    question2 = models.StringField(
+        label='2. 一顆藍色的球值多少錢？',
+        choices=[
+            ('A', 'A. $0'),
+            ('B', 'B. $15'),
+            ('C', 'C. $65'),
+        ],
+        widget=widgets.RadioSelect
+    )
+
+    question3 = models.StringField(
+        label='3. 產品A中有多少顆藍色的球？',
+        choices=[
+            ('A', 'A. 2顆'),
+            ('B', 'B. 3顆'),
+            ('C', 'C. 4顆'),
+        ],
+        widget=widgets.RadioSelect
+    )
+
+    question4 = models.StringField(
+        label='4. 產品B可能是高品質的機率為何？',
+        choices=[
+            ('A', 'A. 25%'),
+            ('B', 'B. 50%'),
+            ('C', 'C. 75%'),
+        ],
+        widget=widgets.RadioSelect
+    )
+
+    question5 = models.StringField(
+        label='5. 以下敘述何者正確？產品B…',
+        choices=[
+            ('A', 'A. …是一個包含4 顆藍色球（$65）和 1 顆紅色球（$0）的容器（如果其品質為高品質），以及一個包含2 顆藍色球（$65）和 3 顆紅色球（$0）的容器（如果其品質為低品質）。'),
+            ('B', 'B. …是一個包含3 顆藍色球（$2）和 2 顆紅色球（$0）的容器（如果其品質為高品質），以及一個包含3 顆藍色球（$2）和 2 顆紅色球（$0）的容器（如果其品質為低品質）。'),
+            ('C', 'C. …是一個包含5 顆藍色球（$2）和 0 顆紅色球（$0）的容器（如果其品質為高品質），以及一個包含0 顆藍色球（$2）和 5 顆紅色球（$0）的容器（如果其品質為低品質）。'),
+        ],
+        widget=widgets.RadioSelect
+    )
+
+    question6 = models.StringField(
+        label='6. 假設客戶選擇了產品 A，客戶獲得 $2（即抽到藍色球）的機率是多少？？',
+        choices=[
+            ('A', 'A. 1/5，因為產品 A 中 5 顆球中有 1 顆是藍色球（$2）。'),
+            ('B', 'B. 2/5，因為產品 A 中 5 顆球中有 2 顆是藍色球（$2）。'),
+            ('C', 'C. 3/5，因為產品 A 中 5 顆球中有 3 顆是藍色球（$2）。'),
+            ('D', 'D. 5/5，因為產品 A 中 5 顆球中有 5 顆是藍色球（$2）。'),
+        ],
+        widget=widgets.RadioSelect
+    )
 #FUNCTION
 def creating_session(subsession: Subsession):
     import random
@@ -137,7 +196,35 @@ class ComputerPage(Page):
     @staticmethod
     def is_displayed(player):
         return player.round_number == 1
+    
+class ComprehensionCheck(Page):
+    form_model = 'player'
+    form_fields = ['question1', 'question2', 'question3','question4', 'question5', 'question6']
 
+    # 整頁驗證：使用 error_message 檢查是否答對
+    def error_message(self, values):
+        # values 是使用者在這個 form 裡填的所有欄位
+        # 比如 values['question1'] 就是 question1 的答案
+        correct_answers = {
+            'question1': 'A',
+            'question2': 'B',
+            'question3': 'B',
+            'question4': 'B',
+            'question5': 'A',
+            'question6': 'C',
+        }
+        errors = []
+        for q_name, correct_ans in correct_answers.items():
+            if values[q_name] != correct_ans:
+                errors.append(q_name)
+
+        if errors:
+            return "有一題或以上答錯了，請仔細閱讀實驗說明並修正答案，若有任何問題請舉手，實驗人員會過去協助。"
+
+    @staticmethod
+    def is_displayed(player):
+        return player.round_number == 1
+    
 class AdvisorPage(Page):
     form_model = 'player'
 
@@ -294,6 +381,7 @@ class ShuffleWaitPage(WaitPage):
 #PageSequence
 page_sequence = [
     ComputerPage,
+    ComprehensionCheck,
     AdvisorPage,
     ClientPage,
     IncentivePage,
