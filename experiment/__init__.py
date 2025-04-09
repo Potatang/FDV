@@ -55,7 +55,7 @@ class Player(BasePlayer):
     client_selection = models.StringField(blank=True)
     round_payoff = models.CurrencyField(initial=0)
     roundsum_payoff = models.CurrencyField(initial=0)
-    seat = models.IntegerField(label='請輸入座位電腦號碼', min=1, max=34)
+    seat = models.IntegerField(blank = False, label='請輸入座位電腦號碼', min=1, max=34)
     question1 = models.StringField(
         label='1. 一顆紅色的球值多少錢？',
         choices=[
@@ -207,7 +207,7 @@ class ComprehensionCheck(Page):
         # 比如 values['question1'] 就是 question1 的答案
         correct_answers = {
             'question1': 'A',
-            'question2': 'B',
+            'question2': 'C',
             'question3': 'B',
             'question4': 'B',
             'question5': 'A',

@@ -226,6 +226,9 @@ class Player(BasePlayer):
         blank=False,
     )
 
+    belief = models.IntegerField(blank = False, label="請問您覺得有多高的機率他們會選擇推薦產品B？", min=0, max=100)
+
+
 def set_payoffs(group: Group):   
     for p in group.get_players():
         p.moralcost_payoff = cu(0)
@@ -297,6 +300,8 @@ def validate_id_number(id_number):
         total += int(id_number[i+1]) * weight
     return total % 10 == 0
 
+
+
 # PAGES
 class InstructionPage(Page):
     
@@ -324,6 +329,21 @@ class RecommendationPage(Page):
             image_path6='orange_0.png'
         )
 
+class BeliefPage(Page):
+
+    form_model = 'player'
+    form_fields = ['belief']
+
+    @staticmethod
+    def is_displayed(player):
+        return player.role == C.ADVISOR_ROLE
+    
+    @staticmethod
+    def vars_for_template(player: Player):
+        return dict(
+            image_path1='main.png',
+            image_path2='red_0.png'
+        )
 
 class QuestionnairePage(Page):
 
@@ -380,7 +400,7 @@ class ResultsWaitPage(WaitPage):
 class ReceiptPage(Page):
 
     form_model = 'player'
-    form_fields = ['email', 'name', 'id_number', 'student_id', 'zipcode', ]
+    form_fields = ['email', 'name', 'id_number', 'student_id', 'zipcode', 'address']
 
     @staticmethod
     def vars_for_template(player):
@@ -411,6 +431,11 @@ class ReceiptPage(Page):
         if not re.fullmatch(r'\d{3}', zipcode):
             return '請輸入有效的郵遞區號 (3位數字)'
         
+        student_id = values.get('student_id', '')
+        if not re.fullmatch(r'[A-Za-z]\d{8}', student_id):
+            return '請輸入有效的學號（格式為1個英文字母 + 8位數字）'
+        
+        
 class EndingPage(Page):
     form_model = 'player'
 
@@ -428,4 +453,11 @@ class EndingPage(Page):
                     twd_payoff=player.participant.twd_payoff,
                     )
 
-page_sequence = [InstructionPage, RecommendationPage, ResultsWaitPage, QuestionnairePage, ReceiptPage, EndingPage]
+page_sequence = [InstructionPage,
+                RecommendationPage,
+                BeliefPage,
+                ResultsWaitPage,
+                QuestionnairePage,
+                ReceiptPage,
+                EndingPage]
+
