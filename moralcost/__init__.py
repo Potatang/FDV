@@ -226,7 +226,7 @@ class Player(BasePlayer):
         blank=False,
     )
 
-    belief = models.IntegerField(blank = False, label="請問您覺得有多高的機率他們會選擇推薦產品B？", min=0, max=100)
+    belief = models.IntegerField(blank = False, label="請您輸入一個數字 (範圍從 0 到 100），用來表示他們選擇推薦產品B的機率。舉例來說，若您認為有七成機率，請填寫「70」。", min=0, max=100)
 
 
 def set_payoffs(group: Group):   
