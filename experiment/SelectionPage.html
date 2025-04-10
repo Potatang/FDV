@@ -13,12 +13,12 @@
             <thead>
                 <tr>
                     <th>回合</th>
-                    <th>品質訊息</th>
                     <th>佣金產品</th>
-                    <th>產品B的實際品質</th>
+                    <th>產品B品質訊息</th>
                     <th>推薦人決策</th>
                     <th>客戶決策</th>
                     <th>回合報酬</th>
+                    <th>產品B實際品質</th>
                     <th>累計報酬</th>
                 </tr>
             </thead>
@@ -28,10 +28,10 @@
                         <td>{{ record.round_number }}</td>
                         <td>{{ record.quality_signal }}</td>
                         <td>{{ record.commission_product }}</td>
-                        <td>{{ record.product_b_quality }}</td>
                         <td>{{ record.advisor_recommendation }}</td>
                         <td>{{ record.client_selection }}</td>
                         <td>{{ record.round_payoff }}</td>
+                        <td>{{ record.product_b_quality }}</td>
                         <td>{{ record.roundsum_payoff }}</td>
                     </tr>
                 {{ endfor }}
