@@ -56,28 +56,28 @@ class Player(BasePlayer):
     round_payoff = models.CurrencyField(initial=0)
     roundsum_payoff = models.CurrencyField(initial=0)
     seat = models.IntegerField(blank = False, label='請輸入座位電腦號碼', min=1, max=34)
+    # question1 = models.StringField(
+    #     label='1. 一顆紅色的球值多少錢？',
+    #     choices=[
+    #         ('A', 'A. $0'),
+    #         ('B', 'B. $15'),
+    #         ('C', 'C. $65'),
+    #     ],
+    #     widget=widgets.RadioSelect
+    # )
+
+    # question2 = models.StringField(
+    #     label='2. 一顆藍色的球值多少錢？',
+    #     choices=[
+    #         ('A', 'A. $0'),
+    #         ('B', 'B. $15'),
+    #         ('C', 'C. $65'),
+    #     ],
+    #     widget=widgets.RadioSelect
+    # )
+
     question1 = models.StringField(
-        label='1. 一顆紅色的球值多少錢？',
-        choices=[
-            ('A', 'A. $0'),
-            ('B', 'B. $15'),
-            ('C', 'C. $65'),
-        ],
-        widget=widgets.RadioSelect
-    )
-
-    question2 = models.StringField(
-        label='2. 一顆藍色的球值多少錢？',
-        choices=[
-            ('A', 'A. $0'),
-            ('B', 'B. $15'),
-            ('C', 'C. $65'),
-        ],
-        widget=widgets.RadioSelect
-    )
-
-    question3 = models.StringField(
-        label='3. 產品A中有多少顆藍色的球？',
+        label='1. 產品A中有多少顆藍色的球？',
         choices=[
             ('A', 'A. 2顆'),
             ('B', 'B. 3顆'),
@@ -86,8 +86,8 @@ class Player(BasePlayer):
         widget=widgets.RadioSelect
     )
 
-    question4 = models.StringField(
-        label='4. 產品B可能是高品質的機率為何？',
+    question2 = models.StringField(
+        label='2. 產品B可能是高品質的機率為何？',
         choices=[
             ('A', 'A. 25%'),
             ('B', 'B. 50%'),
@@ -96,8 +96,8 @@ class Player(BasePlayer):
         widget=widgets.RadioSelect
     )
 
-    question5 = models.StringField(
-        label='5. 以下敘述何者正確？產品B…',
+    question3 = models.StringField(
+        label='3. 以下敘述何者正確？產品B…',
         choices=[
             ('A', 'A. …是一個包含4 顆藍色球（$65）和 1 顆紅色球（$0）的產品（如果其品質為高品質），以及一個包含2 顆藍色球（$65）和 3 顆紅色球（$0）的產品（如果其品質為低品質）。'),
             ('B', 'B. …是一個包含3 顆藍色球（$65）和 2 顆紅色球（$0）的產品（如果其品質為高品質），以及一個包含3 顆藍色球（$65）和 2 顆紅色球（$0）的產品（如果其品質為低品質）。'),
@@ -106,13 +106,24 @@ class Player(BasePlayer):
         widget=widgets.RadioSelect
     )
 
-    question6 = models.StringField(
-        label='6. 假設客戶選擇了產品 A，客戶獲得 $65（即抽到藍色球）的機率是多少？？',
+    question4 = models.StringField(
+        label='4. 假設客戶選擇了產品 A，客戶獲得 $65（即抽到藍色球）的機率是多少？？',
         choices=[
             ('A', 'A. 1/5，因為產品 A 中 5 顆球中有 1 顆是藍色球（$65）。'),
             ('B', 'B. 2/5，因為產品 A 中 5 顆球中有 2 顆是藍色球（$65）。'),
             ('C', 'C. 3/5，因為產品 A 中 5 顆球中有 3 顆是藍色球（$65）。'),
             ('D', 'D. 5/5，因為產品 A 中 5 顆球中有 5 顆是藍色球（$65）。'),
+        ],
+        widget=widgets.RadioSelect
+    )
+
+    question5 = models.StringField(
+        label='5. 假設電腦從客戶選擇的產品中抽到紅色球，請問他的報酬為多少？',
+        choices=[
+            ('A', 'A. $0'),
+            ('B', 'B. $5'),
+            ('C', 'C. $15'),
+            ('D', 'D. $65'),
         ],
         widget=widgets.RadioSelect
     )
@@ -199,19 +210,18 @@ class ComputerPage(Page):
     
 class ComprehensionCheck(Page):
     form_model = 'player'
-    form_fields = ['question1', 'question2', 'question3','question4', 'question5', 'question6']
+    form_fields = ['question1', 'question2', 'question3', 'question4', 'question5']
 
     # 整頁驗證：使用 error_message 檢查是否答對
     def error_message(self, values):
         # values 是使用者在這個 form 裡填的所有欄位
         # 比如 values['question1'] 就是 question1 的答案
         correct_answers = {
-            'question1': 'A',
-            'question2': 'C',
-            'question3': 'B',
-            'question4': 'B',
-            'question5': 'A',
-            'question6': 'C',
+            'question1': 'B',
+            'question2': 'B',
+            'question3': 'A',
+            'question4': 'C',
+            'question5': 'A'
         }
         errors = []
         for q_name, correct_ans in correct_answers.items():

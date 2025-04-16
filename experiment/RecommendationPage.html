@@ -17,7 +17,7 @@
                 <tr>
                     <th>回合</th>
                     <th>佣金產品</th>
-                    <th>產品B品質訊息</th>
+                    <th>推薦人看到的球</th>
                     <th>推薦人決策</th>
                     <th>客戶決策</th>
                     <th>回合報酬</th>
@@ -29,8 +29,8 @@
                 {{ for key, record in previous_decision_record.items() }}
                     <tr>
                         <td>{{ record.round_number }}</td>
-                        <td>{{ record.quality_signal }}</td>
                         <td>{{ record.commission_product }}</td>
+                        <td>{{ record.quality_signal }}</td>
                         <td>{{ record.advisor_recommendation }}</td>
                         <td>{{ record.client_selection }}</td>
                         <td>{{ record.round_payoff }}</td>
