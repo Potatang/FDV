@@ -56,25 +56,8 @@ class Player(BasePlayer):
     round_payoff = models.CurrencyField(initial=0)
     roundsum_payoff = models.CurrencyField(initial=0)
     seat = models.IntegerField(blank = False, label='請輸入座位電腦號碼', min=1, max=34)
-    # question1 = models.StringField(
-    #     label='1. 一顆紅色的球值多少錢？',
-    #     choices=[
-    #         ('A', 'A. $0'),
-    #         ('B', 'B. $15'),
-    #         ('C', 'C. $65'),
-    #     ],
-    #     widget=widgets.RadioSelect
-    # )
-
-    # question2 = models.StringField(
-    #     label='2. 一顆藍色的球值多少錢？',
-    #     choices=[
-    #         ('A', 'A. $0'),
-    #         ('B', 'B. $15'),
-    #         ('C', 'C. $65'),
-    #     ],
-    #     widget=widgets.RadioSelect
-    # )
+    partner_payoff = models.CurrencyField(initial=0)
+    
 
     question1 = models.StringField(
         label='1. 產品A中有多少顆藍色的球？',
@@ -198,6 +181,10 @@ def set_payoffs(group: Group):
         
         p.participant.experiment_payoff = p.roundsum_payoff
 
+    for p in group.get_players():
+        partner = p.get_others_in_group()[0] if p.get_others_in_group() else None
+        p.partner_payoff = partner.round_payoff if partner else None
+
 
 #Pages
 class ComputerPage(Page):
@@ -312,6 +299,9 @@ class RecommendationPage(Page):
                 "quality_signal": p.subsession.quality_signal,
                 "round_payoff": p.round_payoff,
                 "roundsum_payoff": p.roundsum_payoff,
+                "quality_image": 'ProductB_high.png' if p.subsession.product_b_quality == "高品質" else 'ProductB_low.png',
+                "producta_image": 'ProductA.png',
+                "partner_payoff": p.partner_payoff,
             }
             for p in player.in_previous_rounds()
         }
@@ -345,6 +335,9 @@ class SelectionPage(Page):
                 "quality_signal": p.subsession.quality_signal,
                 "round_payoff": p.round_payoff,
                 "roundsum_payoff": p.roundsum_payoff,
+                "quality_image": 'ProductB_high.png' if p.subsession.product_b_quality == "高品質" else 'ProductB_low.png',
+                "producta_image": 'ProductA.png',
+                "partner_payoff": p.partner_payoff,
             }
             for p in player.in_previous_rounds()
         }
@@ -358,13 +351,9 @@ class ResultsWaitPage(WaitPage):
     after_all_players_arrive = set_payoffs
 
 class HistoryPage(Page):
+    
     @staticmethod
     def vars_for_template(player: Player):
-        # player.advisor_recommendation = player.group.recommendation
-        # player.client_selection = player.group.selection
-
-        # print(f"{player = }")
-        # print(f"{player.in_all_rounds() = }")
 
         decision_record = {
             (p.round_number, p.id_in_group): {
@@ -377,13 +366,17 @@ class HistoryPage(Page):
                 "quality_signal": p.subsession.quality_signal,
                 "round_payoff": p.round_payoff,
                 "roundsum_payoff": p.roundsum_payoff,
+                "quality_image": 'ProductB_high.png' if p.subsession.product_b_quality == "高品質" else 'ProductB_low.png',
+                "producta_image": 'ProductA.png',
+                "partner_payoff": p.partner_payoff,
             }
             for p in player.in_all_rounds()
         }
-        # print(decision_record)
+        # print(decision_record)        
 
         return dict(decision_record=decision_record)
 
+    
 class ShuffleWaitPage(WaitPage):
     wait_for_all_groups = True
 
