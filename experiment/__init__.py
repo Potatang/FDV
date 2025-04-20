@@ -1,5 +1,6 @@
 from otree.api import *
 import random
+import time
 
 doc = """
 Advisor-Client Recommendation Experiment
@@ -57,6 +58,9 @@ class Player(BasePlayer):
     roundsum_payoff = models.CurrencyField(initial=0)
     seat = models.IntegerField(blank = False, label='請輸入座位電腦號碼', min=1, max=34)
     partner_payoff = models.CurrencyField(initial=0)
+    page_start_time = models.FloatField()        # 進入頁面時的 timestamp
+    recommendation_time = models.FloatField()    # 推薦所花的時間（秒）
+    selection_time = models.FloatField() 
     
 
     question1 = models.StringField(
@@ -187,6 +191,14 @@ def set_payoffs(group: Group):
 
 
 #Pages
+import time
+
+class TimedPage(Page):
+    @staticmethod
+    def vars_for_template(player: Player):
+        player.page_start_time = time.time()
+        return {}
+
 class ComputerPage(Page):
     form_model = 'player'
     form_fields = ['seat']
@@ -285,6 +297,10 @@ class RecommendationPage(Page):
         return player.role == C.ADVISOR_ROLE
     
     @staticmethod
+    def before_next_page(player: Player, timeout_happened):
+        player.recommendation_time = time.time() - player.page_start_time
+
+    @staticmethod
     def vars_for_template(player: Player):
         subsession = player.subsession
         
@@ -319,6 +335,10 @@ class SelectionPage(Page):
     @staticmethod
     def is_displayed(player):
         return player.role == C.CLIENT_ROLE
+
+    @staticmethod
+    def before_next_page(player: Player, timeout_happened):
+        player.selection_time = time.time() - player.page_start_time
 
     @staticmethod
     def vars_for_template(player: Player):
