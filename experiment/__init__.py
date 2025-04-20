@@ -191,13 +191,6 @@ def set_payoffs(group: Group):
 
 
 #Pages
-import time
-
-class TimedPage(Page):
-    @staticmethod
-    def vars_for_template(player: Player):
-        player.page_start_time = time.time()
-        return {}
 
 class ComputerPage(Page):
     form_model = 'player'
@@ -296,9 +289,6 @@ class RecommendationPage(Page):
     def is_displayed(player):
         return player.role == C.ADVISOR_ROLE
     
-    @staticmethod
-    def before_next_page(player: Player, timeout_happened):
-        player.recommendation_time = time.time() - player.page_start_time
 
     @staticmethod
     def vars_for_template(player: Player):
@@ -336,9 +326,6 @@ class SelectionPage(Page):
     def is_displayed(player):
         return player.role == C.CLIENT_ROLE
 
-    @staticmethod
-    def before_next_page(player: Player, timeout_happened):
-        player.selection_time = time.time() - player.page_start_time
 
     @staticmethod
     def vars_for_template(player: Player):
