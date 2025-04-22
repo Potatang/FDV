@@ -68,8 +68,8 @@ class Player(BasePlayer):
     twd_payoff = models.CurrencyField(initial=0)
 
     age = models.IntegerField(
-        min = 0,
-        max = 99,
+        min = 18,
+        max = 40,
         label = '請問您的年齡是',
     )
 
@@ -432,8 +432,8 @@ class ReceiptPage(Page):
             return '請輸入有效的郵遞區號 (3位數字)'
         
         student_id = values.get('student_id', '')
-        if not re.fullmatch(r'[A-Za-z]\d{8}', student_id):
-            return '請輸入有效的學號（格式為1個英文字母 + 8位數字）'
+        if not re.fullmatch(r'[A-Za-z0-9]{9}', student_id):
+            return '請輸入有效的學號（格式為 9 碼英文或數字組合）'
         
         
 class EndingPage(Page):

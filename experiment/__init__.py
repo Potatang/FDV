@@ -66,9 +66,9 @@ class Player(BasePlayer):
     question1 = models.StringField(
         label='1. 產品A中有多少顆藍色的球？',
         choices=[
-            ('A', 'A. 2顆'),
-            ('B', 'B. 3顆'),
-            ('C', 'C. 4顆'),
+            ('A', '(A) 2顆'),
+            ('B', '(B) 3顆'),
+            ('C', '(C) 4顆'),
         ],
         widget=widgets.RadioSelect
     )
@@ -76,44 +76,45 @@ class Player(BasePlayer):
     question2 = models.StringField(
         label='2. 產品B可能是高品質的機率為何？',
         choices=[
-            ('A', 'A. 25%'),
-            ('B', 'B. 50%'),
-            ('C', 'C. 75%'),
+            ('A', '(A) 25%'),
+            ('B', '(B) 50%'),
+            ('C', '(C) 75%'),
         ],
         widget=widgets.RadioSelect
     )
 
     question3 = models.StringField(
-        label='3. 以下敘述何者正確？產品B…',
+        label='3. 假設電腦從客戶選擇的產品中抽到紅色球，請問他的報酬為多少？',
         choices=[
-            ('A', 'A. …是一個包含4 顆藍色球（$65）和 1 顆紅色球（$0）的產品（如果其品質為高品質），以及一個包含2 顆藍色球（$65）和 3 顆紅色球（$0）的產品（如果其品質為低品質）。'),
-            ('B', 'B. …是一個包含3 顆藍色球（$65）和 2 顆紅色球（$0）的產品（如果其品質為高品質），以及一個包含3 顆藍色球（$65）和 2 顆紅色球（$0）的產品（如果其品質為低品質）。'),
-            ('C', 'C. …是一個包含5 顆藍色球（$65）和 0 顆紅色球（$0）的產品（如果其品質為高品質），以及一個包含0 顆藍色球（$65）和 5 顆紅色球（$0）的產品（如果其品質為低品質）。'),
+            ('A', '(A) $0'),
+            ('B', '(B) $5'),
+            ('C', '(C) $15'),
+            ('D', '(D) $65'),
         ],
         widget=widgets.RadioSelect
     )
 
     question4 = models.StringField(
-        label='4. 假設客戶選擇了產品 A，客戶獲得 $65（即抽到藍色球）的機率是多少？？',
+        label='4. 假設客戶選擇了產品 A，客戶獲得 $65（即抽到藍色球）的機率是多少？',
         choices=[
-            ('A', 'A. 1/5，因為產品 A 中 5 顆球中有 1 顆是藍色球（$65）。'),
-            ('B', 'B. 2/5，因為產品 A 中 5 顆球中有 2 顆是藍色球（$65）。'),
-            ('C', 'C. 3/5，因為產品 A 中 5 顆球中有 3 顆是藍色球（$65）。'),
-            ('D', 'D. 5/5，因為產品 A 中 5 顆球中有 5 顆是藍色球（$65）。'),
+            ('A', '(A) 20%，因為產品 A 中 5 顆球中有 1 顆是藍色球（$65）。'),
+            ('B', '(B) 40%，因為產品 A 中 5 顆球中有 2 顆是藍色球（$65）。'),
+            ('C', '(C) 60%，因為產品 A 中 5 顆球中有 3 顆是藍色球（$65）。'),
+            ('D', '(D) 100%，因為產品 A 中 5 顆球中有 5 顆是藍色球（$65）。'),
         ],
         widget=widgets.RadioSelect
     )
 
     question5 = models.StringField(
-        label='5. 假設電腦從客戶選擇的產品中抽到紅色球，請問他的報酬為多少？',
+        label='5. 以下敘述何者正確？',
         choices=[
-            ('A', 'A. $0'),
-            ('B', 'B. $5'),
-            ('C', 'C. $15'),
-            ('D', 'D. $65'),
+            ('A', '(A) 產品B包含4 顆藍色球（$65）和 1 顆紅色球（$0）（如果其為高品質），或是包含2 顆藍色球（$65）和 3 顆紅色球（$0）（如果其為低品質）。'),
+            ('B', '(B) 產品B包含3 顆藍色球（$65）和 2 顆紅色球（$0）（如果其為高品質），或是包含3 顆藍色球（$65）和 2 顆紅色球（$0）（如果其為低品質）。'),
+            ('C', '(C) 產品B包含5 顆藍色球（$65）和 0 顆紅色球（$0）（如果其為高品質），或是包含0 顆藍色球（$65）和 5 顆紅色球（$0）（如果其為低品質）。'),
         ],
         widget=widgets.RadioSelect
     )
+    
 #FUNCTION
 def creating_session(subsession: Subsession):
     import random
@@ -236,7 +237,7 @@ class AdvisorPage(Page):
     
     @staticmethod
     def is_displayed(player):
-        return player.role == C.ADVISOR_ROLE       
+        return player.round_number == 1 and player.role == C.ADVISOR_ROLE
     
 class ClientPage(Page):
     form_model = 'player'
@@ -247,7 +248,7 @@ class ClientPage(Page):
     
     @staticmethod
     def is_displayed(player):
-        return player.role == C.CLIENT_ROLE    
+        return player.round_number == 1 and player.role == C.CLIENT_ROLE
     
 class IncentivePage(Page):
 
@@ -306,6 +307,7 @@ class RecommendationPage(Page):
                 "round_payoff": p.round_payoff,
                 "roundsum_payoff": p.roundsum_payoff,
                 "quality_image": 'ProductB_high.png' if p.subsession.product_b_quality == "高品質" else 'ProductB_low.png',
+                "signal_image": 'blue_65.png' if p.subsession.quality_signal == "$65" else 'red_0.png',
                 "producta_image": 'ProductA.png',
                 "partner_payoff": p.partner_payoff,
             }
@@ -315,7 +317,8 @@ class RecommendationPage(Page):
         return dict(commission_product=subsession.commission_product, previous_decision_record=previous_decision_record)
 
 class WaitforAdvisor(WaitPage):
-    pass
+    title_text = "請稍候"
+    body_text = "正在等待推薦人做出推薦，請耐心等候。"
 
 class SelectionPage(Page):
 
@@ -343,6 +346,7 @@ class SelectionPage(Page):
                 "round_payoff": p.round_payoff,
                 "roundsum_payoff": p.roundsum_payoff,
                 "quality_image": 'ProductB_high.png' if p.subsession.product_b_quality == "高品質" else 'ProductB_low.png',
+                "signal_image": 'blue_65.png' if p.subsession.quality_signal == "$65" else 'red_0.png',
                 "producta_image": 'ProductA.png',
                 "partner_payoff": p.partner_payoff,
             }
@@ -352,7 +356,8 @@ class SelectionPage(Page):
         return dict(recommendation=group.recommendation, previous_decision_record=previous_decision_record)
     
 class WaitforClient(WaitPage):
-    pass
+    title_text = "請稍候"
+    body_text = "正在等待客戶做出選擇，請耐心等候。"
 
 class ResultsWaitPage(WaitPage):    
     after_all_players_arrive = set_payoffs
@@ -374,6 +379,7 @@ class HistoryPage(Page):
                 "round_payoff": p.round_payoff,
                 "roundsum_payoff": p.roundsum_payoff,
                 "quality_image": 'ProductB_high.png' if p.subsession.product_b_quality == "高品質" else 'ProductB_low.png',
+                "signal_image": 'blue_65.png' if p.subsession.quality_signal == "$65" else 'red_0.png',
                 "producta_image": 'ProductA.png',
                 "partner_payoff": p.partner_payoff,
             }
@@ -386,6 +392,8 @@ class HistoryPage(Page):
     
 class ShuffleWaitPage(WaitPage):
     wait_for_all_groups = True
+    title_text = "請稍候"
+    body_text = "正在等待所有人準備完成，請耐心等候其他參與者。"
 
     @staticmethod
     def after_all_players_arrive(subsession: Subsession):
