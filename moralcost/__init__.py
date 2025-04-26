@@ -64,6 +64,7 @@ class Player(BasePlayer):
     )
 
     moralcost_payoff = models.CurrencyField(initial=0)
+    belief_payoff = models.CurrencyField(intial=0)
     total_payoff = models.CurrencyField(initial=0)
     twd_payoff = models.CurrencyField(initial=0)
 
@@ -233,29 +234,28 @@ def set_payoffs(group: Group):
     for p in group.get_players():
         p.moralcost_payoff = cu(0)
         
-        if p.role == C.ADVISOR_ROLE:
-            recommendations = [
-                p.recommendation1,
-                p.recommendation2,
-                p.recommendation3,
-                p.recommendation4,
-                p.recommendation5,
-            ]
+        
+        recommendations = [
+            p.recommendation1,
+            p.recommendation2,
+            p.recommendation3,
+            p.recommendation4,
+            p.recommendation5,
+        ]
 
-            import random
-            # 從中隨機抽取一個
-            chosen_recommendation = random.choice(recommendations)
-            # print(f"{chosen_recommendation = }")
+        import random
+        # 從中隨機抽取一個
+        chosen_recommendation = random.choice(recommendations)
+        print(f"{chosen_recommendation = }")
 
-            # 根據推薦內容給報酬
-            if chosen_recommendation == 'X':
-                p.moralcost_payoff = cu(0)
-            elif chosen_recommendation == 'Y':
-                p.moralcost_payoff = cu(5)
-            else:
-                p.moralcost_payoff = cu(0)  # fallback，萬一沒有選到有效選項
-        elif p.role == C.CLIENT_ROLE:
-            pass
+        # 根據推薦內容給報酬
+        if chosen_recommendation == 'X':
+            p.moralcost_payoff = cu(0)
+        elif chosen_recommendation == 'Y':
+            p.moralcost_payoff = cu(5)
+        else:
+            p.moralcost_payoff = cu(0)  # fallback，萬一沒有選到有效選項
+       
         
         p.participant.moralcost_payoff = p.moralcost_payoff 
 
@@ -304,19 +304,12 @@ def validate_id_number(id_number):
 
 # PAGES
 class InstructionPage(Page):
-    
-    @staticmethod
-    def is_displayed(player):
-        return player.role == C.ADVISOR_ROLE
+    pass
 
 class RecommendationPage(Page):
 
     form_model = 'player'
     form_fields = ['recommendation1', 'recommendation2', 'recommendation3', 'recommendation4', 'recommendation5']
-
-    @staticmethod
-    def is_displayed(player):
-        return player.role == C.ADVISOR_ROLE
     
     @staticmethod
     def vars_for_template(player: Player):
@@ -334,9 +327,6 @@ class BeliefPage(Page):
     form_model = 'player'
     form_fields = ['belief']
 
-    @staticmethod
-    def is_displayed(player):
-        return player.role == C.ADVISOR_ROLE
     
     @staticmethod
     def vars_for_template(player: Player):

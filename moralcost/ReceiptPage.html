@@ -10,10 +10,8 @@
     <br>
     主要實驗 50 回合共：{{ experiment_payoff }}
     <br>
-    {% if player.role == '推薦人' %}
     額外實驗：{{ moralcost_payoff }}
     <br>
-    {% endif %}
     總共：{{ total_payoff }}
     <br>
     換算為台幣為：{{ total_payoff }}/5元 + 250元 = {{twd_payoff}}元（四捨五入取到整數）
