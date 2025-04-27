@@ -30,6 +30,7 @@ SESSION_CONFIG_DEFAULTS = dict(
 PARTICIPANT_FIELDS = dict(
     experiment_payoff = int(),
     moralcost_payoff = int(),
+    belief_payoff = int(),
     total_payoff = int(),
     twd_payoff = int(),
 )

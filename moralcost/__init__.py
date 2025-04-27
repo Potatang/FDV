@@ -26,10 +26,11 @@ class C(BaseConstants):
     # 球的價值
     GOODBALL = 65
     BADBALL = 0   
-    # belief price
-    PRIZE = cu(150)
-    LOTTERY_PROBS = [i for i in range(0, 110, 10)]  # 0, 10, 20, ..., 100
-    TRUE_SUCCESS_PROBABILITY = 70  # <--- 這裡到時再修改！
+    #probability of recommend product B in pilot test
+    PRO_RB = 0.7
+
+
+
 
 
 class Subsession(BaseSubsession):
@@ -67,15 +68,15 @@ class Player(BasePlayer):
         label="我推薦：",
     )
 
-    # 每行的選擇（0 = 預測, 1 = 福袋）
-    choices = models.LongStringField()
-    # 精細選擇數字（如果有變換的話）
-    fine_choice = models.IntegerField(blank=True)
+    belief = models.IntegerField(initial = None)
+    belief_choice = models.BooleanField(initial = None)
+
 
     moralcost_payoff = models.CurrencyField(initial=0)
     belief_payoff = models.CurrencyField(intial=0)
     total_payoff = models.CurrencyField(initial=0)
     twd_payoff = models.CurrencyField(initial=0)
+
 
     age = models.IntegerField(
         min = 18,
@@ -236,7 +237,7 @@ class Player(BasePlayer):
         blank=False,
     )
 
-    belief = models.IntegerField(blank = False, label="請您輸入一個數字 (範圍從 0 到 100），用來表示他們選擇推薦產品B的機率。舉例來說，若您認為有七成機率，請填寫「70」。", min=0, max=100)
+    # belief = models.IntegerField(blank = False, label="請您輸入一個數字 (範圍從 0 到 100），用來表示他們選擇推薦產品B的機率。舉例來說，若您認為有七成機率，請填寫「70」。", min=0, max=100)
 
 
 def set_payoffs(group: Group):   
@@ -269,38 +270,21 @@ def set_payoffs(group: Group):
         p.participant.moralcost_payoff = p.moralcost_payoff
 
         ## === belief_payoff 部分 === ##
-        # 從 Constants 抓真正事件成功機率
-        true_success_probability = C.TRUE_SUCCESS_PROBABILITY
-        event_success = random.randint(0, 99) < true_success_probability
+        # Default payoff
+        p.belief_payoff = cu(0)
+        stoobid = random.choice(range(0, 101, 1))
+        # print(f'{stoobid=}')
 
-        # 解析玩家的 choices
-        choices_list = list(map(int, p.choices.split(',')))
-
-        # 找出第一個切換行
-        switch_row = None
-        for i in range(1, len(choices_list)):
-            if choices_list[i] != choices_list[i - 1]:
-                switch_row = i
-                break
-
-        if switch_row is not None:
-            chosen_row = switch_row
-            start = C.LOTTERY_PROBS[chosen_row] + 1
-            end = C.LOTTERY_PROBS[chosen_row + 1]
-            precise_lottery = random.choice(range(start, end + 1))
+        if p.belief > stoobid:
+            if random.random() <= C.PRO_RB:
+                p.belief_payoff = cu(150)
         else:
-            chosen_row = random.choice(range(len(choices_list)))
-            precise_lottery = C.LOTTERY_PROBS[chosen_row]
+            import math
+            # print(f"{math.floor(stoobid / 10) / 10 = }")
+            if random.random() <= math.floor(stoobid / 10) / 10:
+                p.belief_payoff = cu(150)
 
-        player_choice = choices_list[chosen_row]
-
-        if player_choice == 0:
-            # 選預測
-            p.belief_payoff = C.PRIZE if event_success else cu(0)
-        else:
-            # 選福袋
-            p.belief_payoff = C.PRIZE if random.randint(0, 99) < precise_lottery else cu(0)
-
+        p.participant.belief_payoff = p.belief_payoff
 
 
 def validate_id_number(id_number):
@@ -369,35 +353,15 @@ class RecommendationPage(Page):
 class BeliefPage(Page):
 
     form_model = 'player'
-    form_fields = ['belief', 'choices', 'fine_choice']
-
+    form_fields = ['belief']
     
     @staticmethod
     def vars_for_template(player: Player):
         return dict(
             image_path1='main.png',
             image_path2='red_0.png',
-            lottery_probs=C.LOTTERY_PROBS,
-            selectable_rows=list(range(1, 10))  # 只允許第1～9行選擇，0和10行是固定的
         )
-    
-    @staticmethod
-    def error_message(player: Player, values):
-        choices = values.get('choices')
-        if choices is None:
-            return "請完成所有選擇"
 
-        choices_list = list(map(int, choices.split(',')))
-
-        # 找出第一個切換的地方
-        switch_row = None
-        for i in range(1, len(choices_list)):
-            if choices_list[i] != choices_list[i - 1]:
-                switch_row = i
-                break
-
-        if switch_row is not None and values.get('fine_choice') is None:
-            return f"請在第 {switch_row} 行之後精確輸入臨界值"
 
 class QuestionnairePage(Page):
 
@@ -439,15 +403,13 @@ class QuestionnairePage(Page):
 
         return errors if errors else None
     
-    @staticmethod
-    def before_next_page(player, timeout_happened):
-        # fix client role KeyError: 'moralcost_payoff' since player.participant.moralcost_payoff is assigned in set_payoffs function
-        player.participant.moralcost_payoff = player.moralcost_payoff
+    # @staticmethod
+    # def before_next_page(player, timeout_happened):
+    #     # fix client role KeyError: 'moralcost_payoff' since player.participant.moralcost_payoff is assigned in set_payoffs function
+    #     player.participant.moralcost_payoff = player.moralcost_payoff
 
 class ResultsWaitPage(WaitPage):    
-    @staticmethod
-    def is_displayed(player):
-        return player.role == C.ADVISOR_ROLE
+
     
     after_all_players_arrive = set_payoffs
 
@@ -458,7 +420,7 @@ class ReceiptPage(Page):
 
     @staticmethod
     def vars_for_template(player):
-        player.total_payoff = player.participant.experiment_payoff + player.participant.moralcost_payoff
+        player.total_payoff = player.participant.experiment_payoff + player.participant.moralcost_payoff + player.participant.belief_payoff
         player.twd_payoff = round(float(player.total_payoff) / 5) + 250
         player.participant.total_payoff = player.total_payoff
         player.participant.twd_payoff = player.twd_payoff
@@ -466,6 +428,7 @@ class ReceiptPage(Page):
         
         return dict(experiment_payoff=player.participant.experiment_payoff,
                     moralcost_payoff=player.participant.moralcost_payoff,
+                    belief_payoff=player.participant.belief_payoff,
                     total_payoff=player.participant.total_payoff,
                     twd_payoff=player.participant.twd_payoff,
                     )
@@ -495,7 +458,7 @@ class EndingPage(Page):
 
     @staticmethod
     def vars_for_template(player):
-        player.total_payoff = player.participant.experiment_payoff + player.participant.moralcost_payoff
+        player.total_payoff = player.participant.experiment_payoff + player.participant.moralcost_payoff + player.participant.belief_payoff
         player.twd_payoff = round(float(player.total_payoff) / 5) + 250
         player.participant.total_payoff = player.total_payoff
         player.participant.twd_payoff = player.twd_payoff
@@ -503,6 +466,7 @@ class EndingPage(Page):
         
         return dict(experiment_payoff=player.participant.experiment_payoff,
                     moralcost_payoff=player.participant.moralcost_payoff,
+                    belief_payoff = player.participant.belief_payoff,
                     total_payoff=player.participant.total_payoff,
                     twd_payoff=player.participant.twd_payoff,
                     )
