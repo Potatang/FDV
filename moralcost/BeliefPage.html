@@ -1,20 +1,146 @@
+
 {% load static %}
-{{ block title }} 額外問題 {{ endblock }}
-{{ block content }}
-    <p>假設有其他推薦人先得知從產品B中抽出的球之後，才得知了他們推薦哪一個商品可以獲得額外5法幣。</p>
-    <p>提醒一下，產品 B 可能是高品質或低品質，各有相同的機率，如下圖所示。</p>
-    <img src="{{ static image_path1 }}" width="600px" />
-    <br>
-    </br>
-    <p>也就是說：</p>
-    <p>他們首先得知從產品B中抽出的球是：<img src="{{ static image_path2 }}" width="50px" /> </p>
-    <p>接著他們才得知推薦產品 B 可獲得額外5法幣。</p>
+
+{% block title %}
+額外問題
+{% endblock %}
+
+{% block content %}
+<p>假設有其他推薦人先得知從產品B中抽出的球之後，才得知了他們推薦哪一個商品可以獲得額外5法幣。</p>
+<p>提醒一下，產品 B 可能是高品質或低品質，各有相同的機率，如下圖所示。</p>
+<img src="{{ static image_path1 }}" width="600px" />
+<br><br>
+<p>也就是說：</p>
+<p>他們首先得知從產品B中抽出的球是：<img src="{{ static image_path2 }}" width="50px" /></p>
+<p>接著他們才得知推薦產品 B 可獲得額外5法幣。</p>
 <br>
-</br>
+
 {{ formfield 'belief' }}
+
+<h3>請根據您的判斷選擇每一行：</h3>
+
+<form method="post" id="belief-form">
+    <table style="width: 90%; border-collapse: collapse; text-align: center;">
+        <thead>
+            <tr style="border-bottom: 2px solid black;">
+                <th>行數</th>
+                <th>預測</th>
+                <th>福袋</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for prob in lottery_probs %}
+            <tr style="border-bottom: 1px solid gray;">
+                <td style="padding:10px;">第{{ forloop.counter0 }}行</td>
+
+                {% if forloop.counter0 == 0 %}
+                    <td style="padding:10px; border-right: none;">
+                        <input type="radio" name="choice_{{ forloop.counter0 }}" value="0" checked disabled>
+                        <div>推薦人決定推薦產品B的話獲得150法幣</div>
+                    </td>
+                    <td style="padding:10px; border-left: none;">
+                        <div>{{ prob }}%機率獲得150法幣</div>
+                    </td>
+                {% elif forloop.counter0 == 10 %}
+                    <td style="padding:10px; border-right: none;">
+                        <div>{{ prob }}%機率獲得150法幣</div>
+                    </td>
+                    <td style="padding:10px; border-left: none;">
+                        <input type="radio" name="choice_{{ forloop.counter0 }}" value="1" checked disabled>
+                        <div>{{ prob }}%機率獲得150法幣</div>
+                    </td>
+                {% else %}
+                    <td style="padding:10px; border-right: none;">
+                        <input type="radio" name="choice_{{ forloop.counter0 }}" value="0" required>
+                        <div>推薦人決定推薦產品B的話獲得150法幣</div>
+                    </td>
+                    <td style="padding:10px; border-left: none;">
+                        <input type="radio" name="choice_{{ forloop.counter0 }}" value="1">
+                        <div>{{ prob }}%機率獲得150法幣</div>
+                    </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div id="fine_choice_block" style="margin-top:20px; display:none;">
+        <label>請選擇更精確的機率：</label>
+        <select name="fine_choice" required>
+            <option value="" disabled selected>請選擇...</option>
+        </select>
+    </div>
+
+</form>
+
 <br>
 
 <!-- 中文的下一頁按鈕 -->
-<button class="otree-btn-next btn btn-primary">下一頁</button>
+<button class="otree-btn-next btn btn-primary" id="next-button">下一頁</button>
 
-{{ endblock }}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const radios = document.querySelectorAll('input[type=radio]:not([disabled])');
+    const fineBlock = document.getElementById('fine_choice_block');
+    const fineSelect = fineBlock.querySelector('select');
+    const nextButton = document.getElementById('next-button');
+
+    radios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            fineBlock.style.display = 'block';
+            fineSelect.innerHTML = '<option value="" disabled selected>請選擇...</option>';
+
+            const row = parseInt(this.name.split('_')[1]);
+            const start = row * 10 + 1;
+            const end = (row + 1) * 10;
+
+            for (let i = start; i <= end; i++) {
+                let option = document.createElement('option');
+                option.value = i;
+                option.textContent = i;
+                fineSelect.appendChild(option);
+            }
+        });
+    });
+
+    nextButton.addEventListener('click', function(event) {
+        let choices = [];
+
+        // 強制第0行是0（預測）
+        choices.push(0);
+
+        // 中間行第1到第9行自己用JS跑
+        for (let row = 1; row <= 9; row++) {
+            let selected = document.querySelector('input[name="choice_' + row + '"]:checked');
+            if (selected) {
+                choices.push(parseInt(selected.value));
+            }
+        }
+
+        // 最後第10行是1（福袋）
+        choices.push(1);
+
+        let switched = false;
+        let error = false;
+        for (let i = 0; i < choices.length - 1; i++) {
+            if (!switched && choices[i] === 0 && choices[i + 1] === 1) {
+                switched = true;
+            }
+            if (switched && choices[i] === 1 && choices[i + 1] === 0) {
+                error = true;
+            }
+        }
+
+        if (!switched) {
+            alert('⚠️ 您尚未從預測切換到福袋，請確認您的選擇！');
+            event.preventDefault();
+        }
+        if (error) {
+            alert('⚠️ 只能左轉右一次，不可以又轉回來！請重新確認您的選擇。');
+            event.preventDefault();
+        }
+    });
+</script>
+{% endblock %}

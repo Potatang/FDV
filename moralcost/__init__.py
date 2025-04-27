@@ -26,6 +26,10 @@ class C(BaseConstants):
     # 球的價值
     GOODBALL = 65
     BADBALL = 0   
+    # belief price
+    PRIZE = cu(150)
+    LOTTERY_PROBS = [i for i in range(0, 110, 10)]  # 0, 10, 20, ..., 100
+    TRUE_SUCCESS_PROBABILITY = 70  # <--- 這裡到時再修改！
 
 
 class Subsession(BaseSubsession):
@@ -62,6 +66,11 @@ class Player(BasePlayer):
         widget=widgets.RadioSelect,
         label="我推薦：",
     )
+
+    # 每行的選擇（0 = 預測, 1 = 福袋）
+    choices = models.LongStringField()
+    # 精細選擇數字（如果有變換的話）
+    fine_choice = models.IntegerField(blank=True)
 
     moralcost_payoff = models.CurrencyField(initial=0)
     belief_payoff = models.CurrencyField(intial=0)
@@ -232,6 +241,7 @@ class Player(BasePlayer):
 
 def set_payoffs(group: Group):   
     for p in group.get_players():
+        ## === moralcost_payoff 部分 === ##
         p.moralcost_payoff = cu(0)
         
         
@@ -246,7 +256,7 @@ def set_payoffs(group: Group):
         import random
         # 從中隨機抽取一個
         chosen_recommendation = random.choice(recommendations)
-        print(f"{chosen_recommendation = }")
+        # print(f"{chosen_recommendation = }")
 
         # 根據推薦內容給報酬
         if chosen_recommendation == 'X':
@@ -255,9 +265,43 @@ def set_payoffs(group: Group):
             p.moralcost_payoff = cu(5)
         else:
             p.moralcost_payoff = cu(0)  # fallback，萬一沒有選到有效選項
-       
-        
-        p.participant.moralcost_payoff = p.moralcost_payoff 
+               
+        p.participant.moralcost_payoff = p.moralcost_payoff
+
+        ## === belief_payoff 部分 === ##
+        # 從 Constants 抓真正事件成功機率
+        true_success_probability = C.TRUE_SUCCESS_PROBABILITY
+        event_success = random.randint(0, 99) < true_success_probability
+
+        # 解析玩家的 choices
+        choices_list = list(map(int, p.choices.split(',')))
+
+        # 找出第一個切換行
+        switch_row = None
+        for i in range(1, len(choices_list)):
+            if choices_list[i] != choices_list[i - 1]:
+                switch_row = i
+                break
+
+        if switch_row is not None:
+            chosen_row = switch_row
+            start = C.LOTTERY_PROBS[chosen_row] + 1
+            end = C.LOTTERY_PROBS[chosen_row + 1]
+            precise_lottery = random.choice(range(start, end + 1))
+        else:
+            chosen_row = random.choice(range(len(choices_list)))
+            precise_lottery = C.LOTTERY_PROBS[chosen_row]
+
+        player_choice = choices_list[chosen_row]
+
+        if player_choice == 0:
+            # 選預測
+            p.belief_payoff = C.PRIZE if event_success else cu(0)
+        else:
+            # 選福袋
+            p.belief_payoff = C.PRIZE if random.randint(0, 99) < precise_lottery else cu(0)
+
+
 
 def validate_id_number(id_number):
     """
@@ -325,15 +369,35 @@ class RecommendationPage(Page):
 class BeliefPage(Page):
 
     form_model = 'player'
-    form_fields = ['belief']
+    form_fields = ['belief', 'choices', 'fine_choice']
 
     
     @staticmethod
     def vars_for_template(player: Player):
         return dict(
             image_path1='main.png',
-            image_path2='red_0.png'
+            image_path2='red_0.png',
+            lottery_probs=C.LOTTERY_PROBS,
+            selectable_rows=list(range(1, 10))  # 只允許第1～9行選擇，0和10行是固定的
         )
+    
+    @staticmethod
+    def error_message(player: Player, values):
+        choices = values.get('choices')
+        if choices is None:
+            return "請完成所有選擇"
+
+        choices_list = list(map(int, choices.split(',')))
+
+        # 找出第一個切換的地方
+        switch_row = None
+        for i in range(1, len(choices_list)):
+            if choices_list[i] != choices_list[i - 1]:
+                switch_row = i
+                break
+
+        if switch_row is not None and values.get('fine_choice') is None:
+            return f"請在第 {switch_row} 行之後精確輸入臨界值"
 
 class QuestionnairePage(Page):
 
