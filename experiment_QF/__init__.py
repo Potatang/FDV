@@ -13,7 +13,7 @@ client 看到 advisor 推薦後，直接選擇商品 A 或 B，
 
 #Models
 class C(BaseConstants):
-    NAME_IN_URL = 'experiment'
+    NAME_IN_URL = 'experiment_QF'
     PLAYERS_PER_GROUP = 2
     NUM_ROUNDS = 5
 
