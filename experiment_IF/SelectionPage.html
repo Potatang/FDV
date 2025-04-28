@@ -1,14 +1,11 @@
-{{ block title }}您的推薦{{ endblock }}
+{{ block title }}您的選擇{{ endblock }}
 {{ block content }}
-
     <p>
-        身為推薦人，你會推薦哪項產品給客戶？
+        身為客戶，這回合推薦人推薦您選擇 {{ group.recommendation }}。
+        你會選擇哪一項商品？
     </p>
-    <p>
-        <b>提醒您，如果您推薦{{subsession.commission_product}}，您可以額外獲得5法幣</b>。
-    </p>
+    
 {{ formfields }}
-
     {{ if previous_decision_record }}
     <h4>歷史回合</h4>
     <div style="max-height: 400px; overflow-y: auto;">
@@ -47,8 +44,9 @@
     </div>
     {{ endif }}
 
+
 <!-- 中文的下一頁按鈕 -->
 <button class="otree-btn-next btn btn-primary">下一頁</button>
-    
+
 
 {{ endblock }}

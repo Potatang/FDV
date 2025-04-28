@@ -51,6 +51,7 @@ class Group(BaseGroup):
         label="我選擇：",
     )
 
+
 class Player(BasePlayer):
     advisor_recommendation = models.StringField(blank=True)
     client_selection = models.StringField(blank=True)
@@ -58,10 +59,6 @@ class Player(BasePlayer):
     roundsum_payoff = models.CurrencyField(initial=0)
     seat = models.IntegerField(blank = False, label='請輸入座位電腦號碼', min=1, max=34)
     partner_payoff = models.CurrencyField(initial=0)
-    page_start_time = models.FloatField()        # 進入頁面時的 timestamp
-    recommendation_time = models.FloatField()    # 推薦所花的時間（秒）
-    selection_time = models.FloatField() 
-    
 
     question1 = models.StringField(
         label='1. 產品A中有多少顆藍色的球？',
@@ -114,6 +111,8 @@ class Player(BasePlayer):
         ],
         widget=widgets.RadioSelect
     )
+
+
     
 #FUNCTION
 def creating_session(subsession: Subsession):
@@ -238,6 +237,7 @@ class AdvisorPage(Page):
     @staticmethod
     def is_displayed(player):
         return player.round_number == 1 and player.role == C.ADVISOR_ROLE
+
     
 class ClientPage(Page):
     form_model = 'player'
@@ -260,6 +260,7 @@ class IncentivePage(Page):
     def vars_for_template(player: Player):
         subsession = player.subsession
         return dict(commission_product=subsession.commission_product)
+
 
 class QualityPage(Page):
 
@@ -314,7 +315,9 @@ class RecommendationPage(Page):
             for p in player.in_previous_rounds()
         }
         
-        return dict(commission_product=subsession.commission_product, previous_decision_record=previous_decision_record)
+        return dict(commission_product=subsession.commission_product,
+                    previous_decision_record=previous_decision_record,
+                    )
 
 class WaitforAdvisor(WaitPage):
     title_text = "請稍候"
@@ -328,7 +331,6 @@ class SelectionPage(Page):
     @staticmethod
     def is_displayed(player):
         return player.role == C.CLIENT_ROLE
-
 
     @staticmethod
     def vars_for_template(player: Player):
@@ -353,7 +355,9 @@ class SelectionPage(Page):
             for p in player.in_previous_rounds()
         }
 
-        return dict(recommendation=group.recommendation, previous_decision_record=previous_decision_record)
+        return dict(recommendation=group.recommendation, 
+                    previous_decision_record=previous_decision_record,
+                    )
     
 class WaitforClient(WaitPage):
     title_text = "請稍候"
@@ -364,6 +368,10 @@ class ResultsWaitPage(WaitPage):
 
 class HistoryPage(Page):
     
+    # def before_next_page(player: Player):
+    #     import time
+    #     player.round_duration = time.time() - player.round_start_time
+
     @staticmethod
     def vars_for_template(player: Player):
 

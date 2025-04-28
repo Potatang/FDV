@@ -1,0 +1,86 @@
+{{ block title }}實驗後問卷{{ endblock }}
+
+{{ block content }}
+<p>
+感謝您參與本實驗，您的報酬將於現場以現金支付。首先，我們想請教您的一些個人資訊，這些資訊僅供實驗者分析，不會外傳，請放心填寫。
+</p>
+
+<!-- 年級 -->
+{{ formfield 'grade' }}
+<div id="grade-other-div" style="display: none;">
+    {{ formfield 'grade_other' }}
+</div>
+
+<!-- 院系 -->
+{{ formfield 'major' }}
+<div id="major-other-div" style="display: none;">
+    {{ formfield 'major_other' }}
+</div>
+
+<!-- 居住地 -->
+{{ formfield 'hometown' }}
+<div id="hometown-other-div" style="display: none;">
+    {{ formfield 'hometown_other' }}
+</div>
+
+<!-- 宗教信仰 -->
+{{ formfield 'religion' }}
+<div id="religion-other-div" style="display: none;">
+    {{ formfield 'religion_other' }}
+</div>
+
+<!-- 其他欄位 -->
+{{ formfield 'age' }}
+{{ formfield 'gender' }}
+{{ formfield 'income' }}
+
+{% if player.role == '推薦人' %}
+    {{ formfield 'reason1' }}
+{% endif %}
+
+{% if player.role == '客戶' %}
+<!-- 是否會依推薦選擇 -->
+    {{ formfield 'choice' }}
+    <div id="reason2-div" style="display: none;">
+        {{ formfield 'reason2' }}
+    </div>
+{% endif %}
+
+
+<p>
+實驗後問卷已填答完畢，接下來請填寫領款收據所需的資訊。
+</p>
+
+<button class="otree-btn-next btn btn-primary">下一頁</button>
+
+<script>
+    function toggleOtherField(selectName, otherValue, targetDivId) {
+        const radios = document.querySelectorAll(`input[name="${selectName}"]`);
+        const targetDiv = document.getElementById(targetDivId);
+
+        function checkSelection() {
+            let selected = [...radios].find(r => r.checked);
+            if (selected && selected.value === otherValue.toString()) {
+                targetDiv.style.display = 'block';
+            } else {
+                targetDiv.style.display = 'none';
+                const input = targetDiv.querySelector('input');
+                if (input) input.value = '';
+            }
+        }
+
+        radios.forEach(r => r.addEventListener('change', checkSelection));
+        checkSelection();  // 初始化
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        toggleOtherField("grade", 7, "grade-other-div");
+        toggleOtherField("major", 12, "major-other-div");
+        toggleOtherField("hometown", 5, "hometown-other-div");
+        toggleOtherField("religion", 9, "religion-other-div");
+        toggleOtherField("choice", 1, "reason2-div");  // ⬅️ 加在這裡
+    });
+</script>
+
+
+{{ endblock }}
