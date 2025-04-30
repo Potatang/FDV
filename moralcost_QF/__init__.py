@@ -350,6 +350,13 @@ class RecommendationPage(Page):
             image_path6='orange_0.png'
         )
 
+class MoralWaitPage(WaitPage):
+    title_text = "請稍候"
+    body_text = "正在等待所有人準備完成，請耐心等候其他參與者。"
+
+class InstructionBPage(Page):
+    pass
+
 class BeliefPage(Page):
 
     form_model = 'player'
@@ -473,6 +480,8 @@ class EndingPage(Page):
 
 page_sequence = [InstructionPage,
                 RecommendationPage,
+                MoralWaitPage,
+                InstructionBPage,
                 BeliefPage,
                 ResultsWaitPage,
                 QuestionnairePage,
