@@ -2,7 +2,7 @@ from otree.api import *
 import re
 
 doc = """
-Your app description
+This is the third part of the experiment, which assesses participants' moral cost.
 """
 
 
@@ -67,6 +67,7 @@ class Player(BasePlayer):
         widget=widgets.RadioSelect,
         label="我推薦：",
     )
+
 
     belief = models.IntegerField(initial = None)
     belief_choice = models.BooleanField(initial = None)
@@ -237,8 +238,12 @@ class Player(BasePlayer):
         blank=False,
     )
 
-    # belief = models.IntegerField(blank = False, label="請您輸入一個數字 (範圍從 0 到 100），用來表示他們選擇推薦產品B的機率。舉例來說，若您認為有七成機率，請填寫「70」。", min=0, max=100)
 
+def creating_session(subsession:Subsession):
+  import random
+  
+  for p in subsession.get_players():
+      p.page_RED_first = random.choice([True, False])
 
 def set_payoffs(group: Group):   
     for p in group.get_players():
@@ -269,22 +274,22 @@ def set_payoffs(group: Group):
                
         p.participant.moralcost_payoff = p.moralcost_payoff
 
-        ## === belief_payoff 部分 === ##
-        # Default payoff
-        p.belief_payoff = cu(0)
-        stoobid = random.choice(range(0, 101, 1))
-        # print(f'{stoobid=}')
+        # ## === belief_payoff 部分 === ##
+        # # Default payoff
+        # p.belief_payoff = cu(0)
+        # stoobid = random.choice(range(0, 101, 1))
+        # # print(f'{stoobid=}')
 
-        if p.belief > stoobid:
-            if random.random() <= C.PRO_RB:
-                p.belief_payoff = cu(150)
-        else:
-            import math
-            # print(f"{math.floor(stoobid / 10) / 10 = }")
-            if random.random() <= math.floor(stoobid / 10) / 10:
-                p.belief_payoff = cu(150)
+        # if p.belief > stoobid:
+        #     if random.random() <= C.PRO_RB:
+        #         p.belief_payoff = cu(150)
+        # else:
+        #     import math
+        #     # print(f"{math.floor(stoobid / 10) / 10 = }")
+        #     if random.random() <= math.floor(stoobid / 10) / 10:
+        #         p.belief_payoff = cu(150)
 
-        p.participant.belief_payoff = p.belief_payoff
+        # p.participant.belief_payoff = p.belief_payoff
 
 
 def validate_id_number(id_number):
@@ -331,6 +336,7 @@ def validate_id_number(id_number):
 
 
 # PAGES
+
 class InstructionPage(Page):
     pass
 
@@ -354,22 +360,21 @@ class MoralWaitPage(WaitPage):
     title_text = "請稍候"
     body_text = "正在等待所有人準備完成，請耐心等候其他參與者。"
 
-class InstructionBPage(Page):
-    pass
+# class InstructionBPage(Page):
+#     pass
 
-class BeliefPage(Page):
+# class BeliefPage(Page):
 
-    form_model = 'player'
-    form_fields = ['belief']
+#     form_model = 'player'
+#     form_fields = ['belief']
     
-    @staticmethod
-    def vars_for_template(player: Player):
-        return dict(
-            image_path1='main.png',
-            image_path2='red_0.png',
-        )
-
-
+#     @staticmethod
+#     def vars_for_template(player: Player):
+#         return dict(
+#             image_path1='productB.png',
+#             image_path2='red_0.png',
+#         )
+    
 class QuestionnairePage(Page):
 
     form_model = 'player'
@@ -416,8 +421,6 @@ class QuestionnairePage(Page):
     #     player.participant.moralcost_payoff = player.moralcost_payoff
 
 class ResultsWaitPage(WaitPage):    
-
-    
     after_all_players_arrive = set_payoffs
 
 class ReceiptPage(Page):
@@ -478,11 +481,13 @@ class EndingPage(Page):
                     twd_payoff=player.participant.twd_payoff,
                     )
 
-page_sequence = [InstructionPage,
+page_sequence = [Instruction2Page,
+                REDPage,
+                BLUEPage,
+                RED_copyPage,
+                InstructionPage,
                 RecommendationPage,
                 MoralWaitPage,
-                InstructionBPage,
-                BeliefPage,
                 ResultsWaitPage,
                 QuestionnairePage,
                 ReceiptPage,

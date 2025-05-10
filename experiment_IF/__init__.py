@@ -57,7 +57,7 @@ class Player(BasePlayer):
     client_selection = models.StringField(blank=True)
     round_payoff = models.CurrencyField(initial=0)
     roundsum_payoff = models.CurrencyField(initial=0)
-    seat = models.IntegerField(blank = False, label='請輸入座位電腦號碼', min=1, max=34)
+    # seat = models.IntegerField(blank = False, label='請輸入座位電腦號碼', min=1, max=34)
     partner_payoff = models.CurrencyField(initial=0)
 
     question1 = models.StringField(
@@ -115,11 +115,30 @@ class Player(BasePlayer):
 
     
 #FUNCTION
+# note: this function goes at the module level, not inside the WaitPage.
+def group_by_arrival_time_method(subsession, waiting_players):
+    print('in group_by_arrival_time_method')
+
+    # print(f"{waiting_players = }")
+    
+    # for p in waiting_players:
+    #     print(f"{p.participant.who = }")
+    #     if p.participant.who == True: p.role == C.ADVISOR_ROLE
+    #     else: p.role == C.CLIENT_ROLE
+
+    a_players = [p for p in waiting_players if p.participant.who == True]
+    c_players = [p for p in waiting_players if p.participant.who == False]
+
+    if len(a_players) >= 1 and len(c_players) >= 1:
+        return [random.choice(a_players), random.choice(c_players)]
+
+
 def creating_session(subsession: Subsession):
     import random
 
     #每回合重新分組
-    subsession.group_randomly(fixed_id_in_group=True)
+    # subsession.group_randomly(fixed_id_in_group=True)
+    # group_by_arrival_time = True
 
     # 50-50 決定哪一個商品能獲得佣金
     commission_product = random.choice(['產品A', '產品B'])
@@ -192,14 +211,26 @@ def set_payoffs(group: Group):
 
 #Pages
 
-class ComputerPage(Page):
-    form_model = 'player'
-    form_fields = ['seat']
+# class ComputerPage(Page):
+#     form_model = 'player'
+#     form_fields = ['seat']
 
-    @staticmethod
-    def is_displayed(player):
-        return player.round_number == 1
+#     @staticmethod
+#     def app_after_this_page(player, upcoming_apps):
+#         if player.seat == 99:
+##             return 'end_app'  # make sure this matches the app name in app_sequence
+        
+#     @staticmethod
+#     def is_displayed(player):
+#         return player.round_number == 1
     
+class MyWaitPage(WaitPage):
+    group_by_arrival_time = True
+
+    # @staticmethod
+    # def is_displayed(player):
+    #     return player.round_number == 1
+
 class ComprehensionCheck(Page):
     form_model = 'player'
     form_fields = ['question1', 'question2', 'question3', 'question4', 'question5']
@@ -403,13 +434,25 @@ class ShuffleWaitPage(WaitPage):
     title_text = "請稍候"
     body_text = "正在等待所有人準備完成，請耐心等候其他參與者。"
 
-    @staticmethod
-    def after_all_players_arrive(subsession: Subsession):
-        subsession.group_randomly(fixed_id_in_group=True)
+    # group_by_arrival_time = True
+
+    # @staticmethod
+    # def after_all_players_arrive(subsession: Subsession):
+    #     # # subsession.group_randomly(fixed_id_in_group=True)
+    #     pass
+
+
+# class ShufflePage(Page):
+#     group_by_arrival_time = True
+
+#     @staticmethod
+#     def is_displayed(player):
+#         return player.round_number > 1
 
 #PageSequence
 page_sequence = [
-    ComputerPage,
+    # ComputerPage,
+    MyWaitPage,
     ComprehensionCheck,
     AdvisorPage,
     ClientPage,
@@ -422,4 +465,5 @@ page_sequence = [
     ResultsWaitPage,
     HistoryPage,
     ShuffleWaitPage,
+    # ShufflePage
 ]

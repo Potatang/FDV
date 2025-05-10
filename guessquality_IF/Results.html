@@ -1,0 +1,20 @@
+{% load static %}
+{{ block title }} B產品抽出的球 {{ endblock }}
+{{ block content }}
+{{ load static }}
+    <p>
+        本回合中，從 B 產品隨機抽出的球是：<img src="{{ static image_path }}" width="80px" />
+    </p>
+    <br>
+    <p>
+        因此您第二部分的報酬是{{ part2_payoff }}。
+    </p>
+
+
+{{ formfields }}
+<br>
+
+<!-- 中文的下一頁按鈕 -->
+<button class="otree-btn-next btn btn-primary">下一頁</button>
+
+{{ endblock }}

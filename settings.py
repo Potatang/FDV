@@ -3,7 +3,8 @@ from os import environ
 
 SESSION_CONFIGS = [
     dict(
-        name='FDI', app_sequence=['experiment_IF', 'moralcost_IF'], num_demo_participants=2
+        # name='FDI', app_sequence=['start_app', 'experiment_IF', 'guessquality_IF', 'moralcost_IF', 'guessproportion_IF', 'end_app'], num_demo_participants=4
+        name='FDI', app_sequence=['guessquality_IF'], num_demo_participants=2
     ),
 
     dict(
@@ -20,7 +21,9 @@ SESSION_CONFIG_DEFAULTS = dict(
 )
 
 PARTICIPANT_FIELDS = dict(
+    who = int(),
     experiment_payoff = int(),
+    part2_payoff = int(),
     moralcost_payoff = int(),
     belief_payoff = int(),
     total_payoff = int(),
