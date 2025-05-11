@@ -24,6 +24,7 @@ PARTICIPANT_FIELDS = dict(
     who = int(),
     experiment_payoff = int(),
     part2_payoff = int(),
+    part4_belief = int(),
     moralcost_payoff = int(),
     belief_payoff = int(),
     total_payoff = int(),

@@ -1,0 +1,26 @@
+{{ block title }}第三部分實驗說明{{ endblock }}
+{{ block content }}
+<p>請您暫時<b>不要按下一頁</b>，仔細聆聽實驗說明。</p>
+
+    {{ formfields }}
+<!-- 中文的下一頁按鈕 -->
+<button class="otree-btn-next btn btn-primary" id="btn" style='float:right'>下一頁(60)</button>
+<script>
+    var btn = document.getElementById('btn'); //获取元素
+    var secs = 60; //设定了倒计时为60秒
+    btn.disabled=true; //禁止点击
+    for (var i=1; i<=secs; i++) {
+        window.setTimeout("update(" + i + ")", i * 1000);
+    } //每1秒执行一次update函数
+    function update(num) {
+        if (num==secs) { //倒计时结束，按键的文本改变，并且可以点击
+            btn.textContent = "開始實驗";
+            btn.disabled = false;
+        }
+        else { //倒计时中，实时更新文本里面的数字
+            var printnr = secs - num;
+            btn.textContent = "請仔細聆聽實驗說明 (" + printnr + ")";
+        }
+    }
+</script>
+{{ endblock }}

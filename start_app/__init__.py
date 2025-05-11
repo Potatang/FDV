@@ -21,7 +21,7 @@ class Group(BaseGroup):
 
 
 class Player(BasePlayer):
-    seat = models.IntegerField(blank = False, label='由實驗人員輸入座位電腦號碼，請參加者不要觸碰', min=0, max=34)
+    seat = models.IntegerField(blank = False, label='由實驗人員輸入座位電腦號碼，請參加者不要觸碰', min=0, max=99)
     who = models.BooleanField(label = '(限實驗人員操作，請參加者不要觸碰)', initial = True)
 
 
