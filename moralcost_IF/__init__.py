@@ -481,11 +481,7 @@ class EndingPage(Page):
                     twd_payoff=player.participant.twd_payoff,
                     )
 
-page_sequence = [Instruction2Page,
-                REDPage,
-                BLUEPage,
-                RED_copyPage,
-                InstructionPage,
+page_sequence = [InstructionPage,
                 RecommendationPage,
                 MoralWaitPage,
                 ResultsWaitPage,
