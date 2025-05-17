@@ -31,9 +31,10 @@ class C(BaseConstants):
 
 
 
-
-
 class Subsession(BaseSubsession):
+    recommendation_number = models.IntegerField()
+    advisor_recommendation = models.StringField(choices=[['X', '產品X'], ['Y', '產品Y']])
+    client_selection = models.StringField(choice=[['X', '產品X'], ['Y', '產品Y']])
     pass
 
 
@@ -68,16 +69,12 @@ class Player(BasePlayer):
         label="我推薦：",
     )
 
+    chosen_advisor = models.BooleanField(initial = False)
+    chosen_client = models.BooleanField(initial = False)
 
-    belief = models.IntegerField(initial = None)
-    belief_choice = models.BooleanField(initial = None)
-
-
-    moralcost_payoff = models.CurrencyField(initial=0)
-    belief_payoff = models.CurrencyField(intial=0)
-    total_payoff = models.CurrencyField(initial=0)
-    twd_payoff = models.CurrencyField(initial=0)
-
+    # moralcost_payoff = models.CurrencyField(initial=0)
+    # total_payoff = models.CurrencyField(initial=0)
+    # twd_payoff = models.CurrencyField(initial=0)
 
     age = models.IntegerField(
         min = 18,
@@ -239,57 +236,45 @@ class Player(BasePlayer):
     )
 
 
-def creating_session(subsession:Subsession):
-  import random
-  
-  for p in subsession.get_players():
-      p.page_RED_first = random.choice([True, False])
 
-def set_payoffs(group: Group):   
-    for p in group.get_players():
-        ## === moralcost_payoff 部分 === ##
-        p.moralcost_payoff = cu(0)
+# def group_by_arrival_time_method(subsession, waiting_players):
+#     print('in group_by_arrival_time_method')
+
+#     a_players = [p for p in waiting_players if p.participant.who == True]
+#     c_players = [p for p in waiting_players if p.participant.who == False]
+#     import random
+#     if len(a_players) >= 1 and len(c_players) >= 1:
+#         return [random.choice(a_players), random.choice(c_players)]
+
+
+# def set_payoffs(group: Group):   
+#     for p in group.get_players():
+#         ## === moralcost_payoff 部分 === ##
+#         p.moralcost_payoff = cu(0)
         
         
-        recommendations = [
-            p.recommendation1,
-            p.recommendation2,
-            p.recommendation3,
-            p.recommendation4,
-            p.recommendation5,
-        ]
+#         recommendations = [
+#             p.recommendation1,
+#             p.recommendation2,
+#             p.recommendation3,
+#             p.recommendation4,
+#             p.recommendation5,
+#         ]
 
-        import random
-        # 從中隨機抽取一個
-        chosen_recommendation = random.choice(recommendations)
-        # print(f"{chosen_recommendation = }")
+#         import random
+#         # 從中隨機抽取一個
+#         chosen_recommendation = random.choice(recommendations)
+#         # print(f"{chosen_recommendation = }")
 
-        # 根據推薦內容給報酬
-        if chosen_recommendation == 'X':
-            p.moralcost_payoff = cu(0)
-        elif chosen_recommendation == 'Y':
-            p.moralcost_payoff = cu(5)
-        else:
-            p.moralcost_payoff = cu(0)  # fallback，萬一沒有選到有效選項
+#         # 根據推薦內容給報酬
+#         if chosen_recommendation == 'X':
+#             p.moralcost_payoff = cu(0)
+#         elif chosen_recommendation == 'Y':
+#             p.moralcost_payoff = cu(5)
+#         else:
+#             p.moralcost_payoff = cu(0)  # fallback，萬一沒有選到有效選項
                
-        p.participant.moralcost_payoff = p.moralcost_payoff
-
-        # ## === belief_payoff 部分 === ##
-        # # Default payoff
-        # p.belief_payoff = cu(0)
-        # stoobid = random.choice(range(0, 101, 1))
-        # # print(f'{stoobid=}')
-
-        # if p.belief > stoobid:
-        #     if random.random() <= C.PRO_RB:
-        #         p.belief_payoff = cu(150)
-        # else:
-        #     import math
-        #     # print(f"{math.floor(stoobid / 10) / 10 = }")
-        #     if random.random() <= math.floor(stoobid / 10) / 10:
-        #         p.belief_payoff = cu(150)
-
-        # p.participant.belief_payoff = p.belief_payoff
+#         p.participant.moralcost_payoff = p.moralcost_payoff
 
 
 def validate_id_number(id_number):
@@ -337,6 +322,9 @@ def validate_id_number(id_number):
 
 # PAGES
 
+# class MyWaitPage(WaitPage):
+#     group_by_arrival_time = True
+
 class InstructionPage(Page):
     pass
 
@@ -355,26 +343,96 @@ class RecommendationPage(Page):
             image_path5='moral_5.png',
             image_path6='orange_0.png'
         )
+    
+    @staticmethod
+    def before_next_page(player, timeout_happened):
+        subsession = player.subsession
+        import random
+
+        all_players = subsession.get_players()
+        chosen_players = random.sample(all_players, 2)
+        chosen_players[0].chosen_advisor = True
+        chosen_players[1].chosen_client = True
+        
 
 class MoralWaitPage(WaitPage):
+    wait_for_all_groups = True
     title_text = "請稍候"
     body_text = "正在等待所有人準備完成，請耐心等候其他參與者。"
 
-# class InstructionBPage(Page):
-#     pass
+class NotChosenReveaPage(Page):
 
-# class BeliefPage(Page):
+    @staticmethod
+    def is_displayed(player):
+        return player.chosen_advisor == False and player.chosen_client == False
 
-#     form_model = 'player'
-#     form_fields = ['belief']
+class ChosenRevealAdvisorPage(Page):
+
+    form_model = 'player'
+    form_fields = ['recommendation1', 'recommendation2', 'recommendation3', 'recommendation4', 'recommendation5', 'chosen_advisor']
+
+    @staticmethod
+    def vars_for_template(player: Player):
+        if player.chosen_advisor:
+            recommendations = [
+                player.recommendation1,
+                player.recommendation2,
+                player.recommendation3,
+                player.recommendation4,
+                player.recommendation5,
+            ]
+            recommendation_numbers = [1, 2, 3, 4, 5]
+            import random
+            selected_recommendation_number = random.choice(recommendation_numbers)
+            selected_recommendation = recommendations[selected_recommendation_number - 1]
+            print(f'{selected_recommendation_number=}')
+            print(f'{selected_recommendation=}')
+
+            player.subsession.recommendation_number = selected_recommendation_number
+            player.subsession.advisor_recommendation = selected_recommendation
+
+        return dict(
+            recommendation_number=player.subsession.recommendation_number,
+            advisor_recommendation=player.subsession.advisor_recommendation,
+        )   
+
+    @staticmethod
+    def is_displayed(player):
+        return player.chosen_advisor == True 
+
+class ChosenRevealClientPage(Page):
+
+    form_model = 'player'
+    form_fields = ['chosen_client']
+
+    @staticmethod
+    def vars_for_template(player: Player):
+        if player.chosen_client:
+            received_recommendation = player.subsession.advisor_recommendation
+
+            import random
+            if received_recommendation == 'X':
+                if random.random() <= 0.84:
+                    player.subsession.client_selection = 'X'
+                else:
+                     player.subsession.client_selection = 'Y'
+            elif received_recommendation == 'Y':
+                if random.random() <= 0.78:
+                    player.subsession.client_selection= 'Y'
+                else:
+                    player.subsession.client_selection = 'X'
+            else:
+                print('WTF')     
+
+        return dict(
+            received_recommendation=player.subsession.advisor_recommendation,
+            selection=player.subsession.client_selection,
+        )   
     
-#     @staticmethod
-#     def vars_for_template(player: Player):
-#         return dict(
-#             image_path1='productB.png',
-#             image_path2='red_0.png',
-#         )
-    
+    @staticmethod
+    def is_displayed(player):
+        return player.chosen_client == True
+
 class QuestionnairePage(Page):
 
     form_model = 'player'
@@ -420,8 +478,8 @@ class QuestionnairePage(Page):
     #     # fix client role KeyError: 'moralcost_payoff' since player.participant.moralcost_payoff is assigned in set_payoffs function
     #     player.participant.moralcost_payoff = player.moralcost_payoff
 
-class ResultsWaitPage(WaitPage):    
-    after_all_players_arrive = set_payoffs
+# class ResultsWaitPage(WaitPage):    
+#     after_all_players_arrive = set_payoffs
 
 class ReceiptPage(Page):
 
@@ -484,8 +542,12 @@ class EndingPage(Page):
 page_sequence = [InstructionPage,
                 RecommendationPage,
                 MoralWaitPage,
-                ResultsWaitPage,
+                NotChosenReveaPage,
+                ChosenRevealAdvisorPage,
+                ChosenRevealClientPage,
+                # RevealPage,
+                # ResultsWaitPage,
                 QuestionnairePage,
-                ReceiptPage,
-                EndingPage]
-
+                # ReceiptPage,
+                # EndingPage
+                ]

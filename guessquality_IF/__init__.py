@@ -151,6 +151,8 @@ class RED_copyPage(Page):
         return not player.page_RED_first
 
 class ResultsWaitPage(WaitPage):    
+    title_text = "請稍候"
+    body_text = "正在等待推薦人做出推薦，請耐心等候。"
     after_all_players_arrive = set_payoffs
 
 class Results(Page):

@@ -210,26 +210,9 @@ def set_payoffs(group: Group):
 
 
 #Pages
-
-# class ComputerPage(Page):
-#     form_model = 'player'
-#     form_fields = ['seat']
-
-#     @staticmethod
-#     def app_after_this_page(player, upcoming_apps):
-#         if player.seat == 99:
-##             return 'end_app'  # make sure this matches the app name in app_sequence
-        
-#     @staticmethod
-#     def is_displayed(player):
-#         return player.round_number == 1
     
 class MyWaitPage(WaitPage):
     group_by_arrival_time = True
-
-    # @staticmethod
-    # def is_displayed(player):
-    #     return player.round_number == 1
 
 class ComprehensionCheck(Page):
     form_model = 'player'
