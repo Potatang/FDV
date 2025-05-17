@@ -49,4 +49,11 @@ class ComputerPage(Page):
     @staticmethod
     def before_next_page(player, timeout_happened):
         player.participant.who = player.who
-        print(f"{
+        print(f"{player.participant.who = }")
+    
+    @staticmethod
+    def app_after_this_page(player, upcoming_apps):
+        if player.seat == 99:
+            return 'end_app'  # make sure this matches the app name in app_sequence
+
+page_sequence = [ComputerPage]
