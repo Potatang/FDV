@@ -360,7 +360,7 @@ class RecommendationPage(Page):
         
 
 class MoralWaitPage(WaitPage):
-    wait_for_all_players = True
+    wait_for_all_groups = True
     title_text = "請稍候"
     body_text = "正在等待所有人準備完成，請耐心等候其他參與者。"
 
