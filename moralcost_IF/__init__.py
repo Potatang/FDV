@@ -32,6 +32,7 @@ class C(BaseConstants):
 
 
 class Subsession(BaseSubsession):
+    been_chosen = models.BooleanField(initial=False)
     recommendation_number = models.IntegerField()
     advisor_recommendation = models.StringField(choices=[['X', '產品X'], ['Y', '產品Y']])
     client_selection = models.StringField(choice=[['X', '產品X'], ['Y', '產品Y']])
@@ -347,29 +348,25 @@ class RecommendationPage(Page):
     @staticmethod
     def before_next_page(player, timeout_happened):
         subsession = player.subsession
-        import random
+        
+        if subsession.been_chosen == False:
+            import random
 
-        all_players = subsession.get_players()
-        chosen_players = random.sample(all_players, 2)
-        chosen_players[0].chosen_advisor = True
-        chosen_players[1].chosen_client = True
+            all_players = subsession.get_players()
+            chosen_players = random.sample(all_players, 2)
+            chosen_players[0].chosen_advisor = True
+            chosen_players[1].chosen_client = True
+            subsession.been_chosen = True
         
 
 class MoralWaitPage(WaitPage):
-    wait_for_all_groups = True
+    wait_for_all_players = True
     title_text = "請稍候"
     body_text = "正在等待所有人準備完成，請耐心等候其他參與者。"
 
-class NotChosenReveaPage(Page):
-
-    @staticmethod
-    def is_displayed(player):
-        return player.chosen_advisor == False and player.chosen_client == False
-
-class ChosenRevealAdvisorPage(Page):
-
+class ChoosePage(Page):
     form_model = 'player'
-    form_fields = ['recommendation1', 'recommendation2', 'recommendation3', 'recommendation4', 'recommendation5', 'chosen_advisor']
+    form_fields = ['recommendation1', 'recommendation2', 'recommendation3', 'recommendation4', 'recommendation5', 'chosen_advisor', 'chosen_client']
 
     @staticmethod
     def vars_for_template(player: Player):
@@ -390,6 +387,54 @@ class ChosenRevealAdvisorPage(Page):
 
             player.subsession.recommendation_number = selected_recommendation_number
             player.subsession.advisor_recommendation = selected_recommendation
+        
+        # elif player.chosen_client:
+        #     received_recommendation = player.subsession.advisor_recommendation
+
+        #     import random
+        #     if received_recommendation == 'X':
+        #         if random.random() <= 0.84:
+        #             player.subsession.client_selection = 'X'
+        #         else:
+        #              player.subsession.client_selection = 'Y'
+        #     elif received_recommendation == 'Y':
+        #         if random.random() <= 0.78:
+        #             player.subsession.client_selection= 'Y'
+        #         else:
+        #             player.subsession.client_selection = 'X'
+        #     else:
+        #         print('WTF') 
+
+
+class NotChosenRevealPage(Page):
+    @staticmethod
+    def is_displayed(player):
+        return player.chosen_advisor == False and player.chosen_client == False
+
+class ChosenRevealAdvisorPage(Page):
+
+    # form_model = 'player'
+    # form_fields = ['recommendation1', 'recommendation2', 'recommendation3', 'recommendation4', 'recommendation5', 'chosen_advisor']
+
+    @staticmethod
+    def vars_for_template(player: Player):
+        # if player.chosen_advisor:
+        #     recommendations = [
+        #         player.recommendation1,
+        #         player.recommendation2,
+        #         player.recommendation3,
+        #         player.recommendation4,
+        #         player.recommendation5,
+        #     ]
+        #     recommendation_numbers = [1, 2, 3, 4, 5]
+        #     import random
+        #     selected_recommendation_number = random.choice(recommendation_numbers)
+        #     selected_recommendation = recommendations[selected_recommendation_number - 1]
+        #     print(f'{selected_recommendation_number=}')
+        #     print(f'{selected_recommendation=}')
+
+        #     player.subsession.recommendation_number = selected_recommendation_number
+        #     player.subsession.advisor_recommendation = selected_recommendation
 
         return dict(
             recommendation_number=player.subsession.recommendation_number,
@@ -542,12 +587,13 @@ class EndingPage(Page):
 page_sequence = [InstructionPage,
                 RecommendationPage,
                 MoralWaitPage,
-                NotChosenReveaPage,
+                ChoosePage,
+                NotChosenRevealPage,
                 ChosenRevealAdvisorPage,
                 ChosenRevealClientPage,
                 # RevealPage,
                 # ResultsWaitPage,
-                QuestionnairePage,
+                # QuestionnairePage,
                 # ReceiptPage,
                 # EndingPage
                 ]
