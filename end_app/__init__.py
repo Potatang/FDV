@@ -2,7 +2,7 @@ from otree.api import *
 
 
 doc = """
-For those not shown up, direct to here.
+For those not shown up, send them to here.
 """
 
 

@@ -278,46 +278,46 @@ class Player(BasePlayer):
 #         p.participant.moralcost_payoff = p.moralcost_payoff
 
 
-def validate_id_number(id_number):
-    """
-    驗證台灣身分證字號的合法性
-    規則：
-      1. 總長度必須是 10 個字元
-      2. 第一個字母必須存在於 mapping 中
-      3. 第二個字元必須為 '1' 或 '2'
-      4. 後面 8 個字元必須全為數字
-      5. 驗證碼算法：
-         - 將第一個英文字母轉換為對應數值（mapping）
-         - 將該數值分為兩位數：十位數乘以 1、個位數乘以 9
-         - 後續各位數分別乘以權重：8, 7, 6, 5, 4, 3, 2, 1, 1
-         - 加總後如果 mod 10 為 0 則合法
-    """
-    if len(id_number) != 10:
-        return False
-    # 第一個必須是英文字母，第二個必須是 1 或 2
-    if not id_number[0].isalpha() or id_number[1] not in ['1', '2']:
-        return False
-    # 後面 8 位必須都是數字
-    if not id_number[2:].isdigit():
-        return False
+# def validate_id_number(id_number):
+#     """
+#     驗證台灣身分證字號的合法性
+#     規則：
+#       1. 總長度必須是 10 個字元
+#       2. 第一個字母必須存在於 mapping 中
+#       3. 第二個字元必須為 '1' 或 '2'
+#       4. 後面 8 個字元必須全為數字
+#       5. 驗證碼算法：
+#          - 將第一個英文字母轉換為對應數值（mapping）
+#          - 將該數值分為兩位數：十位數乘以 1、個位數乘以 9
+#          - 後續各位數分別乘以權重：8, 7, 6, 5, 4, 3, 2, 1, 1
+#          - 加總後如果 mod 10 為 0 則合法
+#     """
+#     if len(id_number) != 10:
+#         return False
+#     # 第一個必須是英文字母，第二個必須是 1 或 2
+#     if not id_number[0].isalpha() or id_number[1] not in ['1', '2']:
+#         return False
+#     # 後面 8 位必須都是數字
+#     if not id_number[2:].isdigit():
+#         return False
 
-    mapping = {
-        'A':10, 'B':11, 'C':12, 'D':13, 'E':14, 'F':15, 'G':16, 'H':17,
-        'I':34, 'J':18, 'K':19, 'L':20, 'M':21, 'N':22, 'O':35, 'P':23,
-        'Q':24, 'R':25, 'S':26, 'T':27, 'U':28, 'V':29, 'W':32, 'X':30,
-        'Y':31, 'Z':33
-    }
-    letter = id_number[0].upper()
-    if letter not in mapping:
-        return False
-    first_value = mapping[letter]
-    # 計算 checksum：第一個數字拆成兩位，分別乘以 1 與 9
-    total = (first_value // 10) + (first_value % 10 * 9)
-    # 後面 9 位的權重依序為 8,7,6,5,4,3,2,1,1
-    weights = [8, 7, 6, 5, 4, 3, 2, 1, 1]
-    for i, weight in enumerate(weights):
-        total += int(id_number[i+1]) * weight
-    return total % 10 == 0
+#     mapping = {
+#         'A':10, 'B':11, 'C':12, 'D':13, 'E':14, 'F':15, 'G':16, 'H':17,
+#         'I':34, 'J':18, 'K':19, 'L':20, 'M':21, 'N':22, 'O':35, 'P':23,
+#         'Q':24, 'R':25, 'S':26, 'T':27, 'U':28, 'V':29, 'W':32, 'X':30,
+#         'Y':31, 'Z':33
+#     }
+#     letter = id_number[0].upper()
+#     if letter not in mapping:
+#         return False
+#     first_value = mapping[letter]
+#     # 計算 checksum：第一個數字拆成兩位，分別乘以 1 與 9
+#     total = (first_value // 10) + (first_value % 10 * 9)
+#     # 後面 9 位的權重依序為 8,7,6,5,4,3,2,1,1
+#     weights = [8, 7, 6, 5, 4, 3, 2, 1, 1]
+#     for i, weight in enumerate(weights):
+#         total += int(id_number[i+1]) * weight
+#     return total % 10 == 0
 
 
 

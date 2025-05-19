@@ -28,8 +28,10 @@ class C(BaseConstants):
     BADBALL = 0  
 
     # Ｂ的品質機率
-    LOW = 0.75
-    HIGH = 0.25
+    RED_LOW = 0.75
+    RED_HIGH = 0.25
+    BLUE_LOW = 0.33
+    BLUE_HIGH = 0.67
 
 class Subsession(BaseSubsession):
     ball_color = models.StringField(blank=True)
@@ -71,7 +73,7 @@ def set_payoffs(group: Group):
         # print(f'{stoobid=}')
 
         if p.belief_qualityred > stoobid:
-            if random.random() <= C.LOW:
+            if random.random() <= C.RED_LOW:
                 p.red_payoff = cu(150)
         else:
             import math
@@ -85,7 +87,7 @@ def set_payoffs(group: Group):
         # print(f'{stoobid=}')
 
         if p.belief_qualityblue > stoobid:
-            if random.random() <= C.LOW:
+            if random.random() <= C.BLUE_LOW:
                 p.blue_payoff = cu(150)
         else:
             import math
@@ -152,7 +154,7 @@ class RED_copyPage(Page):
 
 class ResultsWaitPage(WaitPage):    
     title_text = "請稍候"
-    body_text = "正在等待推薦人做出推薦，請耐心等候。"
+    body_text = "正在等待所有人做出預測，請耐心等候。"
     after_all_players_arrive = set_payoffs
 
 class Results(Page):
