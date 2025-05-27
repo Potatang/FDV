@@ -77,164 +77,164 @@ class Player(BasePlayer):
     # total_payoff = models.CurrencyField(initial=0)
     # twd_payoff = models.CurrencyField(initial=0)
 
-    age = models.IntegerField(
-        min = 18,
-        max = 40,
-        label = '請問您的年齡是',
-    )
+    # age = models.IntegerField(
+    #     min = 18,
+    #     max = 40,
+    #     label = '請問您的年齡是',
+    # )
 
-    gender = models.IntegerField(
-        choices = [
-              [0,'女'], [1,'男'],
-        ],
-        label = '請問您的生理性別為？',
-    )
+    # gender = models.IntegerField(
+    #     choices = [
+    #           [0,'女'], [1,'男'],
+    #     ],
+    #     label = '請問您的生理性別為？',
+    # )
 
-    grade = models.IntegerField(
-        choices = [
-            [1,'大一'],
-            [2,'大二'],
-            [3,'大三'],
-            [4,'大四'],
-            [5,'碩一'],
-            [6,'碩二'],
-            [7,'其他'],
-            [8,'不便透露']
-        ],
-        widget = widgets.RadioSelectHorizontal,
-        label = '請問您的年級?'
-    )
-    grade_other = models.StringField(
-        blank=True,
-        label='請輸入您的年級（若選擇了「其他」請填寫）'
-    )
+    # grade = models.IntegerField(
+    #     choices = [
+    #         [1,'大一'],
+    #         [2,'大二'],
+    #         [3,'大三'],
+    #         [4,'大四'],
+    #         [5,'碩一'],
+    #         [6,'碩二'],
+    #         [7,'其他'],
+    #         [8,'不便透露']
+    #     ],
+    #     widget = widgets.RadioSelectHorizontal,
+    #     label = '請問您的年級?'
+    # )
+    # grade_other = models.StringField(
+    #     blank=True,
+    #     label='請輸入您的年級（若選擇了「其他」請填寫）'
+    # )
 
-    major = models.IntegerField(
-        choices = [
-            [1,'文學院'],
-            [2,'理學院'],
-            [3,'社會科學院'],
-            [4,'醫學院'],
-            [5,'工學院'],
-            [6,'生物資源暨農學院'],
-            [7,'管理學院'],
-            [8,'公共衛生學院'],
-            [9,'電機資訊學院'],
-            [10,'法律學院'],
-            [11,'生命科學院'],
-            [12,'其他'],
-            [13,'不便透露']
-        ],
-        widget = widgets.RadioSelectHorizontal,
-        label = '請問您主修的科系所屬的學院為? '
-    )
-    major_other = models.StringField(
-        blank=True,
-        label='請輸入您的所屬院系（若選擇了「其他」請填寫）'
-    )
+    # major = models.IntegerField(
+    #     choices = [
+    #         [1,'文學院'],
+    #         [2,'理學院'],
+    #         [3,'社會科學院'],
+    #         [4,'醫學院'],
+    #         [5,'工學院'],
+    #         [6,'生物資源暨農學院'],
+    #         [7,'管理學院'],
+    #         [8,'公共衛生學院'],
+    #         [9,'電機資訊學院'],
+    #         [10,'法律學院'],
+    #         [11,'生命科學院'],
+    #         [12,'其他'],
+    #         [13,'不便透露']
+    #     ],
+    #     widget = widgets.RadioSelectHorizontal,
+    #     label = '請問您主修的科系所屬的學院為? '
+    # )
+    # major_other = models.StringField(
+    #     blank=True,
+    #     label='請輸入您的所屬院系（若選擇了「其他」請填寫）'
+    # )
 
-    income = models.IntegerField(
-        choices = [
-            [1,'3,000 元及以下'],
-            [2,'3,001-6,000 元'],
-            [3,'6,001-9,000 元'],
-            [4,'9,001-12,000 元'],
-            [5,'12,001-15,000 元'],
-            [6,'15,001-18000 元'],
-            [7,'18,001-21,000 元'],
-            [8,'21,000 元以上'],
-            [9,'不便透露']
-        ],
-        widget = widgets.RadioSelectHorizontal,
-        label = '請問您個人平均每月可支配的金錢?? '
-    )
+    # income = models.IntegerField(
+    #     choices = [
+    #         [1,'3,000 元及以下'],
+    #         [2,'3,001-6,000 元'],
+    #         [3,'6,001-9,000 元'],
+    #         [4,'9,001-12,000 元'],
+    #         [5,'12,001-15,000 元'],
+    #         [6,'15,001-18000 元'],
+    #         [7,'18,001-21,000 元'],
+    #         [8,'21,000 元以上'],
+    #         [9,'不便透露']
+    #     ],
+    #     widget = widgets.RadioSelectHorizontal,
+    #     label = '請問您個人平均每月可支配的金錢?? '
+    # )
 
-    hometown = models.IntegerField(
-        choices = [
-            [1,'北部地區 【苗栗以北】'],
-            [2,'中部地區 【台中至雲林】'],
-            [3,'南部地區 【嘉義至恆春】'],
-            [4,'東部、外島地區'],
-            [5,'其他'],
-            [6,'不便透露'],
-        ],
-        widget = widgets.RadioSelectHorizontal,
-        label = '請問您的居住縣市為?'
-    )
-    hometown_other = models.StringField(
-        blank=True,
-        label='請輸入您的居住縣市（若選擇了「其他」請填寫）'
-    )
+    # hometown = models.IntegerField(
+    #     choices = [
+    #         [1,'北部地區 【苗栗以北】'],
+    #         [2,'中部地區 【台中至雲林】'],
+    #         [3,'南部地區 【嘉義至恆春】'],
+    #         [4,'東部、外島地區'],
+    #         [5,'其他'],
+    #         [6,'不便透露'],
+    #     ],
+    #     widget = widgets.RadioSelectHorizontal,
+    #     label = '請問您的居住縣市為?'
+    # )
+    # hometown_other = models.StringField(
+    #     blank=True,
+    #     label='請輸入您的居住縣市（若選擇了「其他」請填寫）'
+    # )
 
-    religion = models.IntegerField(
-        choices = [
-            [1,'佛教，有皈依'],
-            [2,'佛教，未皈依'],
-            [3,'道教'],
-            [4,'民間信仰'],
-            [5,'一貫道'],
-            [6,'回教（伊斯蘭教）'],
-            [7,'天主教'],
-            [8,'基督教'],
-            [9,'其他信仰'],
-            [10,'無信仰'],
-            [11,'不便透露']
-        ],
-        widget = widgets.RadioSelectHorizontal,
-        label = '請問您目前的宗教信仰?'
-    )
-    religion_other = models.StringField(
-        blank=True,
-        label='請輸入您的宗教信仰（若選擇了「其他」請填寫）'
-    )
+    # religion = models.IntegerField(
+    #     choices = [
+    #         [1,'佛教，有皈依'],
+    #         [2,'佛教，未皈依'],
+    #         [3,'道教'],
+    #         [4,'民間信仰'],
+    #         [5,'一貫道'],
+    #         [6,'回教（伊斯蘭教）'],
+    #         [7,'天主教'],
+    #         [8,'基督教'],
+    #         [9,'其他信仰'],
+    #         [10,'無信仰'],
+    #         [11,'不便透露']
+    #     ],
+    #     widget = widgets.RadioSelectHorizontal,
+    #     label = '請問您目前的宗教信仰?'
+    # )
+    # religion_other = models.StringField(
+    #     blank=True,
+    #     label='請輸入您的宗教信仰（若選擇了「其他」請填寫）'
+    # )
 
-    reason1= models.LongStringField(
-        blank = False,
-        label = '當您必須在產品 A 和產品 B 之間做出選擇時，你是如何決定要推薦哪一個的？',
-    )
+    # reason1= models.LongStringField(
+    #     blank = False,
+    #     label = '當您必須在產品 A 和產品 B 之間做出選擇時，你是如何決定要推薦哪一個的？',
+    # )
 
-    choice = models.IntegerField(
-        choices = [
-            [0,'會'],
-            [1,'不會']
-        ],
-        widget = widgets.RadioSelectHorizontal,
-        label = '整體而言您是否會按照收到的推薦進行選擇？',
-    )
-    reason2 = models.StringField(
-        blank=True,
-        label='若您選擇不會，請問原因為何？'
-    )
+    # choice = models.IntegerField(
+    #     choices = [
+    #         [0,'會'],
+    #         [1,'不會']
+    #     ],
+    #     widget = widgets.RadioSelectHorizontal,
+    #     label = '整體而言您是否會按照收到的推薦進行選擇？',
+    # )
+    # reason2 = models.StringField(
+    #     blank=True,
+    #     label='若您選擇不會，請問原因為何？'
+    # )
 
-    email = models.StringField(
-        label="請輸入您常用的 Email(若領款資訊有任何問題，報帳人員將以此方式聯絡您。)",
-        blank=False
-    )
+    # email = models.StringField(
+    #     label="請輸入您常用的 Email(若領款資訊有任何問題，報帳人員將以此方式聯絡您。)",
+    #     blank=False
+    # )
 
-    name = models.StringField(
-        label="姓名",
-        blank=False,
-    )
+    # name = models.StringField(
+    #     label="姓名",
+    #     blank=False,
+    # )
 
-    id_number = models.StringField(
-        label="身分證字號",
-        blank=False,
-    )
+    # id_number = models.StringField(
+    #     label="身分證字號",
+    #     blank=False,
+    # )
 
-    student_id = models.StringField(
-        label="學號",
-        blank=False,
-    )
+    # student_id = models.StringField(
+    #     label="學號",
+    #     blank=False,
+    # )
 
-    zipcode = models.StringField(
-        label="郵遞區號",
-        blank=False,
-    )
+    # zipcode = models.StringField(
+    #     label="郵遞區號",
+    #     blank=False,
+    # )
 
-    address = models.LongStringField(
-        label="戶籍地址(須與身分證背面之住址一致)",
-        blank=False,
-    )
+    # address = models.LongStringField(
+    #     label="戶籍地址(須與身分證背面之住址一致)",
+    #     blank=False,
+    # )
 
 
 
@@ -523,8 +523,8 @@ class QuestionnairePage(Page):
     #     # fix client role KeyError: 'moralcost_payoff' since player.participant.moralcost_payoff is assigned in set_payoffs function
     #     player.participant.moralcost_payoff = player.moralcost_payoff
 
-# class ResultsWaitPage(WaitPage):    
-#     after_all_players_arrive = set_payoffs
+class ResultsWaitPage(WaitPage):    
+    after_all_players_arrive = set_payoffs
 
 class ReceiptPage(Page):
 
@@ -591,7 +591,6 @@ page_sequence = [InstructionPage,
                 NotChosenRevealPage,
                 ChosenRevealAdvisorPage,
                 ChosenRevealClientPage,
-                # RevealPage,
                 # ResultsWaitPage,
                 # QuestionnairePage,
                 # ReceiptPage,

@@ -43,9 +43,9 @@ class Group(BaseGroup):
 
 
 class Player(BasePlayer):
-    showA = models.BooleanField(initial = None)
-    show_ai_first = models.BooleanField(initial = None)
-    show_bi_first = models.BooleanField(initial = None)
+    showA = models.BooleanField(initial = False)
+    show_ai_first = models.BooleanField(initial = False)
+    show_bi_first = models.BooleanField(initial = False)
 
     belief_ai = models.IntegerField(initial = None)
     belief_aq = models.IntegerField(initial = None)
@@ -58,13 +58,13 @@ class Player(BasePlayer):
     bq_payoff = models.CurrencyField(initial=0)
     part4_payoff = models.CurrencyField(initial=0)
 
-def creating_session(subsession:Subsession):
-    import random
+# def creating_session(subsession:Subsession):
+#     import random
   
-    for p in subsession.get_players():
-        p.showA = random.choice([True, False])
-        p.show_ai_first = random.choice([True, False])
-        p.show_bi_first = random.choice([True, False])
+#     for p in subsession.get_players():
+#         p.showA = random.choice([True, False])
+#         p.show_ai_first = random.choice([True, False])
+#         p.show_bi_first = random.choice([True, False])
 
 # def set_payoffs(group: Group): 
 #     import random  
@@ -133,7 +133,16 @@ def creating_session(subsession:Subsession):
 
 # PAGES
 class Instruction4Page(Page):
-    pass
+    @staticmethod
+    def before_next_page(player, timeout_happened):
+        subsession = player.subsession
+        
+        import random
+
+        for p in subsession.get_players():
+            p.showA = random.choice([True, False])
+            p.show_ai_first = random.choice([True, False])
+            p.show_bi_first = random.choice([True, False])
 
 
 class AIPage(Page):
@@ -230,7 +239,7 @@ class BIPagecopy(Page):
     
     @staticmethod
     def is_displayed(player):
-        return not player.showA and player.show_bi_first
+        return not player.showA and not player.show_bi_first
     
 # class ResultsWaitPage(WaitPage):    
 #     after_all_players_arrive = set_payoffs
