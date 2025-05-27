@@ -66,73 +66,73 @@ def creating_session(subsession:Subsession):
         p.show_ai_first = random.choice([True, False])
         p.show_bi_first = random.choice([True, False])
 
-def set_payoffs(group: Group): 
-    import random  
-    for p in group.get_players():
-        p.ai_payoff = cu(0)
-        stoobid = random.choice(range(0, 101, 1))
-        # print(f'{stoobid=}')
+# def set_payoffs(group: Group): 
+#     import random  
+#     for p in group.get_players():
+#         p.ai_payoff = cu(0)
+#         stoobid = random.choice(range(0, 101, 1))
+#         # print(f'{stoobid=}')
 
-        if p.belief_ai > stoobid:
-            if random.random() <= C.LOW:
-                p.ai_payoff = cu(150)
-        else:
-            import math
-            # print(f"{math.floor(stoobid / 10) / 10 = }")
-            if random.random() <= math.floor(stoobid / 10) / 10:
-                p.ai_payoff = cu(150)
+#         if p.belief_ai > stoobid:
+#             if random.random() <= C.LOW:
+#                 p.ai_payoff = cu(150)
+#         else:
+#             import math
+#             # print(f"{math.floor(stoobid / 10) / 10 = }")
+#             if random.random() <= math.floor(stoobid / 10) / 10:
+#                 p.ai_payoff = cu(150)
 
-    for p in group.get_players():
-        p.aq_payoff = cu(0)
-        stoobid = random.choice(range(0, 101, 1))
-        # print(f'{stoobid=}')
+#     for p in group.get_players():
+#         p.aq_payoff = cu(0)
+#         stoobid = random.choice(range(0, 101, 1))
+#         # print(f'{stoobid=}')
 
-        if p.belief_aq > stoobid:
-            if random.random() <= C.LOW:
-                p.aq_payoff = cu(150)
-        else:
-            import math
-            # print(f"{math.floor(stoobid / 10) / 10 = }")
-            if random.random() <= math.floor(stoobid / 10) / 10:
-                p.aq_payoff = cu(150)
+#         if p.belief_aq > stoobid:
+#             if random.random() <= C.LOW:
+#                 p.aq_payoff = cu(150)
+#         else:
+#             import math
+#             # print(f"{math.floor(stoobid / 10) / 10 = }")
+#             if random.random() <= math.floor(stoobid / 10) / 10:
+#                 p.aq_payoff = cu(150)
 
-    for p in group.get_players():
-        p.bi_payoff = cu(0)
-        stoobid = random.choice(range(0, 101, 1))
-        # print(f'{stoobid=}')
+#     for p in group.get_players():
+#         p.bi_payoff = cu(0)
+#         stoobid = random.choice(range(0, 101, 1))
+#         # print(f'{stoobid=}')
 
-        if p.belief_bi > stoobid:
-            if random.random() <= C.LOW:
-                p.bi_payoff = cu(150)
-        else:
-            import math
-            # print(f"{math.floor(stoobid / 10) / 10 = }")
-            if random.random() <= math.floor(stoobid / 10) / 10:
-                p.bi_payoff = cu(150)
+#         if p.belief_bi > stoobid:
+#             if random.random() <= C.LOW:
+#                 p.bi_payoff = cu(150)
+#         else:
+#             import math
+#             # print(f"{math.floor(stoobid / 10) / 10 = }")
+#             if random.random() <= math.floor(stoobid / 10) / 10:
+#                 p.bi_payoff = cu(150)
 
-    for p in group.get_players():
-        p.bq_payoff = cu(0)
-        stoobid = random.choice(range(0, 101, 1))
-        # print(f'{stoobid=}')
+#     for p in group.get_players():
+#         p.bq_payoff = cu(0)
+#         stoobid = random.choice(range(0, 101, 1))
+#         # print(f'{stoobid=}')
 
-        if p.belief_bq > stoobid:
-            if random.random() <= C.LOW:
-                p.bq_payoff = cu(150)
-        else:
-            import math
-            # print(f"{math.floor(stoobid / 10) / 10 = }")
-            if random.random() <= math.floor(stoobid / 10) / 10:
-                p.bq_payoff = cu(150)
+#         if p.belief_bq > stoobid:
+#             if random.random() <= C.LOW:
+#                 p.bq_payoff = cu(150)
+#         else:
+#             import math
+#             # print(f"{math.floor(stoobid / 10) / 10 = }")
+#             if random.random() <= math.floor(stoobid / 10) / 10:
+#                 p.bq_payoff = cu(150)
 
-    if p.subsession.ball_color == "65":
-        p.part2_payoff = p.blue_payoff
-    else:
-        p.part2_payoff = p.red_payoff
+#     if p.subsession.ball_color == "65":
+#         p.part2_payoff = p.blue_payoff
+#     else:
+#         p.part2_payoff = p.red_payoff
 
-    p.participant.part2_payoff = p.part2_payoff
+#     p.participant.part2_payoff = p.part2_payoff
 
 # PAGES
-class Instruction3Page(Page):
+class Instruction4Page(Page):
     pass
 
 
@@ -232,19 +232,18 @@ class BIPagecopy(Page):
     def is_displayed(player):
         return not player.showA and player.show_bi_first
     
-class ResultsWaitPage(WaitPage):    
-    after_all_players_arrive = set_payoffs
+# class ResultsWaitPage(WaitPage):    
+#     after_all_players_arrive = set_payoffs
 
 class Results(Page):
     pass
 
 
-page_sequence = [Instruction3Page,
+page_sequence = [Instruction4Page,
                 AIPage,
                 AQPage,
                 AIPagecopy,
                 BIPage,
                 BQPage,
                 BIPagecopy,
-                ResultsWaitPage,
                 Results]
