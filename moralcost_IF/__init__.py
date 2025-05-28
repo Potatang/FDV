@@ -523,8 +523,8 @@ class QuestionnairePage(Page):
     #     # fix client role KeyError: 'moralcost_payoff' since player.participant.moralcost_payoff is assigned in set_payoffs function
     #     player.participant.moralcost_payoff = player.moralcost_payoff
 
-class ResultsWaitPage(WaitPage):    
-    after_all_players_arrive = set_payoffs
+# class ResultsWaitPage(WaitPage):    
+#     after_all_players_arrive = set_payoffs
 
 class ReceiptPage(Page):
 

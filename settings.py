@@ -3,8 +3,7 @@ from os import environ
 
 SESSION_CONFIGS = [
     dict(
-        # name='FDI', app_sequence=['start_app', 'experiment_IF', 'guessquality_IF', 'moralcost_IF', 'end_app'], num_demo_participants=2,
-        name='FDI', app_sequence=['guessproportion_IF'], num_demo_participants=2
+        name='FDI', app_sequence=['start_app', 'experiment_IF', 'guessquality_IF', 'moralcost_IF', 'guessproportion_IF', 'end_app'], num_demo_participants=2
     ),
 ]
 # if you set a property in SESSION_CONFIG_DEFAULTS, it will be inherited by all configs

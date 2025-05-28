@@ -214,7 +214,7 @@ def set_payoffs(group: Group):
 class MyWaitPage(WaitPage):
     group_by_arrival_time = True
     title_text = "請稍候"
-    body_text = "正在等待推薦人做出推薦，請耐心等候。"
+    body_text = "正在等待其他參加者進入實驗，請耐心等候。"
 
 class ComprehensionCheck(Page):
     form_model = 'player'
