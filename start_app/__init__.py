@@ -36,16 +36,6 @@ class ComputerPage(Page):
     form_model = 'player'
     form_fields = ['seat', 'who']
 
-    # @staticmethod
-    # def vars_for_template(player):
-    #     print(f"{player.who = }")
-    #     player.participant.who = player.who
-    #     print(f"{player.participant.who = }")
-
-    #     return dict(who=player.participant.who,
-    #                 letsgo=player.letsgo,
-    #                 )
-
     @staticmethod
     def before_next_page(player, timeout_happened):
         player.participant.who = player.who

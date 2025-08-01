@@ -52,19 +52,19 @@ class Player(BasePlayer):
     belief_bi = models.IntegerField(initial = None)   
     belief_bq = models.IntegerField(initial = None)
 
-    ai_payoff = models.CurrencyField(initial=0)
-    aq_payoff = models.CurrencyField(initial=0)
-    bi_payoff = models.CurrencyField(initial=0)
-    bq_payoff = models.CurrencyField(initial=0)
-    part4_payoff = models.CurrencyField(initial=0)
+    # ai_payoff = models.CurrencyField(initial=0)
+    # aq_payoff = models.CurrencyField(initial=0)
+    # bi_payoff = models.CurrencyField(initial=0)
+    # bq_payoff = models.CurrencyField(initial=0)
+    # part4_payoff = models.CurrencyField(initial=0)
 
-# def creating_session(subsession:Subsession):
-#     import random
-  
-#     for p in subsession.get_players():
-#         p.showA = random.choice([True, False])
-#         p.show_ai_first = random.choice([True, False])
-#         p.show_bi_first = random.choice([True, False])
+import random
+
+def creating_session(subsession: Subsession):
+    for p in subsession.get_players():
+        p.showA = random.choice([True, False])
+        p.show_ai_first = random.choice([True, False])
+        p.show_bi_first = random.choice([True, False])
 
 # def set_payoffs(group: Group): 
 #     import random  
@@ -133,16 +133,21 @@ class Player(BasePlayer):
 
 # PAGES
 class Instruction4Page(Page):
-    @staticmethod
-    def before_next_page(player, timeout_happened):
-        subsession = player.subsession
-        
-        import random
+    pass
 
-        for p in subsession.get_players():
-            p.showA = random.choice([True, False])
-            p.show_ai_first = random.choice([True, False])
-            p.show_bi_first = random.choice([True, False])
+    # @staticmethod
+    # def before_next_page(player, timeout_happened):
+    #     subsession = player.subsession
+        
+        # import random
+
+        # for p in subsession.get_players():
+        #     p.showA = random.choice([True, False])
+        #     # print(f'{showA=}')
+        #     p.show_ai_first = random.choice([True, False])
+        #     # print(f'{show_ai_first=}')
+        #     p.show_bi_first = random.choice([True, False])
+        #     # print(f'{show_bi_first=}')
 
 
 class AIPage(Page):
@@ -154,7 +159,7 @@ class AIPage(Page):
     def vars_for_template(player: Player):
         return dict(
             image_path1='productB.png',
-            image_path2='red_0.png',
+            image_path2='blue_65.png',
         )
     
     @staticmethod
@@ -170,7 +175,7 @@ class AQPage(Page):
     def vars_for_template(player: Player):
         return dict(
             image_path1='productB.png',
-            image_path2='red_0.png',
+            image_path2='blue_65.png',
         )
     
     @staticmethod
@@ -186,7 +191,7 @@ class AIPagecopy(Page):
     def vars_for_template(player: Player):
         return dict(
             image_path1='productB.png',
-            image_path2='red_0.png',
+            image_path2='blue_65.png',
         )
     
     @staticmethod
@@ -202,12 +207,12 @@ class BIPage(Page):
     def vars_for_template(player: Player):
         return dict(
             image_path1='productB.png',
-            image_path2='blue_65.png',
+            image_path2='red_0.png',
         )
     
     @staticmethod
     def is_displayed(player):
-        return player.show_bi_first and not player.showA
+        return not player.showA and player.show_bi_first
 
 class BQPage(Page):
 
@@ -218,7 +223,7 @@ class BQPage(Page):
     def vars_for_template(player: Player):
         return dict(
             image_path1='productB.png',
-            image_path2='blue_65.png',
+            image_path2='red_0.png',
         )
     
     @staticmethod
@@ -234,7 +239,7 @@ class BIPagecopy(Page):
     def vars_for_template(player: Player):
         return dict(
             image_path1='productB.png',
-            image_path2='blue_65.png',
+            image_path2='red_0.png',
         )
     
     @staticmethod

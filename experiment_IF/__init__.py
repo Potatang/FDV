@@ -57,7 +57,6 @@ class Player(BasePlayer):
     client_selection = models.StringField(blank=True)
     round_payoff = models.CurrencyField(initial=0)
     roundsum_payoff = models.CurrencyField(initial=0)
-    # seat = models.IntegerField(blank = False, label='請輸入座位電腦號碼', min=1, max=34)
     partner_payoff = models.CurrencyField(initial=0)
 
     question1 = models.StringField(

@@ -29,9 +29,7 @@ class C(BaseConstants):
 
     # Ｂ的品質機率
     RED_LOW = 0.75
-    RED_HIGH = 0.25
     BLUE_LOW = 0.33
-    BLUE_HIGH = 0.67
 
 class Subsession(BaseSubsession):
     ball_color = models.StringField(blank=True)
@@ -70,37 +68,43 @@ def set_payoffs(group: Group):
     for p in group.get_players():
         p.red_payoff = cu(0)
         stoobid = random.choice(range(0, 101, 1))
-        # print(f'{stoobid=}')
+        print(f'{stoobid=}')
 
         if p.belief_qualityred > stoobid:
             if random.random() <= C.RED_LOW:
                 p.red_payoff = cu(150)
         else:
             import math
-            # print(f"{math.floor(stoobid / 10) / 10 = }")
+            print(f"{math.floor(stoobid / 10) / 10 = }")
             if random.random() <= math.floor(stoobid / 10) / 10:
                 p.red_payoff = cu(150)
 
     for p in group.get_players():
         p.blue_payoff = cu(0)
         stoobid = random.choice(range(0, 101, 1))
-        # print(f'{stoobid=}')
+        print(f'{stoobid=}')
 
         if p.belief_qualityblue > stoobid:
             if random.random() <= C.BLUE_LOW:
                 p.blue_payoff = cu(150)
         else:
             import math
-            # print(f"{math.floor(stoobid / 10) / 10 = }")
+            print(f"{math.floor(stoobid / 10) / 10 = }")
             if random.random() <= math.floor(stoobid / 10) / 10:
                 p.blue_payoff = cu(150)
 
-    if p.subsession.ball_color == "65":
-        p.part2_payoff = p.blue_payoff
-    else:
-        p.part2_payoff = p.red_payoff
+    for p in group.get_players():
+        if p.subsession.ball_color == "$65":
+            p.part2_payoff = p.blue_payoff
+        else:
+            p.part2_payoff = p.red_payoff
+        p.participant.part2_payoff = p.part2_payoff
+    # if p.subsession.ball_color == "$65":
+    #     p.part2_payoff = p.blue_payoff
+    # else:
+    #     p.part2_payoff = p.red_payoff
 
-    p.participant.part2_payoff = p.part2_payoff
+    # p.participant.part2_payoff = p.part2_payoff
 
     
 
