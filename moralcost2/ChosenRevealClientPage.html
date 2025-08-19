@@ -1,0 +1,45 @@
+{{ block title }}第三部分結果{{ endblock }}
+{{ block content }}
+<p>
+    與您配對到的參加者被電腦抽中，因此您有機會獲得第三部分的報酬。
+    <br>
+    <br>
+    對方給您的推薦為<b>產品{{received_recommendation}}</b>，電腦根據下表為您產生的選擇為<b>產品{{selection}}</b>。
+    <br>
+    <table style="border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th style="border: 1px solid #000; padding: 4px;">對方推薦</th>
+            <th style="border: 1px solid #000; padding: 4px;">客戶選擇產品X的機率</th>
+            <th style="border: 1px solid #000; padding: 4px;">客戶選擇產品Y的機率</th>
+            <th style="border: 1px solid #000; padding: 4px;">合計</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="border: 1px solid #000; padding: 4px;">產品Ｘ</td>
+            <td style="border: 1px solid #000; padding: 4px;">84%</td>
+            <td style="border: 1px solid #000; padding: 4px;">16%</td>
+            <td style="border: 1px solid #000; padding: 4px;">100%</td>
+          </tr>
+          <tr>
+            <td style="border: 1px solid #000; padding: 4px;">產品Y</td>
+            <td style="border: 1px solid #000; padding: 4px;">22%</td>
+            <td style="border: 1px solid #000; padding: 4px;">78%</td>
+            <td style="border: 1px solid #000; padding: 4px;">100%</td>
+          </tr>
+        </tbody>
+      </table>
+    <br>
+    本場實驗結束前會請您作為<b>客戶</b>親自抽球決定報酬。
+
+</p>
+<div style="display: none;">
+    {{ formfields }}
+</div>
+
+<!-- 中文的下一頁按鈕 -->
+<button class="otree-btn-next btn btn-primary">下一頁</button>
+
+{{ endblock }}
+

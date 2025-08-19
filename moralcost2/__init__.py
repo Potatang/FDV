@@ -8,7 +8,7 @@ This is the third part of the experiment, which assesses participants' moral cos
 
 
 class C(BaseConstants):
-    NAME_IN_URL = 'moralcost_IF'
+    NAME_IN_URL = 'moralcost2'
     PLAYERS_PER_GROUP = 2
     NUM_ROUNDS = 1
 

@@ -1,6 +1,6 @@
 from otree.api import *
 import random
-import time
+
 
 doc = """
 Advisor-Client Recommendation Experiment
@@ -8,14 +8,14 @@ SEE INCENTIVE FIRST
 在本實驗中，20 位受試者中 10 位為 advisor，10 位為 client。
 每回合 advisor 依據產品 B 的品質訊息與附加的佣金訊息決定推薦 A 或 B，
 client 看到 advisor 推薦後，直接選擇商品 A 或 B，
-最終支付則依據每回合抽球結果決定，並且所有 50 回合都會計入最終報酬。
+最終支付則依據每回合抽球結果決定，並且所有 10 回合都會計入最終報酬。
 """
 
 #Models
 class C(BaseConstants):
     NAME_IN_URL = 'experiment_IF'
     PLAYERS_PER_GROUP = 2
-    NUM_ROUNDS = 5
+    NUM_ROUNDS = 20
 
     ADVISOR_ROLE = '推薦人'
     CLIENT_ROLE = '客戶'
@@ -111,6 +111,15 @@ class Player(BasePlayer):
         widget=widgets.RadioSelect
     )
 
+    def treatment_this_round(self):
+        o = self.participant.vars.get('order')
+        if o is None:
+            # This participant is not an advisor (or not assigned). Decide how to handle:
+            return None
+        if self.round_number <= 10:
+            return 'IF' if o == 1 else 'QF'
+        else:
+            return 'QF' if o == 1 else 'IF'
 
     
 #FUNCTION
@@ -130,14 +139,21 @@ def group_by_arrival_time_method(subsession, waiting_players):
 
     if len(a_players) >= 1 and len(c_players) >= 1:
         return [random.choice(a_players), random.choice(c_players)]
-
+    
 
 def creating_session(subsession: Subsession):
     import random
 
-    #每回合重新分組
-    # subsession.group_randomly(fixed_id_in_group=True)
-    # group_by_arrival_time = True
+    if subsession.round_number == 1:
+        for p in subsession.get_players():
+            # 給每個 participant 都一個獨立的 order（若已存在就不覆寫）
+            p.participant.vars.setdefault('order', random.randint(0, 1))
+            print(f"[order-assign] PID={p.participant.id_in_session} order={p.participant.vars['order']}")
+            
+        # # optionally propagate to clients (if they need it)
+        # for c in [p for p in g.get_players() if not is_advisor(p)]:
+        #     # tie client to their group's advisor order (pick the first advisor in the group)
+        #     c.participant.vars['advisor_order'] = advisors[0].participant.vars['order']
 
     # 50-50 決定哪一個商品能獲得佣金
     commission_product = random.choice(['產品A', '產品B'])
@@ -215,32 +231,32 @@ class MyWaitPage(WaitPage):
     title_text = "請稍候"
     body_text = "正在等待其他參加者進入實驗，請耐心等候。"
 
-class ComprehensionCheck(Page):
-    form_model = 'player'
-    form_fields = ['question1', 'question2', 'question3', 'question4', 'question5']
+# class ComprehensionCheck(Page):
+#     form_model = 'player'
+#     form_fields = ['question1', 'question2', 'question3', 'question4', 'question5']
 
-    # 整頁驗證：使用 error_message 檢查是否答對
-    def error_message(self, values):
-        # values 是使用者在這個 form 裡填的所有欄位
-        # 比如 values['question1'] 就是 question1 的答案
-        correct_answers = {
-            'question1': 'B',
-            'question2': 'B',
-            'question3': 'A',
-            'question4': 'C',
-            'question5': 'A'
-        }
-        errors = []
-        for q_name, correct_ans in correct_answers.items():
-            if values[q_name] != correct_ans:
-                errors.append(q_name)
+#     # 整頁驗證：使用 error_message 檢查是否答對
+#     def error_message(self, values):
+#         # values 是使用者在這個 form 裡填的所有欄位
+#         # 比如 values['question1'] 就是 question1 的答案
+#         correct_answers = {
+#             'question1': 'B',
+#             'question2': 'B',
+#             'question3': 'A',
+#             'question4': 'C',
+#             'question5': 'A'
+#         }
+#         errors = []
+#         for q_name, correct_ans in correct_answers.items():
+#             if values[q_name] != correct_ans:
+#                 errors.append(q_name)
 
-        if errors:
-            return "有一題或以上答錯了，請仔細閱讀實驗說明並修正答案，若有任何問題請舉手，實驗人員會過去協助。"
+#         if errors:
+#             return "有一題或以上答錯了，請仔細閱讀實驗說明並修正答案，若有任何問題請舉手，實驗人員會過去協助。"
 
-    @staticmethod
-    def is_displayed(player):
-        return player.round_number == 1
+#     @staticmethod
+#     def is_displayed(player):
+#         return player.round_number == 1
     
 class AdvisorPage(Page):
     form_model = 'player'
@@ -265,23 +281,22 @@ class ClientPage(Page):
     def is_displayed(player):
         return player.round_number == 1 and player.role == C.CLIENT_ROLE
     
-class IncentivePage(Page):
+class IncentivePage1(Page):
 
     @staticmethod
     def is_displayed(player):
-        return player.role == C.ADVISOR_ROLE
+        return player.role == C.ADVISOR_ROLE and player.treatment_this_round() == 'IF'
     
     @staticmethod
     def vars_for_template(player: Player):
         subsession = player.subsession
         return dict(commission_product=subsession.commission_product)
 
-
-class QualityPage(Page):
+class QualityPage1(Page):
 
     @staticmethod
     def is_displayed(player):
-        return player.role == C.ADVISOR_ROLE
+        return player.role == C.ADVISOR_ROLE and player.treatment_this_round() == 'IF'
     
     @staticmethod
     def vars_for_template(player: Player):
@@ -297,6 +312,37 @@ class QualityPage(Page):
             product_b_good_ball_probability=subsession.product_b_good_ball_probability,
             image_path=image_path)
 
+class QualityPage2(Page):
+
+    @staticmethod
+    def is_displayed(player):
+        return player.role == C.ADVISOR_ROLE and player.treatment_this_round() == 'QF'
+    
+    @staticmethod
+    def vars_for_template(player: Player):
+        subsession = player.subsession
+        quality = player.subsession.quality_signal
+        if quality == "$65":
+            image_path = 'blue_65.png'
+        else:
+            image_path = 'red_0.png'
+
+        return dict(
+            quality_signal=subsession.quality_signal,
+            product_b_good_ball_probability=subsession.product_b_good_ball_probability,
+            image_path=image_path)
+
+class IncentivePage2(Page):
+
+    @staticmethod
+    def is_displayed(player):
+        return player.role == C.ADVISOR_ROLE and player.treatment_this_round() == 'QF'
+    
+    @staticmethod
+    def vars_for_template(player: Player):
+        subsession = player.subsession
+        return dict(commission_product=subsession.commission_product)
+    
 class RecommendationPage(Page):
 
     form_model = 'group'
@@ -411,6 +457,7 @@ class HistoryPage(Page):
         # print(decision_record)        
 
         return dict(decision_record=decision_record)
+    
 
     
 class ShuffleWaitPage(WaitPage):
@@ -437,11 +484,13 @@ class ShuffleWaitPage(WaitPage):
 page_sequence = [
     # ComputerPage,
     MyWaitPage,
-    ComprehensionCheck,
+    # ComprehensionCheck,
     AdvisorPage,
     ClientPage,
-    IncentivePage,
-    QualityPage,
+    IncentivePage1,
+    QualityPage1,
+    QualityPage2,
+    IncentivePage2,
     RecommendationPage,
     WaitforAdvisor,
     SelectionPage,
