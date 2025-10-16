@@ -7,6 +7,7 @@ SESSION_CONFIGS = [
         num_demo_participants=2,
         app_sequence=['start_app',
                         'moralcost_IF',
+                        'choice',
                         'experiment_IF',
                         'moralcost2',
                         'guessquality_IF',

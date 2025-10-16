@@ -32,6 +32,8 @@ class C(BaseConstants):
     # 球的價值
     GOODBALL = 65
     BADBALL = 0   
+    # 全選 Quality 或全選 Incentive 的扣除額
+    CHOICE_DECUCTION = 5
 
 class Subsession(BaseSubsession):
     commission_product = models.StringField(blank=True)
@@ -54,22 +56,35 @@ class Group(BaseGroup):
 
 class Player(BasePlayer):
     advisor_recommendation = models.StringField(blank=True)
-    advisor_preference = models.StringField(blank=True)
+    # 看起來沒用到
+    # advisor_preference = models.StringField(blank=True)
     client_selection = models.StringField(blank=True)
     round_payoff = models.CurrencyField(initial=0)
     roundsum_payoff = models.CurrencyField(initial=0)
     partner_payoff = models.CurrencyField(initial=0)
 
+    choice_1 = models.StringField(choices=['Quality','Incentive'], initial='Quality')
+    choice_2 = models.StringField(choices=['Quality','Incentive'], initial='Quality')
+    choice_3 = models.StringField(choices=['Quality','Incentive'], initial='Incentive')
+    choice_4 = models.StringField(choices=['Quality','Incentive'], initial='Incentive')
 
     def treatment_this_round(self):
-        o = self.participant.vars.get('order')
-        if o is None:
-            # This participant is not an advisor (or not assigned). Decide how to handle:
-            return None
-        if self.round_number <= 10:
-            return 'IF' if o == 1 else 'QF'
-        else:
-            return 'QF' if o == 1 else 'IF'
+        # o = self.participant.vars.get('order')
+        # if o is None:
+        #     # This participant is not an advisor (or not assigned). Decide how to handle:
+        #     return None
+        # if self.round_number <= 10:
+        #     return 'IF' if o == 1 else 'QF'
+        # else:
+        #     return 'QF' if o == 1 else 'IF'
+
+        choices = [self.choice_1, self.choice_2, self.choice_3, self.choice_4]
+        chosen_choice = random.choice(choices)
+
+        if chosen_choice == 'Quality':
+            return 'QF'
+        elif chosen_choice == 'Incentive':
+            return 'IF'
 
     
 #FUNCTION
@@ -139,6 +154,13 @@ def set_payoffs(group: Group):
             # 若 advisor 的推薦與當回合電腦決定的佣金產品相符，額外加 $5
             if p.advisor_recommendation == subsession.commission_product.replace("產品", ""):
                 payoff += C.COMMISSION
+            
+            # 如果都是 Quality 或都是 Incentive，扣 $5
+            choices = set([p.choice_1, p.choice_2, p.choice_3, p.choice_4])
+            if len(choices) == 1:
+                # print(f"set_payoff: all the same choice! deducting {C.CHOICE_DECUCTION}")
+                payoff -= C.CHOICE_DECUCTION
+            
         elif p.role == C.CLIENT_ROLE:
             # Client 固定報酬為參與費
             payoff = 0
@@ -204,7 +226,29 @@ class ClientPage(Page):
     @staticmethod
     def is_displayed(player):
         return player.round_number == 1 and player.role == C.CLIENT_ROLE
+
     
+class ChoicePage(Page):
+    form_model = 'player'
+    form_fields = ['choice_1','choice_2','choice_3','choice_4']
+
+    @staticmethod
+    def vars_for_template(player: Player):
+        choices = dict(choice_1='Quality', choice_2='Quality',
+                       choice_3='Incentive', choice_4='Incentive')
+        if player.round_number == 1:
+            current_sum = 0
+        else:
+            current_sum = player.in_round(player.round_number - 1).roundsum_payoff
+        return dict(choices=choices,
+                    current_sum=current_sum
+                )
+    
+    @staticmethod
+    def is_displayed(player):
+        return player.role == C.ADVISOR_ROLE
+
+
 class IncentivePage1(Page):
 
     @staticmethod
@@ -396,6 +440,7 @@ page_sequence = [
     MyWaitPage,
     AdvisorPage,
     ClientPage,
+    ChoicePage,
     IncentivePage1,
     QualityPage1,
     QualityPage2,
