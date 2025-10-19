@@ -1,0 +1,99 @@
+{{ block title }}Choice 第 {{ subsession.round_number }} 回合{{ endblock }}
+{{ block content }}
+
+<style>
+  :root { --size: 120px; --radius: 14px; --gap: 14px; }
+  .cards-grid{
+    display:grid;
+    grid-template-columns:repeat(4, var(--size));
+    gap:var(--gap);
+    margin-bottom:18px;
+    justify-content:center;
+  }
+  /* use .flipcard to avoid Bootstrap's .card */
+  #cards .flipcard{
+    width:var(--size); height:var(--size);
+    border-radius:var(--radius);
+    display:grid; place-items:center;
+    color:#fff; font-weight:700; letter-spacing:.5px;
+    cursor:pointer; user-select:none;
+    box-shadow:0 6px 18px rgba(0,0,0,.12);
+    transition:transform .08s ease, filter .15s ease;
+  }
+  #cards .flipcard:active{ transform:scale(.98); }
+  #cards .flipcard.red{ background:#e63946; }
+  #cards .flipcard.black{ background:#111; }
+  #cards .flipcard:focus-visible{ outline:3px solid #4c9ffe; outline-offset:3px; }
+</style>
+
+<p>全選 Quality 或全選 Incentive 要扣 5 塊呦 >.O</p>
+<!-- <p>目前累積錢錢：{{ current_sum }}</p> -->
+<div class="cards-grid" id="cards">
+  <div class="flipcard" data-idx="1" tabindex="0"></div>
+  <div class="flipcard" data-idx="2" tabindex="0"></div>
+  <div class="flipcard" data-idx="3" tabindex="0"></div>
+  <div class="flipcard" data-idx="4" tabindex="0"></div>
+</div>
+
+<!-- Hidden inputs: defaults so something is always saved -->
+<input type="hidden" name="choice_1" id="label1_input" value="Quality">
+<input type="hidden" name="choice_2" id="label2_input" value="Quality">
+<input type="hidden" name="choice_3" id="label3_input" value="Incentive">
+<input type="hidden" name="choice_4" id="label4_input" value="Incentive">
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  // mapping
+  function colorOf(lbl){ return lbl === 'Quality' ? 'red' : 'black'; }
+  function flipLabel(lbl){ return lbl === 'Quality' ? 'Incentive' : 'Quality'; }
+
+  // set one card from a label (and sync hidden)
+  function setFromLabel(el, label){
+    el.classList.remove('red','black');
+    el.classList.add(colorOf(label));
+    // el.textContent = label;
+    el.textContent = '';
+    var idx = el.getAttribute('data-idx');
+    var inp = document.getElementById('label'+idx+'_input');
+    if (inp) inp.value = label;
+    el.setAttribute('data-label', label); // keep a copy on the element too
+  }
+
+  // flip handler
+  function flip(el){
+    var current = el.getAttribute('data-label') || 'Quality';
+    setFromLabel(el, flipLabel(current));
+  }
+
+  // initialize cards from hidden values (defaults => P,P,I,I)
+  var cards = document.querySelectorAll('#cards .flipcard');
+  Array.prototype.forEach.call(cards, function(el){
+    var idx = el.getAttribute('data-idx');
+    var inp = document.getElementById('label'+idx+'_input');
+    var start = inp && inp.value ? inp.value : (idx <= '2' ? 'Quality' : 'Incentive');
+    setFromLabel(el, start);
+
+    el.addEventListener('click', function(){ flip(el); });
+    el.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flip(el); }
+    });
+  });
+
+  // **bulletproof sync on submit**: read labels off the DOM, write to inputs
+  var form = document.querySelector('form');
+  if (form){
+    form.addEventListener('submit', function(){
+      Array.prototype.forEach.call(cards, function(el){
+        var idx = el.getAttribute('data-idx');
+        var label = el.getAttribute('data-label') || el.textContent || 'Quality';
+        var inp = document.getElementById('label'+idx+'_input');
+        if (inp) inp.value = (label === 'Quality' ? 'Quality' : 'Incentive');
+      });
+    });
+  }
+});
+</script>
+
+<button class="otree-btn-next btn btn-primary">下一頁</button>
+<!-- {{ next_button }} -->
+{{ endblock }}

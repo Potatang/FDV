@@ -7,9 +7,10 @@ SESSION_CONFIGS = [
         num_demo_participants=2,
         app_sequence=['start_app',
                         'moralcost_IF',
-                        'experiment_IF',
+                        'experiment_IF', # experiment payoff
+                        'choice', # choice payoff
                         'moralcost2',
-                        'guessquality_IF',
+                        'guessquality_IF', # part 2 payoff
                         'guessproportion_IF',
                         'end_app'
                         ],
@@ -31,6 +32,7 @@ PARTICIPANT_FIELDS = dict(
     part2_payoff = int(),
     part4_belief = int(),
     moralcost_payoff = int(),
+    choice_payoff = int(),
     total_payoff = int(),
     twd_payoff = int(),
 )

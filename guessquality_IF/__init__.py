@@ -68,28 +68,24 @@ def set_payoffs(group: Group):
     for p in group.get_players():
         p.red_payoff = cu(0)
         stoobid = random.choice(range(0, 101, 1))
-        print(f'{stoobid=}')
 
         if p.belief_qualityred > stoobid:
             if random.random() <= C.RED_LOW:
                 p.red_payoff = cu(150)
         else:
             import math
-            print(f"{math.floor(stoobid / 10) / 10 = }")
             if random.random() <= math.floor(stoobid / 10) / 10:
                 p.red_payoff = cu(150)
 
     for p in group.get_players():
         p.blue_payoff = cu(0)
         stoobid = random.choice(range(0, 101, 1))
-        print(f'{stoobid=}')
 
         if p.belief_qualityblue > stoobid:
             if random.random() <= C.BLUE_LOW:
                 p.blue_payoff = cu(150)
         else:
             import math
-            print(f"{math.floor(stoobid / 10) / 10 = }")
             if random.random() <= math.floor(stoobid / 10) / 10:
                 p.blue_payoff = cu(150)
 
