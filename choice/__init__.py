@@ -69,15 +69,6 @@ class Player(BasePlayer):
     choice_4 = models.StringField(choices=['Quality','Incentive'], initial='Incentive')
 
     def treatment_this_round(self):
-        # o = self.participant.vars.get('order')
-        # if o is None:
-        #     # This participant is not an advisor (or not assigned). Decide how to handle:
-        #     return None
-        # if self.round_number <= 10:
-        #     return 'IF' if o == 1 else 'QF'
-        # else:
-        #     return 'QF' if o == 1 else 'IF'
-
         choices = [self.choice_1, self.choice_2, self.choice_3, self.choice_4]
         chosen_choice = random.choice(choices)
 
@@ -228,6 +219,13 @@ class ChoicePage(Page):
     form_model = 'player'
     form_fields = ['choice_1','choice_2','choice_3','choice_4']
 
+    def error_message(player, values):
+        # Count "Quality" among the 4 choices
+        q = sum(1 for i in range(1, 5) if values.get(f'choice_{i}') == 'Quality')
+        # exactly 2 Quality and 2 Incentive is not allowed
+        if q == 2:
+            return "目前是兩張紅與兩張黑，請調整卡片後再繼續。"
+    
     @staticmethod
     def vars_for_template(player: Player):
         choices = dict(choice_1='Quality', choice_2='Quality',
