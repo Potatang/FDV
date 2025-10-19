@@ -125,10 +125,6 @@ class Player(BasePlayer):
 #FUNCTION
 # note: this function goes at the module level, not inside the WaitPage.
 def group_by_arrival_time_method(subsession, waiting_players):
-    print('in group_by_arrival_time_method')
-
-    # print(f"{waiting_players = }")
-    
     # for p in waiting_players:
     #     print(f"{p.participant.who = }")
     #     if p.participant.who == True: p.role == C.ADVISOR_ROLE

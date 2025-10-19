@@ -51,7 +51,8 @@ document.addEventListener('DOMContentLoaded', function(){
   function setFromLabel(el, label){
     el.classList.remove('red','black');
     el.classList.add(colorOf(label));
-    el.textContent = label;
+    // el.textContent = label;
+    el.textContent = '';
     var idx = el.getAttribute('data-idx');
     var inp = document.getElementById('label'+idx+'_input');
     if (inp) inp.value = label;

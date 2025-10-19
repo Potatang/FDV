@@ -91,7 +91,7 @@ class ComputerPage(Page):
     @staticmethod
     def before_next_page(player, timeout_happened):
         player.participant.who = player.who
-        print(f"{player.participant.who = }")
+        # print(f"{player.participant.who = }")
         player.participant.seat = player.seat
         
     

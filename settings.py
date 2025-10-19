@@ -32,6 +32,7 @@ PARTICIPANT_FIELDS = dict(
     part2_payoff = int(),
     part4_belief = int(),
     moralcost_payoff = int(),
+    choice_payoff = int(),
     total_payoff = int(),
     twd_payoff = int(),
 )

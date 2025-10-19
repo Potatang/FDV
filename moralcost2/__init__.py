@@ -132,8 +132,6 @@ class ChoosePage(Page):
             import random
             selected_recommendation_number = random.choice(recommendation_numbers)
             selected_recommendation = recommendations[selected_recommendation_number - 1]
-            print(f'{selected_recommendation_number=}')
-            print(f'{selected_recommendation=}')
 
             player.subsession.recommendation_number = selected_recommendation_number
             player.subsession.advisor_recommendation = selected_recommendation

@@ -89,11 +89,7 @@ class Player(BasePlayer):
     
 #FUNCTION
 # note: this function goes at the module level, not inside the WaitPage.
-def group_by_arrival_time_method(subsession, waiting_players):
-    print('in group_by_arrival_time_method')
-
-    # print(f"{waiting_players = }")
-    
+def group_by_arrival_time_method(subsession, waiting_players):    
     # for p in waiting_players:
     #     print(f"{p.participant.who = }")
     #     if p.participant.who == True: p.role == C.ADVISOR_ROLE
@@ -113,7 +109,7 @@ def creating_session(subsession: Subsession):
         for p in subsession.get_players():
             # 給每個 participant 都一個獨立的 order（若已存在就不覆寫）
             p.participant.vars.setdefault('order', random.randint(0, 1))
-            print(f"[order-assign] PID={p.participant.id_in_session} order={p.participant.vars['order']}")
+            # print(f"[order-assign] PID={p.participant.id_in_session} order={p.participant.vars['order']}")
             
         # # optionally propagate to clients (if they need it)
         # for c in [p for p in g.get_players() if not is_advisor(p)]:
@@ -189,7 +185,7 @@ def set_payoffs(group: Group):
             previous_round = p.in_round(p.round_number - 1)
             p.roundsum_payoff = previous_round.roundsum_payoff + p.round_payoff
         
-        p.participant.experiment_payoff = p.roundsum_payoff
+        p.participant.choice_payoff = p.roundsum_payoff
 
     for p in group.get_players():
         partner = p.get_others_in_group()[0] if p.get_others_in_group() else None
