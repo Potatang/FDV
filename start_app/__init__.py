@@ -128,5 +128,5 @@ class ComprehensionCheck(Page):
         return player.round_number == 1
     
 page_sequence = [ComputerPage,
-                #  ComprehensionCheck
+                 ComprehensionCheck
                  ]

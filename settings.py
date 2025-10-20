@@ -6,7 +6,7 @@ SESSION_CONFIGS = [
         name='FDI',
         num_demo_participants=2,
         app_sequence=['start_app',
-                        'moralcost_IF',
+                        # 'moralcost_IF',
                         'experiment_IF', # experiment payoff
                         'choice', # choice payoff
                         'moralcost2',
