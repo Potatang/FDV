@@ -1,11 +1,16 @@
 {% load static %}
-{{ block title }} B產品抽出的球 {{ endblock }}
+{{ block title }} 產品 B 中抽出的球 {{ endblock }}
 {{ block content }}
 {{ load static }}
     <p>
-        本回合中，從 B 產品隨機抽出的球的金額是：<img src="{{ static image_path }}" width="80px" />
+        <br>本回合，電腦從<ins>產品 B </ins>中隨機抽出的球是：</br>
+        <p>
+            <img src="{{ static image_path }}" width="80px" />
+        </p>
     </p>
-
+    <p>
+        在進入下一個畫面之前，請您仔細考慮想要給客戶的推薦。
+    </p>
 
 {{ formfields }}
 <br>
