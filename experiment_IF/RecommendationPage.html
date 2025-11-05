@@ -5,12 +5,13 @@
         身為推薦人，你會推薦哪項產品給客戶？
     </p>
     <p>
-        <b>提醒您，如果您推薦{{subsession.commission_product}}，您可以額外獲得5法幣</b>。
+        <b>提醒您，如果您推薦{{ subsession.commission_product }}，您可以額外獲得5法幣</b>。
     </p>
-{{ formfields }}
 
-    {{ if previous_decision_record }}
-    <h4>歷史回合</h4>
+    {{ formfields }}
+
+    {{ if decision_list }}
+    <h4>歷史回合（第 {{ window_start }}–{{ window_end }}）</h4>
     <div style="max-height: 400px; overflow-y: auto;">
         <table class="table">
             <thead>
@@ -24,11 +25,10 @@
                     <th style="width: 90px;">產品A實際品質</th>
                     <th style="width: 90px;">產品B實際品質</th>
                     <th style="width: 120px;">對方本回合報酬</th>
-                    <th style="width: 120px;">您的累計報酬</th>
                 </tr>
             </thead>
             <tbody>
-                {{ for key, record in previous_decision_record.items() }}
+                {{ for record in decision_list }}
                     <tr>
                         <td>{{ record.round_number }}</td>
                         <td>{{ record.commission_product }}</td>
@@ -39,7 +39,6 @@
                         <td><img src="{{ static record.producta_image }}" width="50px"></td>
                         <td><img src="{{ static record.quality_image }}" width="50px"></td>
                         <td>{{ record.partner_payoff }}</td>
-                        <td>{{ record.roundsum_payoff }}</td>
                     </tr>
                 {{ endfor }}
             </tbody>
@@ -47,10 +46,5 @@
     </div>
     {{ endif }}
 
-
-
-<!-- 中文的下一頁按鈕 -->
-<button class="otree-btn-next btn btn-primary">下一頁</button>
-    
-
+    <button class="otree-btn-next btn btn-primary">下一頁</button>
 {{ endblock }}
