@@ -1,4 +1,4 @@
-{{ block title }}第二部分第 {{ subsession.round_number }} 回合{{ endblock }}
+{{ block title }}第四部分第 {{ subsession.round_number }} 回合{{ endblock }}
 {{ block content }}
 
 <style>
@@ -9,6 +9,11 @@
     gap:var(--gap);
     margin-bottom:18px;
     justify-content:center;
+  }
+  .card-wrap{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
   }
   /* use .flipcard to avoid Bootstrap's .card */
   #cards .flipcard{
@@ -23,77 +28,172 @@
   #cards .flipcard:active{ transform:scale(.98); }
   #cards .flipcard.red{ background:#e63946; }
   #cards .flipcard.black{ background:#111; }
+  #cards .flipcard.blank{
+    background:transparent; color:#666;
+    border:2px dashed #bbb;
+  }
   #cards .flipcard:focus-visible{ outline:3px solid #4c9ffe; outline-offset:3px; }
+
+  .fee-hint{
+    font-size:.9rem; color:#444; margin-top:6px; text-align:center;
+  }
+  .badge{
+    display:inline-block; padding:4px 8px; border-radius:999px; font-size:.9rem;
+    margin-bottom:10px; background:#f0f0f0;
+  }
 </style>
 
-<p>四張卡片顏色相同時需支付 5 法幣</p>
-<!-- <p>目前累積錢錢：{{ current_sum }}</p> -->
+<p>規則：左卡原色為紅、右卡原色為黑。若左卡被改成黑，或右卡被改成紅，將各扣 5 法幣並顯示提醒；翻回原色則不扣且提醒消失。中間兩張為連動卡，點任一張兩張一起變色。</p>
+<div class="badge">目前累積費用：<span id="fee">0</span> 法幣（最多 10）</div>
+
 <div class="cards-grid" id="cards">
-  <div class="flipcard" data-idx="1" tabindex="0"></div>
-  <div class="flipcard" data-idx="2" tabindex="0"></div>
-  <div class="flipcard" data-idx="3" tabindex="0"></div>
-  <div class="flipcard" data-idx="4" tabindex="0"></div>
+  <div class="card-wrap">
+    <div class="flipcard" data-idx="1" tabindex="0" aria-label="左卡"></div>
+    <div class="fee-hint" id="left_hint" hidden>更改本張卡片的顏色要花費五法幣</div>
+  </div>
+  <div class="card-wrap">
+    <div class="flipcard" data-idx="2" tabindex="0" aria-label="中左卡"></div>
+  </div>
+  <div class="card-wrap">
+    <div class="flipcard" data-idx="3" tabindex="0" aria-label="中右卡"></div>
+  </div>
+  <div class="card-wrap">
+    <div class="flipcard" data-idx="4" tabindex="0" aria-label="右卡"></div>
+    <div class="fee-hint" id="right_hint" hidden>更改本張卡片的顏色要花費五法幣</div>
+  </div>
 </div>
 
-<!-- Hidden inputs: defaults so something is always saved -->
-<input type="hidden" name="choice_1" id="label1_input" value="Quality">
-<input type="hidden" name="choice_2" id="label2_input" value="Quality">
-<input type="hidden" name="choice_3" id="label3_input" value="Incentive">
-<input type="hidden" name="choice_4" id="label4_input" value="Incentive">
+<!-- Hidden inputs: 初始 Left=Quality(紅)、中=Blank/Blank、Right=Incentive(黑) -->
+<input type="hidden" name="choice_1" id="label1_input" value="Incentive"> <!-- 左=紅 -->
+<input type="hidden" name="choice_2" id="label2_input" value="Blank">
+<input type="hidden" name="choice_3" id="label3_input" value="Blank">
+<input type="hidden" name="choice_4" id="label4_input" value="Quality">   <!-- 右=黑 -->
+
+<!-- 是否改色（0/1）：提交後端用於計費 -->
+<input type="hidden" name="left_changed" id="left_changed_input" value="0">
+<input type="hidden" name="right_changed" id="right_changed_input" value="0">
 
 <script>
 document.addEventListener('DOMContentLoaded', function(){
-  // mapping
-  function colorOf(lbl){ return lbl === 'Quality' ? 'red' : 'black'; }
-  function flipLabel(lbl){ return lbl === 'Quality' ? 'Incentive' : 'Quality'; }
+  // 原始顏色定義
+  const ORIGINAL_LEFT  = 'Incentive';   // 紅
+  const ORIGINAL_RIGHT = 'Quality'; // 黑
 
-  // set one card from a label (and sync hidden)
+  // 費用常數（若想從後端常數帶入，可替換成 {{ C.CARD_CLICK_FEE }} ）
+  const FEE_PER_SIDE = 5;
+
+  // DOM
+  const feeEl = document.getElementById('fee');
+  const leftHint  = document.getElementById('left_hint');
+  const rightHint = document.getElementById('right_hint');
+  const leftChangedInp  = document.getElementById('left_changed_input');
+  const rightChangedInp = document.getElementById('right_changed_input');
+
+  // 標籤 <-> 顏色
+  function colorOf(lbl){
+    if (lbl === 'Incentive') return 'red';
+    if (lbl === 'Quality') return 'black';
+    return 'blank';
+  }
+  function flipLabel(lbl){
+    if (lbl === 'Quality') return 'Incentive';
+    if (lbl === 'Incentive') return 'Quality';
+    // Blank 首次翻成紅
+    return 'Quality';
+  }
+
+  // 設定單張卡的外觀與 hidden 值
   function setFromLabel(el, label){
-    el.classList.remove('red','black');
+    el.classList.remove('red','black','blank');
     el.classList.add(colorOf(label));
-    // el.textContent = label;
     el.textContent = '';
-    var idx = el.getAttribute('data-idx');
-    var inp = document.getElementById('label'+idx+'_input');
+    const idx = el.getAttribute('data-idx');
+    const inp = document.getElementById('label'+idx+'_input');
     if (inp) inp.value = label;
-    el.setAttribute('data-label', label); // keep a copy on the element too
+    el.setAttribute('data-label', label);
   }
 
-  // flip handler
-  function flip(el){
-    var current = el.getAttribute('data-label') || 'Quality';
-    setFromLabel(el, flipLabel(current));
+  // 重新計算左右是否改色、顯示提示、更新費用
+  function refreshChangeState(){
+    const leftEl  = document.querySelector('#cards .flipcard[data-idx="1"]');
+    const rightEl = document.querySelector('#cards .flipcard[data-idx="4"]');
+
+    const leftNow  = leftEl.getAttribute('data-label')  || ORIGINAL_LEFT;
+    const rightNow = rightEl.getAttribute('data-label') || ORIGINAL_RIGHT;
+
+    const leftChanged  = (leftNow  !== ORIGINAL_LEFT);   // 左：非紅即算改色（黑）
+    const rightChanged = (rightNow !== ORIGINAL_RIGHT);  // 右：非黑即算改色（紅）
+
+    if (leftHint)  leftHint.hidden  = !leftChanged;
+    if (rightHint) rightHint.hidden = !rightChanged;
+
+    if (leftChangedInp)  leftChangedInp.value  = leftChanged  ? '1' : '0';
+    if (rightChangedInp) rightChangedInp.value = rightChanged ? '1' : '0';
+
+    const sides = (leftChanged ? 1 : 0) + (rightChanged ? 1 : 0);
+    const total = sides * FEE_PER_SIDE;
+    if (feeEl) feeEl.textContent = String(total);
   }
 
-  // initialize cards from hidden values (defaults => P,P,I,I)
-  var cards = document.querySelectorAll('#cards .flipcard');
+  // 初始化四張卡
+  const cards = document.querySelectorAll('#cards .flipcard');
   Array.prototype.forEach.call(cards, function(el){
-    var idx = el.getAttribute('data-idx');
-    var inp = document.getElementById('label'+idx+'_input');
-    var start = inp && inp.value ? inp.value : (idx <= '2' ? 'Quality' : 'Incentive');
+    const idx = el.getAttribute('data-idx');
+    const inp = document.getElementById('label'+idx+'_input');
+    const start = inp && inp.value ? inp.value
+                 : (idx === '1' ? ORIGINAL_LEFT
+                 : (idx === '4' ? ORIGINAL_RIGHT : 'Blank'));
     setFromLabel(el, start);
+  });
+  refreshChangeState();
 
-    el.addEventListener('click', function(){ flip(el); });
+  // 中間兩張連動（2,3）
+  function toggleMiddlePair(){
+    const el2 = document.querySelector('#cards .flipcard[data-idx="2"]');
+    const el3 = document.querySelector('#cards .flipcard[data-idx="3"]');
+    const cur = el2.getAttribute('data-label') || 'Blank';
+    const next = (cur === 'Blank') ? 'Quality'
+               : (cur === 'Quality') ? 'Incentive'
+               : 'Quality';
+    setFromLabel(el2, next);
+    setFromLabel(el3, next);
+    // 不影響左右費用
+  }
+
+  // 事件：點擊與鍵盤
+  Array.prototype.forEach.call(cards, function(el){
+    el.addEventListener('click', function(){
+      const idx = el.getAttribute('data-idx');
+
+      if (idx === '2' || idx === '3'){
+        toggleMiddlePair();
+        return;
+      }
+
+      // 左右：翻色後重新計算是否改色與費用
+      const cur = el.getAttribute('data-label') || (idx === '1' ? ORIGINAL_LEFT : ORIGINAL_RIGHT);
+      setFromLabel(el, flipLabel(cur));
+      refreshChangeState();
+    });
+
     el.addEventListener('keydown', function(e){
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flip(el); }
+      if (e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        el.click();
+      }
     });
   });
 
-  // **bulletproof sync on submit**: read labels off the DOM, write to inputs
-  var form = document.querySelector('form');
+  // 送出前保險同步
+  const form = document.querySelector('form');
   if (form){
     form.addEventListener('submit', function(){
-      Array.prototype.forEach.call(cards, function(el){
-        var idx = el.getAttribute('data-idx');
-        var label = el.getAttribute('data-label') || el.textContent || 'Quality';
-        var inp = document.getElementById('label'+idx+'_input');
-        if (inp) inp.value = (label === 'Quality' ? 'Quality' : 'Incentive');
-      });
+      refreshChangeState();
+      // setFromLabel 已同步 hidden 的 choice_1..4；這裡無需重覆寫入
     });
   }
 });
 </script>
 
 <button class="otree-btn-next btn btn-primary">下一頁</button>
-<!-- {{ next_button }} -->
 {{ endblock }}

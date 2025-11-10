@@ -15,6 +15,7 @@ client 看到 advisor 推薦後，直接選擇商品 A 或 B，
 class C(BaseConstants):
     NAME_IN_URL = 'experiment_IF'
     PLAYERS_PER_GROUP = 2
+    BLOCK_SIZE = 10  # 每段 10 回合
     NUM_ROUNDS = 20
 
     ADVISOR_ROLE = '推薦人'
@@ -132,6 +133,12 @@ class Player(BasePlayer):
         else:
             return 'QF' if o == 1 else 'IF'
 
+def display_round_no(round_number: int) -> int:
+    return ((round_number - 1) % C.BLOCK_SIZE) + 1
+
+def block_index(round_number: int) -> int:
+    # 第 1 段=1（1–10 回合），第 2 段=2（11–20 回合）
+    return ((round_number - 1) // C.BLOCK_SIZE) + 1
     
 #FUNCTION
 # note: this function goes at the module level, not inside the WaitPage.
@@ -152,10 +159,19 @@ def creating_session(subsession: Subsession):
     import random
 
     if subsession.round_number == 1:
+        # 從 session.config 讀你指定的順序（預設 1 = IF 先）
+        order_global = int(subsession.session.config.get('order_global', 1))
+        subsession.session.vars['order_global'] = order_global  # 可留存一份在 session.vars
+
         for p in subsession.get_players():
-            # 給每個 participant 都一個獨立的 order（若已存在就不覆寫）
-            p.participant.vars.setdefault('order', random.randint(0, 1))
-            print(f"[order-assign] PID={p.participant.id_in_session} order={p.participant.vars['order']}")
+            p.participant.vars['order'] = order_global
+            print(f"[order-assign] PID={p.participant.id_in_session} order={order_global}")
+
+    # if subsession.round_number == 1:
+    #     for p in subsession.get_players():
+    #         # 給每個 participant 都一個獨立的 order（若已存在就不覆寫）
+    #         p.participant.vars.setdefault('order', random.randint(0, 1))
+    #         print(f"[order-assign] PID={p.participant.id_in_session} order={p.participant.vars['order']}")
             
         # # optionally propagate to clients (if they need it)
         # for c in [p for p in g.get_players() if not is_advisor(p)]:
@@ -294,10 +310,15 @@ class MyWaitPage(WaitPage):
     title_text = "請稍候"
     body_text = "正在等待其他參加者進入實驗，請耐心等候。"
 
-class InstructionPage(Page):
+class InstructionPage2(Page):
     @staticmethod
     def is_displayed(player):
         return player.round_number == 1
+    
+class InstructionPage3(Page):
+    @staticmethod
+    def is_displayed(player):
+        return player.round_number == 11
 
 class ComprehensionCheck(Page):
     form_model = 'player'
@@ -424,9 +445,8 @@ class RecommendationPage(Page):
     def vars_for_template(player: Player):
         subsession = player.subsession
 
-        # ---- 以 10 回合為一段的視窗（1–10、11–20）----
-        window_start = ((player.round_number - 1) // 10) * 10 + 1
-        window_end = min(window_start + 9, C.NUM_ROUNDS)
+        window_start = ((player.round_number - 1) // C.BLOCK_SIZE) * C.BLOCK_SIZE + 1
+        window_end   = min(window_start + C.BLOCK_SIZE - 1, C.NUM_ROUNDS)
 
         # 只取「上一輪之前」且位於該視窗的回合
         prev_in_window = [
@@ -439,7 +459,7 @@ class RecommendationPage(Page):
         decision_list = []
         for p in prev_in_window:
             decision_list.append({
-                "round_number": p.round_number,
+                "round_number": display_round_no(p.round_number),  # 顯示 1–10
                 "id_in_group": p.id_in_group,
                 "advisor_recommendation": p.advisor_recommendation,
                 "client_selection": p.client_selection,
@@ -457,8 +477,12 @@ class RecommendationPage(Page):
         return dict(
             commission_product=subsession.commission_product,
             decision_list=decision_list,
-            window_start=window_start,
-            window_end=window_end,
+            # window_start=window_start,
+            # window_end=window_end,
+            display_round = display_round_no(player.round_number),
+            block_idx = block_index(player.round_number),
+            window_start = window_start,
+            window_end = window_end,
         )
 
 # class RecommendationPage(Page):
@@ -514,8 +538,8 @@ class SelectionPage(Page):
     @staticmethod
     def vars_for_template(player: Player):
         # === 十回合視窗 + 倒序（跟你前面一致） ===
-        window_start = ((player.round_number - 1) // 10) * 10 + 1
-        window_end = min(window_start + 9, C.NUM_ROUNDS)
+        window_start = ((player.round_number - 1) // C.BLOCK_SIZE) * C.BLOCK_SIZE + 1
+        window_end   = min(window_start + C.BLOCK_SIZE - 1, C.NUM_ROUNDS)
 
         prev_in_window = [
             p for p in player.in_previous_rounds()
@@ -526,7 +550,7 @@ class SelectionPage(Page):
         decision_list = []
         for p in prev_in_window:
             decision_list.append({
-                "round_number": p.round_number,
+                "round_number": display_round_no(p.round_number),  # 顯示 1–10
                 "id_in_group": p.id_in_group,
                 "advisor_recommendation": p.advisor_recommendation,
                 "client_selection": p.client_selection,  # 這是已「實現」的選擇
@@ -543,8 +567,10 @@ class SelectionPage(Page):
 
         return dict(
             decision_list=decision_list,
-            window_start=window_start,
-            window_end=window_end,
+            display_round = display_round_no(player.round_number),
+            block_idx = block_index(player.round_number),
+            window_start = window_start,
+            window_end = window_end,
         )
 
 # class SelectionPage(Page):
@@ -644,8 +670,8 @@ class HistoryPage(Page):
     
     @staticmethod
     def vars_for_template(player: Player):
-        window_start = ((player.round_number - 1) // 10) * 10 + 1
-        window_end = min(window_start + 9, C.NUM_ROUNDS)
+        window_start = ((player.round_number - 1) // C.BLOCK_SIZE) * C.BLOCK_SIZE + 1
+        window_end   = min(window_start + C.BLOCK_SIZE - 1, C.NUM_ROUNDS)
 
         rounds_in_window = [
             p for p in player.in_all_rounds()
@@ -657,7 +683,7 @@ class HistoryPage(Page):
         decision_list = []
         for p in rounds_in_window:
             decision_list.append({
-                "round_number": p.round_number,
+                "round_number": display_round_no(p.round_number),  # 顯示 1–10
                 "id_in_group": p.id_in_group,
                 "advisor_recommendation": p.advisor_recommendation,
                 "client_selection": p.client_selection,
@@ -674,8 +700,10 @@ class HistoryPage(Page):
 
         return dict(
             decision_list=decision_list,
-            window_start=window_start,
-            window_end=window_end,
+            display_round = display_round_no(player.round_number),
+            block_idx = block_index(player.round_number),
+            window_start = window_start,
+            window_end = window_end,
         )
     
     # @staticmethod
@@ -727,7 +755,8 @@ class ShuffleWaitPage(WaitPage):
 #PageSequence
 page_sequence = [
     MyWaitPage,
-    InstructionPage,
+    InstructionPage2,
+    InstructionPage3,
     ComprehensionCheck,
     AdvisorPage,
     ClientPage,

@@ -33,7 +33,9 @@ class C(BaseConstants):
     GOODBALL = 65
     BADBALL = 0   
     # 全選 Quality 或全選 Incentive 的扣除額
-    CHOICE_DECUCTION = 5
+    # CHOICE_DECUCTION = 5
+    # 新規則：點擊左右卡片的費用（每點一次）
+    CARD_CLICK_FEE = 5
 
 class Subsession(BaseSubsession):
     commission_product = models.StringField(blank=True)
@@ -59,15 +61,28 @@ class Player(BasePlayer):
     # 看起來沒用到
     # advisor_preference = models.StringField(blank=True)
     client_selection = models.StringField(blank=True)
+    selection_if_A = models.StringField(
+        choices=[['A','產品A'], ['B','產品B']],
+        widget=widgets.RadioSelect,
+        label='1. 假設這回合推薦人推薦「產品A」，你會選擇哪一個產品？'
+    )
+    selection_if_B = models.StringField(
+        choices=[['A','產品A'], ['B','產品B']],
+        widget=widgets.RadioSelect,
+        label='2. 假設這回合推薦人推薦「產品B」，你會選擇哪一個產品？'
+    )
     round_payoff = models.CurrencyField(initial=0)
     roundsum_payoff = models.CurrencyField(initial=0)
     partner_payoff = models.CurrencyField(initial=0)
 
-    choice_1 = models.StringField(choices=['Quality','Incentive'], initial='Quality')
-    choice_2 = models.StringField(choices=['Quality','Incentive'], initial='Quality')
-    choice_3 = models.StringField(choices=['Quality','Incentive'], initial='Incentive')
-    choice_4 = models.StringField(choices=['Quality','Incentive'], initial='Incentive')
+    # --- Player fields ---
+    left_changed  = models.IntegerField(initial=0)   # 左卡是否不同於原色（0/1）
+    right_changed = models.IntegerField(initial=0)   # 右卡是否不同於原色（0/1})
 
+    choice_1 = models.StringField(choices=['Quality','Incentive'], initial='Incentive')  # 左
+    choice_2 = models.StringField(choices=['Quality','Incentive','Blank'], initial='Blank')   # 中左
+    choice_3 = models.StringField(choices=['Quality','Incentive','Blank'], initial='Blank')   # 中右
+    choice_4 = models.StringField(choices=['Quality','Incentive'], initial='Quality')    # 右
     def treatment_this_round(self):
         choices = [self.choice_1, self.choice_2, self.choice_3, self.choice_4]
         chosen_choice = random.choice(choices)
@@ -128,36 +143,48 @@ def creating_session(subsession: Subsession):
         subsession.quality_signal = "$65"
     else:
         subsession.quality_signal = "$0"
-        
+
 def set_payoffs(group: Group):
     subsession = group.subsession
-    
+
+    # === 先根據推薦把客戶的實現選擇決定出來（strategy method）===
+    players = group.get_players()
+    advisor = next((p for p in players if p.role == C.ADVISOR_ROLE), None)
+    client  = next((p for p in players if p.role == C.CLIENT_ROLE), None)
+
+    if advisor and client:
+        # advisor_recommendation 由 RecommendationPage 決定：group.recommendation
+        realized_selection = client.selection_if_A if group.recommendation == 'A' else client.selection_if_B
+
+        # 設定 group 與雙方 player 的當回合「行為」紀錄
+        group.selection = realized_selection
+        advisor.advisor_recommendation = group.recommendation
+        client.client_selection = realized_selection
+
+    # === 以下維持你原本的計算（含卡片費）===
     for p in group.get_players():
-        p.advisor_recommendation = p.group.recommendation
-        p.client_selection = p.group.selection
+        p.advisor_recommendation = group.recommendation
+        p.client_selection = group.selection
+
         if p.role == C.ADVISOR_ROLE:
-            # Advisor 固定報酬 $15
             payoff = C.WAGE
-            # 若 advisor 的推薦與當回合電腦決定的佣金產品相符，額外加 $5
+            # 小心：commission_product 是 '產品A'/'產品B'，recommendation 是 'A'/'B'
             if p.advisor_recommendation == subsession.commission_product.replace("產品", ""):
                 payoff += C.COMMISSION
-            
-            # 如果都是 Quality 或都是 Incentive，扣 $5
-            choices = set([p.choice_1, p.choice_2, p.choice_3, p.choice_4])
-            if len(choices) == 1:
-                # print(f"set_payoff: all the same choice! deducting {C.CHOICE_DECUCTION}")
-                payoff -= C.CHOICE_DECUCTION
-            
+
+            # 依是否改色計費（最多 2 邊）
+            left_once  = 1 if getattr(p, "left_changed", 0)  else 0
+            right_once = 1 if getattr(p, "right_changed", 0) else 0
+            fee_sides = left_once + right_once
+            payoff -= C.CARD_CLICK_FEE * fee_sides
+
         elif p.role == C.CLIENT_ROLE:
-            # Client 固定報酬為參與費
             payoff = 0
-            rnd = random.random()  # 生成 0～1 的隨機數
+            rnd = random.random()
             if p.client_selection == 'A':
-                # 產品 A：60% 機率得到 $65
                 if rnd <= 0.6:
                     payoff += C.GOODBALL
             elif p.client_selection == 'B':
-                # 產品 B：根據產品 B 的品質決定
                 if subsession.product_b_quality == '低品質':
                     if rnd <= 0.4:
                         payoff += C.GOODBALL
@@ -165,22 +192,80 @@ def set_payoffs(group: Group):
                     if rnd <= 0.8:
                         payoff += C.GOODBALL
 
-            # print(f"{rnd = }")
-        # 記錄當回合報酬（轉換為 Currency 型態）
         p.round_payoff = cu(payoff)
 
-        # Compute cumulative (round sum) payoff.
         if p.round_number == 1:
             p.roundsum_payoff = p.round_payoff
         else:
             previous_round = p.in_round(p.round_number - 1)
             p.roundsum_payoff = previous_round.roundsum_payoff + p.round_payoff
-        
+
+        # 對應你原本的命名
         p.participant.choice_payoff = p.roundsum_payoff
 
+    # 記錄對手報酬（用於歷史顯示）
     for p in group.get_players():
         partner = p.get_others_in_group()[0] if p.get_others_in_group() else None
         p.partner_payoff = partner.round_payoff if partner else None
+
+# def set_payoffs(group: Group):
+#     subsession = group.subsession
+    
+#     for p in group.get_players():
+#         p.advisor_recommendation = p.group.recommendation
+#         p.client_selection = p.group.selection
+#         if p.role == C.ADVISOR_ROLE:
+#             # Advisor 固定報酬 $15
+#             payoff = C.WAGE
+#             # 若 advisor 的推薦與當回合電腦決定的佣金產品相符，額外加 $5
+#             if p.advisor_recommendation == subsession.commission_product.replace("產品", ""):
+#                 payoff += C.COMMISSION
+            
+#             # 依是否改色計費（最多 10）
+#             left_once  = 1 if getattr(p, "left_changed", 0)  else 0
+#             right_once = 1 if getattr(p, "right_changed", 0) else 0
+#             fee_sides = left_once + right_once
+#             payoff -= C.CARD_CLICK_FEE * fee_sides
+
+#             # # 如果都是 Quality 或都是 Incentive，扣 $5
+#             # choices = set([p.choice_1, p.choice_2, p.choice_3, p.choice_4])
+#             # if len(choices) == 1:
+#             #     # print(f"set_payoff: all the same choice! deducting {C.CHOICE_DECUCTION}")
+#             #     payoff -= C.CHOICE_DECUCTION
+            
+#         elif p.role == C.CLIENT_ROLE:
+#             # Client 固定報酬為參與費
+#             payoff = 0
+#             rnd = random.random()  # 生成 0～1 的隨機數
+#             if p.client_selection == 'A':
+#                 # 產品 A：60% 機率得到 $65
+#                 if rnd <= 0.6:
+#                     payoff += C.GOODBALL
+#             elif p.client_selection == 'B':
+#                 # 產品 B：根據產品 B 的品質決定
+#                 if subsession.product_b_quality == '低品質':
+#                     if rnd <= 0.4:
+#                         payoff += C.GOODBALL
+#                 elif subsession.product_b_quality == '高品質':
+#                     if rnd <= 0.8:
+#                         payoff += C.GOODBALL
+
+#             # print(f"{rnd = }")
+#         # 記錄當回合報酬（轉換為 Currency 型態）
+#         p.round_payoff = cu(payoff)
+
+#         # Compute cumulative (round sum) payoff.
+#         if p.round_number == 1:
+#             p.roundsum_payoff = p.round_payoff
+#         else:
+#             previous_round = p.in_round(p.round_number - 1)
+#             p.roundsum_payoff = previous_round.roundsum_payoff + p.round_payoff
+        
+#         p.participant.choice_payoff = p.roundsum_payoff
+
+#     for p in group.get_players():
+#         partner = p.get_others_in_group()[0] if p.get_others_in_group() else None
+#         p.partner_payoff = partner.round_payoff if partner else None
 
 
 #Pages
@@ -217,26 +302,49 @@ class ClientPage(Page):
     
 class ChoicePage(Page):
     form_model = 'player'
-    form_fields = ['choice_1','choice_2','choice_3','choice_4']
+    form_fields = ['choice_1','choice_2','choice_3','choice_4','left_changed','right_changed']
+    # form_invalid_message = "請做出選擇，再按下一頁。"
 
+    @staticmethod  
     def error_message(player, values):
-        # Count "Quality" among the 4 choices
-        q = sum(1 for i in range(1, 5) if values.get(f'choice_{i}') == 'Quality')
-        # exactly 2 Quality and 2 Incentive is not allowed
-        if q == 2:
-            return "目前是兩張紅與兩張黑，請調整卡片後再繼續。"
+        # 先擋「中間有 Blank」
+        if values.get('choice_2') == 'Blank' or values.get('choice_3') == 'Blank':
+            return "請做出選擇"
+
+        # 再擋「兩紅兩黑」（紅=Incentive，黑=Quality；Blank 不計）
+        labels = [values.get(f'choice_{i}') for i in range(1, 5)]
+        red_cnt   = sum(x == 'Incentive' for x in labels)
+        black_cnt = sum(x == 'Quality'   for x in labels)
+        if red_cnt == 2 and black_cnt == 2:
+            return "不得為兩紅兩黑，請修改卡片組合。"
+
+    # def error_message(player, values):
+    #     # Count "Quality" among the 4 choices
+    #     q = sum(1 for i in range(1, 5) if values.get(f'choice_{i}') == 'Quality')
+    #     # exactly 2 Quality and 2 Incentive is not allowed
+    #     if q == 2:
+    #         return "目前是兩張紅與兩張黑，請調整卡片後再繼續。"
     
     @staticmethod
     def vars_for_template(player: Player):
-        choices = dict(choice_1='Quality', choice_2='Quality',
-                       choice_3='Incentive', choice_4='Incentive')
+        # 左=Quality(紅)、右=Incentive(黑)、中兩張空白
+        choices = dict(choice_1='Quality', choice_2='Blank', choice_3='Blank', choice_4='Incentive')
         if player.round_number == 1:
             current_sum = 0
         else:
             current_sum = player.in_round(player.round_number - 1).roundsum_payoff
-        return dict(choices=choices,
-                    current_sum=current_sum
-                )
+        return dict(choices=choices, current_sum=current_sum)
+    # @staticmethod
+    # def vars_for_template(player: Player):
+    #     choices = dict(choice_1='Quality', choice_2='Quality',
+    #                    choice_3='Incentive', choice_4='Incentive')
+    #     if player.round_number == 1:
+    #         current_sum = 0
+    #     else:
+    #         current_sum = player.in_round(player.round_number - 1).roundsum_payoff
+    #     return dict(choices=choices,
+    #                 current_sum=current_sum
+    #             )
     
     @staticmethod
     def is_displayed(player):
@@ -348,8 +456,8 @@ class WaitforAdvisor(WaitPage):
 
 class SelectionPage(Page):
 
-    form_model = 'group'
-    form_fields = ['selection']
+    form_model = 'player'
+    form_fields = ['selection_if_A', 'selection_if_B']
     
     @staticmethod
     def is_displayed(player):
