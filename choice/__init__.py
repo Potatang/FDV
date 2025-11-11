@@ -91,7 +91,35 @@ class Player(BasePlayer):
             return 'QF'
         elif chosen_choice == 'Incentive':
             return 'IF'
+        
+    question1 = models.StringField(
+        label='1. 紅色卡片代表接下來出現的兩則資訊的順序為何？',
+        choices=[
+            ('A', '(A) 先看到電腦指定的產品，再看到電腦從產品B中抽出的球'),
+            ('B', '(B) 先看到電腦從產品B中抽出的球，再看到電腦指定的產品'),
+        ],
+        widget=widgets.RadioSelect
+    )
 
+    question2 = models.StringField(
+        label='2. 假設有一個人選擇將四張卡片調整為「紅紅紅黑」，請問這個人待會先看到電腦指定的產品的機率為何？',
+        choices=[
+            ('A', '(A) 25%'),
+            ('B', '(B) 50%'),
+            ('C', '(C) 75%'),
+        ],
+        widget=widgets.RadioSelect
+    )
+
+    question3 = models.StringField(
+        label='3. 假設有一個人選擇將四張卡片調整為四張黑色，請問這個選擇需要支付額外幣嗎？若是需要，請問支付多少法幣？',
+        choices=[
+            ('A', '(A) 不需要'),
+            ('B', '(B) 需要。 付 5 法幣'),
+            ('C', '(C) 需要。 付 10 法幣'),
+        ],
+        widget=widgets.RadioSelect
+    )
     
 #FUNCTION
 # note: this function goes at the module level, not inside the WaitPage.
@@ -275,7 +303,36 @@ class MyWaitPage(WaitPage):
     title_text = "請稍候"
     body_text = "正在等待其他參加者進入實驗，請耐心等候。"
 
-    
+class InstructionPage(Page):
+    @staticmethod
+    def is_displayed(player):
+        return player.round_number == 1
+
+class ComprehensionCheck(Page):
+    form_model = 'player'
+    form_fields = ['question1', 'question2', 'question3']
+
+    # 整頁驗證：使用 error_message 檢查是否答對
+    def error_message(self, values):
+        # values 是使用者在這個 form 裡填的所有欄位
+        # 比如 values['question1'] 就是 question1 的答案
+        correct_answers = {
+            'question1': 'A',
+            'question2': 'C',
+            'question3': 'C',
+        }
+        errors = []
+        for q_name, correct_ans in correct_answers.items():
+            if values[q_name] != correct_ans:
+                errors.append(q_name)
+
+        if errors:
+            return "有一題或以上答錯了，請仔細閱讀實驗說明並修正答案，若有任何問題請舉手，實驗人員會過去協助。"
+
+    @staticmethod
+    def is_displayed(player):
+        return player.round_number == 1
+        
 class AdvisorPage(Page):
     form_model = 'player'
 
@@ -540,6 +597,8 @@ class ShuffleWaitPage(WaitPage):
 #PageSequence
 page_sequence = [
     MyWaitPage,
+    InstructionPage,
+    ComprehensionCheck,
     AdvisorPage,
     ClientPage,
     ChoicePage,
