@@ -14,6 +14,8 @@
     display:flex;
     flex-direction:column;
     align-items:center;
+    /* 讓 3D 翻轉有透視感（只影響左右兩張的翻卡動畫） */
+    perspective: 800px;
   }
   /* use .flipcard to avoid Bootstrap's .card */
   #cards .flipcard{
@@ -24,6 +26,7 @@
     cursor:pointer; user-select:none;
     box-shadow:0 6px 18px rgba(0,0,0,.12);
     transition:transform .08s ease, filter .15s ease;
+    position:relative; overflow:hidden;   /* 供中間的「塗滿」覆蓋層使用 */
   }
   #cards .flipcard:active{ transform:scale(.98); }
   #cards .flipcard.red{ background:#e63946; }
@@ -40,6 +43,43 @@
   .badge{
     display:inline-block; padding:4px 8px; border-radius:999px; font-size:.9rem;
     margin-bottom:10px; background:#f0f0f0;
+  }
+
+  /* ============== 動畫：左右兩張「翻卡」 ============== */
+  /* 只加在左右兩張時使用：.flipY */
+  @keyframes flipY {
+    0%   { transform: rotateY(0deg); }
+    49%  { transform: rotateY(90deg); }
+    51%  { transform: rotateY(90deg); }
+    100% { transform: rotateY(0deg); }
+  }
+  .flipY {
+    animation: flipY .32s ease both;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+  }
+
+  /* ============== 動畫：中間兩張「塗滿漸層」 ============== */
+  /* 以 ::after 畫一個覆蓋層，由左向右塗滿；顏色由 --toColor 控制 */
+  .flipcard.paint::after{
+    content:"";
+    position:absolute; inset:0;
+    background: linear-gradient(135deg, var(--toColor, #222) 0%, var(--toColor, #222) 100%);
+    transform: scaleX(0);
+    transform-origin: clip-path;
+    animation: paintFill .28s ease forwards;
+  }
+  @keyframes paintFill{
+    0%   { transform: scaleX(0); }
+    100% { transform: scaleX(1); }
+  }
+
+  /* 使用者偏好減少動態時，關閉動畫 */
+  @media (prefers-reduced-motion: reduce){
+    .flipY, .flipcard.paint::after{
+      animation: none !important;
+      transform: none !important;
+    }
   }
 </style>
 
@@ -77,9 +117,7 @@
 document.addEventListener('DOMContentLoaded', function(){
   // 原始顏色定義
   const ORIGINAL_LEFT  = 'Incentive';   // 紅
-  const ORIGINAL_RIGHT = 'Quality'; // 黑
-
-  // 費用常數（若想從後端常數帶入，可替換成 {{ C.CARD_CLICK_FEE }} ）
+  const ORIGINAL_RIGHT = 'Quality';     // 黑
   const FEE_PER_SIDE = 5;
 
   // DOM
@@ -89,17 +127,22 @@ document.addEventListener('DOMContentLoaded', function(){
   const leftChangedInp  = document.getElementById('left_changed_input');
   const rightChangedInp = document.getElementById('right_changed_input');
 
-  // 標籤 <-> 顏色
+  // 標籤 <-> 顏色 class
   function colorOf(lbl){
     if (lbl === 'Incentive') return 'red';
     if (lbl === 'Quality') return 'black';
     return 'blank';
   }
+  // 標籤 -> 十六進位色（給中間「塗滿」動畫用）
+  function colorHex(lbl){
+    if (lbl === 'Incentive') return '#e63946';
+    if (lbl === 'Quality')   return '#111111';
+    return '#f5f5f5'; // Blank 給個淡灰，像是「抹去」效果
+  }
   function flipLabel(lbl){
-    if (lbl === 'Quality') return 'Incentive';
+    if (lbl === 'Quality')   return 'Incentive';
     if (lbl === 'Incentive') return 'Quality';
-    // Blank 首次翻成紅
-    return 'Quality';
+    return 'Quality'; // Blank 首次翻成黑
   }
 
   // 設定單張卡的外觀與 hidden 值
@@ -121,8 +164,8 @@ document.addEventListener('DOMContentLoaded', function(){
     const leftNow  = leftEl.getAttribute('data-label')  || ORIGINAL_LEFT;
     const rightNow = rightEl.getAttribute('data-label') || ORIGINAL_RIGHT;
 
-    const leftChanged  = (leftNow  !== ORIGINAL_LEFT);   // 左：非紅即算改色（黑）
-    const rightChanged = (rightNow !== ORIGINAL_RIGHT);  // 右：非黑即算改色（紅）
+    const leftChanged  = (leftNow  !== ORIGINAL_LEFT);
+    const rightChanged = (rightNow !== ORIGINAL_RIGHT);
 
     if (leftHint)  leftHint.hidden  = !leftChanged;
     if (rightHint) rightHint.hidden = !rightChanged;
@@ -133,6 +176,31 @@ document.addEventListener('DOMContentLoaded', function(){
     const sides = (leftChanged ? 1 : 0) + (rightChanged ? 1 : 0);
     const total = sides * FEE_PER_SIDE;
     if (feeEl) feeEl.textContent = String(total);
+  }
+
+  // 動畫：左右翻卡（在 90 度時換色）
+  function animateFlip(el, newLabel){
+    el.classList.add('flipY');
+    // 在動畫中點（約 0.32s 的一半）切換顏色
+    const mid = setTimeout(()=>{ setFromLabel(el, newLabel); }, 160);
+    el.addEventListener('animationend', function handler(){
+      clearTimeout(mid);
+      el.classList.remove('flipY');
+      refreshChangeState();
+      el.removeEventListener('animationend', handler);
+    });
+  }
+
+  // 動畫：中間塗滿（先畫覆蓋層，動畫完畢再換色）
+  function animatePaint(el, newLabel){
+    el.style.setProperty('--toColor', colorHex(newLabel));
+    el.classList.add('paint');
+    el.addEventListener('animationend', function handler(){
+      setFromLabel(el, newLabel);
+      el.classList.remove('paint');
+      el.style.removeProperty('--toColor');
+      el.removeEventListener('animationend', handler);
+    }, { once:true });
   }
 
   // 初始化四張卡
@@ -155,9 +223,10 @@ document.addEventListener('DOMContentLoaded', function(){
     const next = (cur === 'Blank') ? 'Quality'
                : (cur === 'Quality') ? 'Incentive'
                : 'Quality';
-    setFromLabel(el2, next);
-    setFromLabel(el3, next);
-    // 不影響左右費用
+    // 套用「塗滿」動畫到兩張卡，再於動畫完成時切換標籤
+    animatePaint(el2, next);
+    animatePaint(el3, next);
+    // 中間卡不影響費用
   }
 
   // 事件：點擊與鍵盤
@@ -170,10 +239,10 @@ document.addEventListener('DOMContentLoaded', function(){
         return;
       }
 
-      // 左右：翻色後重新計算是否改色與費用
+      // 左右：翻卡動畫
       const cur = el.getAttribute('data-label') || (idx === '1' ? ORIGINAL_LEFT : ORIGINAL_RIGHT);
-      setFromLabel(el, flipLabel(cur));
-      refreshChangeState();
+      const next = flipLabel(cur);
+      animateFlip(el, next);
     });
 
     el.addEventListener('keydown', function(e){
@@ -189,7 +258,6 @@ document.addEventListener('DOMContentLoaded', function(){
   if (form){
     form.addEventListener('submit', function(){
       refreshChangeState();
-      // setFromLabel 已同步 hidden 的 choice_1..4；這裡無需重覆寫入
     });
   }
 });
