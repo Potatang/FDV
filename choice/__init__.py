@@ -38,10 +38,11 @@ class C(BaseConstants):
     CARD_CLICK_FEE = 5
 
 class Subsession(BaseSubsession):
-    commission_product = models.StringField(blank=True)
-    product_b_quality = models.StringField(blank=True)
-    product_b_good_ball_probability = models.FloatField(blank=True)
-    quality_signal = models.StringField(blank=True)
+    pass
+    # commission_product = models.StringField(blank=True)
+    # product_b_quality = models.StringField(blank=True)
+    # product_b_good_ball_probability = models.FloatField(blank=True)
+    # quality_signal = models.StringField(blank=True)
 
 class Group(BaseGroup):
     recommendation = models.StringField(
@@ -54,6 +55,10 @@ class Group(BaseGroup):
         widget=widgets.RadioSelect,
         label="我選擇：",
     )
+    commission_product = models.StringField(blank=True)
+    product_b_quality = models.StringField(blank=True)
+    product_b_good_ball_probability = models.FloatField(blank=True)
+    quality_signal = models.StringField(blank=True)
 
 
 class Player(BasePlayer):
@@ -150,27 +155,27 @@ def creating_session(subsession: Subsession):
         #     # tie client to their group's advisor order (pick the first advisor in the group)
         #     c.participant.vars['advisor_order'] = advisors[0].participant.vars['order']
 
-    # 50-50 決定哪一個商品能獲得佣金
-    commission_product = random.choice(['產品A', '產品B'])
-    subsession.commission_product = commission_product
+    # # 50-50 決定哪一個商品能獲得佣金
+    # commission_product = random.choice(['產品A', '產品B'])
+    # subsession.commission_product = commission_product
 
-    # 50-50 決定 product B 的品質：high 或 low
-    product_b_quality = random.choice(['高品質', '低品質'])
-    subsession.product_b_quality = product_b_quality
+    # # 50-50 決定 product B 的品質：high 或 low
+    # product_b_quality = random.choice(['高品質', '低品質'])
+    # subsession.product_b_quality = product_b_quality
 
-    # 根據產品B的品質設定抽中好球的機率：
-    # 低品質：40% 機率抽中好球；高品質：80% 機率抽中好球
-    if product_b_quality == '低品質':
-        subsession.product_b_good_ball_probability = 0.4
-    else:
-        subsession.product_b_good_ball_probability = 0.8
+    # # 根據產品B的品質設定抽中好球的機率：
+    # # 低品質：40% 機率抽中好球；高品質：80% 機率抽中好球
+    # if product_b_quality == '低品質':
+    #     subsession.product_b_good_ball_probability = 0.4
+    # else:
+    #     subsession.product_b_good_ball_probability = 0.8
 
-    # 進行抽球，根據設定的機率決定抽中好球("$2")還是壞球("$0")
-    draw = random.random()  # 生成 0 到 1 的隨機數
-    if draw < subsession.product_b_good_ball_probability:
-        subsession.quality_signal = "$65"
-    else:
-        subsession.quality_signal = "$0"
+    # # 進行抽球，根據設定的機率決定抽中好球("$2")還是壞球("$0")
+    # draw = random.random()  # 生成 0 到 1 的隨機數
+    # if draw < subsession.product_b_good_ball_probability:
+    #     subsession.quality_signal = "$65"
+    # else:
+    #     subsession.quality_signal = "$0"
 
 def set_payoffs(group: Group):
     subsession = group.subsession
@@ -197,7 +202,7 @@ def set_payoffs(group: Group):
         if p.role == C.ADVISOR_ROLE:
             payoff = C.WAGE
             # 小心：commission_product 是 '產品A'/'產品B'，recommendation 是 'A'/'B'
-            if p.advisor_recommendation == subsession.commission_product.replace("產品", ""):
+            if p.advisor_recommendation == group.commission_product.replace("產品", ""):
                 payoff += C.COMMISSION
 
             # 依是否改色計費（最多 2 邊）
@@ -213,10 +218,10 @@ def set_payoffs(group: Group):
                 if rnd <= 0.6:
                     payoff += C.GOODBALL
             elif p.client_selection == 'B':
-                if subsession.product_b_quality == '低品質':
+                if group.product_b_quality == '低品質':
                     if rnd <= 0.4:
                         payoff += C.GOODBALL
-                elif subsession.product_b_quality == '高品質':
+                elif group.product_b_quality == '高品質':
                     if rnd <= 0.8:
                         payoff += C.GOODBALL
 
@@ -236,65 +241,6 @@ def set_payoffs(group: Group):
         partner = p.get_others_in_group()[0] if p.get_others_in_group() else None
         p.partner_payoff = partner.round_payoff if partner else None
 
-# def set_payoffs(group: Group):
-#     subsession = group.subsession
-    
-#     for p in group.get_players():
-#         p.advisor_recommendation = p.group.recommendation
-#         p.client_selection = p.group.selection
-#         if p.role == C.ADVISOR_ROLE:
-#             # Advisor 固定報酬 $15
-#             payoff = C.WAGE
-#             # 若 advisor 的推薦與當回合電腦決定的佣金產品相符，額外加 $5
-#             if p.advisor_recommendation == subsession.commission_product.replace("產品", ""):
-#                 payoff += C.COMMISSION
-            
-#             # 依是否改色計費（最多 10）
-#             left_once  = 1 if getattr(p, "left_changed", 0)  else 0
-#             right_once = 1 if getattr(p, "right_changed", 0) else 0
-#             fee_sides = left_once + right_once
-#             payoff -= C.CARD_CLICK_FEE * fee_sides
-
-#             # # 如果都是 Quality 或都是 Incentive，扣 $5
-#             # choices = set([p.choice_1, p.choice_2, p.choice_3, p.choice_4])
-#             # if len(choices) == 1:
-#             #     # print(f"set_payoff: all the same choice! deducting {C.CHOICE_DECUCTION}")
-#             #     payoff -= C.CHOICE_DECUCTION
-            
-#         elif p.role == C.CLIENT_ROLE:
-#             # Client 固定報酬為參與費
-#             payoff = 0
-#             rnd = random.random()  # 生成 0～1 的隨機數
-#             if p.client_selection == 'A':
-#                 # 產品 A：60% 機率得到 $65
-#                 if rnd <= 0.6:
-#                     payoff += C.GOODBALL
-#             elif p.client_selection == 'B':
-#                 # 產品 B：根據產品 B 的品質決定
-#                 if subsession.product_b_quality == '低品質':
-#                     if rnd <= 0.4:
-#                         payoff += C.GOODBALL
-#                 elif subsession.product_b_quality == '高品質':
-#                     if rnd <= 0.8:
-#                         payoff += C.GOODBALL
-
-#             # print(f"{rnd = }")
-#         # 記錄當回合報酬（轉換為 Currency 型態）
-#         p.round_payoff = cu(payoff)
-
-#         # Compute cumulative (round sum) payoff.
-#         if p.round_number == 1:
-#             p.roundsum_payoff = p.round_payoff
-#         else:
-#             previous_round = p.in_round(p.round_number - 1)
-#             p.roundsum_payoff = previous_round.roundsum_payoff + p.round_payoff
-        
-#         p.participant.choice_payoff = p.roundsum_payoff
-
-#     for p in group.get_players():
-#         partner = p.get_others_in_group()[0] if p.get_others_in_group() else None
-#         p.partner_payoff = partner.round_payoff if partner else None
-
 
 #Pages
     
@@ -302,6 +248,30 @@ class MyWaitPage(WaitPage):
     group_by_arrival_time = True
     title_text = "請稍候"
     body_text = "正在等待其他參加者進入實驗，請耐心等候。"
+    @staticmethod
+    def after_all_players_arrive(group: Group):
+        import random
+
+        # 50-50 決定哪一個商品能獲得佣金
+        commission_product = random.choice(['產品A', '產品B'])
+        group.commission_product = commission_product
+
+        # 50-50 決定 product B 的品質：高或低
+        product_b_quality = random.choice(['高品質', '低品質'])
+        group.product_b_quality = product_b_quality
+
+        # 根據產品 B 的品質設定抽中好球的機率
+        if product_b_quality == '低品質':
+            group.product_b_good_ball_probability = 0.4
+        else:
+            group.product_b_good_ball_probability = 0.8
+
+        # 抽 quality signal：$65 或 $0
+        draw = random.random()
+        if draw < group.product_b_good_ball_probability:
+            group.quality_signal = "$65"
+        else:
+            group.quality_signal = "$0"
 
 class InstructionPage(Page):
     @staticmethod
@@ -416,8 +386,8 @@ class IncentivePage1(Page):
     
     @staticmethod
     def vars_for_template(player: Player):
-        subsession = player.subsession
-        return dict(commission_product=subsession.commission_product)
+        group = player.group
+        return dict(commission_product=group.commission_product)
 
 class QualityPage1(Page):
 
@@ -427,16 +397,16 @@ class QualityPage1(Page):
     
     @staticmethod
     def vars_for_template(player: Player):
-        subsession = player.subsession
-        quality = player.subsession.quality_signal
+        group = player.group
+        quality = player.group.quality_signal
         if quality == "$65":
             image_path = 'blue_65.png'
         else:
             image_path = 'red_0.png'
 
         return dict(
-            quality_signal=subsession.quality_signal,
-            product_b_good_ball_probability=subsession.product_b_good_ball_probability,
+            quality_signal=group.quality_signal,
+            product_b_good_ball_probability=group.product_b_good_ball_probability,
             image_path=image_path)
 
 class QualityPage2(Page):
@@ -447,16 +417,16 @@ class QualityPage2(Page):
     
     @staticmethod
     def vars_for_template(player: Player):
-        subsession = player.subsession
-        quality = player.subsession.quality_signal
+        group = player.group
+        quality = player.group.quality_signal
         if quality == "$65":
             image_path = 'blue_65.png'
         else:
             image_path = 'red_0.png'
 
         return dict(
-            quality_signal=subsession.quality_signal,
-            product_b_good_ball_probability=subsession.product_b_good_ball_probability,
+            quality_signal=group.quality_signal,
+            product_b_good_ball_probability=group.product_b_good_ball_probability,
             image_path=image_path)
 
 class IncentivePage2(Page):
@@ -467,8 +437,8 @@ class IncentivePage2(Page):
     
     @staticmethod
     def vars_for_template(player: Player):
-        subsession = player.subsession
-        return dict(commission_product=subsession.commission_product)
+        group = player.group
+        return dict(commission_product=group.commission_product)
     
 class RecommendationPage(Page):
 
@@ -482,7 +452,7 @@ class RecommendationPage(Page):
 
     @staticmethod
     def vars_for_template(player: Player):
-        subsession = player.subsession
+        group = player.group
         
         previous_decision_record = {
             (p.round_number, p.id_in_group): {
@@ -490,20 +460,20 @@ class RecommendationPage(Page):
                 "id_in_group": p.id_in_group,
                 "advisor_recommendation": p.advisor_recommendation,
                 "client_selection": p.client_selection,
-                "commission_product": p.subsession.commission_product,
-                "product_b_quality": p.subsession.product_b_quality,
-                "quality_signal": p.subsession.quality_signal,
+                "commission_product": p.group.commission_product,
+                "product_b_quality": p.group.product_b_quality,
+                "quality_signal": p.group.quality_signal,
                 "round_payoff": p.round_payoff,
                 "roundsum_payoff": p.roundsum_payoff,
-                "quality_image": 'ProductB_high.png' if p.subsession.product_b_quality == "高品質" else 'ProductB_low.png',
-                "signal_image": 'blue_65.png' if p.subsession.quality_signal == "$65" else 'red_0.png',
+                "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
+                "signal_image": 'blue_65.png' if p.group.quality_signal == "$65" else 'red_0.png',
                 "producta_image": 'ProductA.png',
                 "partner_payoff": p.partner_payoff,
             }
             for p in player.in_previous_rounds()
         }
         
-        return dict(commission_product=subsession.commission_product,
+        return dict(commission_product=group.commission_product,
                     previous_decision_record=previous_decision_record,
                     )
 
@@ -530,13 +500,13 @@ class SelectionPage(Page):
                 "id_in_group": p.id_in_group,
                 "advisor_recommendation": p.advisor_recommendation,
                 "client_selection": p.client_selection,
-                "commission_product": p.subsession.commission_product,
-                "product_b_quality": p.subsession.product_b_quality,
-                "quality_signal": p.subsession.quality_signal,
+                "commission_product": p.group.commission_product,
+                "product_b_quality": p.group.product_b_quality,
+                "quality_signal": p.group.quality_signal,
                 "round_payoff": p.round_payoff,
                 "roundsum_payoff": p.roundsum_payoff,
-                "quality_image": 'ProductB_high.png' if p.subsession.product_b_quality == "高品質" else 'ProductB_low.png',
-                "signal_image": 'blue_65.png' if p.subsession.quality_signal == "$65" else 'red_0.png',
+                "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
+                "signal_image": 'blue_65.png' if p.group.quality_signal == "$65" else 'red_0.png',
                 "producta_image": 'ProductA.png',
                 "partner_payoff": p.partner_payoff,
             }
@@ -569,13 +539,13 @@ class HistoryPage(Page):
                 "id_in_group": p.id_in_group,
                 "advisor_recommendation": p.advisor_recommendation,
                 "client_selection": p.client_selection,
-                "commission_product": p.subsession.commission_product,
-                "product_b_quality": p.subsession.product_b_quality,
-                "quality_signal": p.subsession.quality_signal,
+                "commission_product": p.group.commission_product,
+                "product_b_quality": p.group.product_b_quality,
+                "quality_signal": p.group.quality_signal,
                 "round_payoff": p.round_payoff,
                 "roundsum_payoff": p.roundsum_payoff,
-                "quality_image": 'ProductB_high.png' if p.subsession.product_b_quality == "高品質" else 'ProductB_low.png',
-                "signal_image": 'blue_65.png' if p.subsession.quality_signal == "$65" else 'red_0.png',
+                "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
+                "signal_image": 'blue_65.png' if p.group.quality_signal == "$65" else 'red_0.png',
                 "producta_image": 'ProductA.png',
                 "partner_payoff": p.partner_payoff,
             }
