@@ -1,0 +1,50 @@
+{% block title %}抽球決定客戶報酬{% endblock %}
+
+{% block content %}
+
+<p>
+    接下來，電腦會從<strong>您目前的產品</strong>中隨機抽出一顆球，用來決定本回合您的報酬。
+</p>
+
+{% if client_product == 'X' %}
+    <p>本回合您獲得的產品為：<strong>產品 X</strong>。</p>
+    <p>下圖顯示本回合產品 X 的組成（綠球代表可獲得 ${{ C.GOODBALL }}，黃球代表 ${{ C.BADBALL }}）：</p>
+    <div class="text-center">
+        <img src="{{ static productX_image }}" style="max-width:260px; margin:10px 0;">
+    </div>
+{% else %}
+    <p>本回合您獲得的產品為：<strong>產品 Y</strong>。</p>
+    <p>
+        產品 Y 的實際品質已由先前推薦人擲硬幣決定，並反映在下圖產品組成中
+        （綠球代表可獲得 ${{ C.GOODBALL }}，黃球代表 ${{ C.BADBALL }}）：
+    </p>
+    <div class="text-center">
+        <img src="{{ static productY_image }}" style="max-width:260px; margin:10px 0;">
+    </div>
+{% endif %}
+
+<hr>
+
+<p>
+    在本回合中，電腦已從您目前的產品中抽出一顆球，顏色如下：
+</p>
+
+<p>電腦抽出的結果為：</p>
+
+<div class="text-center" style="margin:10px 0;">
+  <img src="{{ static ball_image }}" style="max-width:100px; display:block; margin:0 auto 8px auto;">
+  <strong>{{ client_ball_color }}</strong>
+</div>
+
+<p>
+    若抽到綠球，您在本回合可從該產品獲得 <strong>${{ C.GOODBALL }}</strong>；
+    若抽到黃球，您在本回合從該產品獲得的金額為 <strong>${{ C.BADBALL }}</strong>。
+</p>
+
+<form method="post">
+
+<!-- 中文的下一頁按鈕 -->
+<button class="otree-btn-next btn btn-primary">下一頁</button>
+</form>
+
+{% endblock %}

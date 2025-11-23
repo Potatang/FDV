@@ -171,60 +171,7 @@ def creating_session(subsession: Subsession):
         for p in subsession.get_players():
             p.participant.vars['order'] = order_global
             print(f"[order-assign] PID={p.participant.id_in_session} order={order_global}")
-    # # ★重點：這裡改成「對每一組 group 各自抽一次」
-    # for g in subsession.get_groups():
-    #     # 50-50 決定哪一個商品能獲得佣金
-    #     commission_product = random.choice(['產品A', '產品B'])
-    #     g.commission_product = commission_product
 
-    #     # 50-50 決定 product B 的品質：high 或 low
-    #     product_b_quality = random.choice(['高品質', '低品質'])
-    #     g.product_b_quality = product_b_quality
-
-    #     # 根據產品B的品質設定抽中好球的機率
-    #     if product_b_quality == '低品質':
-    #         g.product_b_good_ball_probability = 0.4
-    #     else:
-    #         g.product_b_good_ball_probability = 0.8
-
-    #     # 抽 signal：$65 或 $0
-    #     draw = random.random()
-    #     if draw < g.product_b_good_ball_probability:
-    #         g.quality_signal = "$65"
-    #     else:
-    #         g.quality_signal = "$0"
-    # if subsession.round_number == 1:
-    #     for p in subsession.get_players():
-    #         # 給每個 participant 都一個獨立的 order（若已存在就不覆寫）
-    #         p.participant.vars.setdefault('order', random.randint(0, 1))
-    #         print(f"[order-assign] PID={p.participant.id_in_session} order={p.participant.vars['order']}")
-            
-        # # optionally propagate to clients (if they need it)
-        # for c in [p for p in g.get_players() if not is_advisor(p)]:
-        #     # tie client to their group's advisor order (pick the first advisor in the group)
-        #     c.participant.vars['advisor_order'] = advisors[0].participant.vars['order']
-
-    # # 50-50 決定哪一個商品能獲得佣金
-    # commission_product = random.choice(['產品A', '產品B'])
-    # subsession.commission_product = commission_product
-
-    # # 50-50 決定 product B 的品質：high 或 low
-    # product_b_quality = random.choice(['高品質', '低品質'])
-    # subsession.product_b_quality = product_b_quality
-
-    # # 根據產品B的品質設定抽中好球的機率：
-    # # 低品質：40% 機率抽中好球；高品質：80% 機率抽中好球
-    # if product_b_quality == '低品質':
-    #     subsession.product_b_good_ball_probability = 0.4
-    # else:
-    #     subsession.product_b_good_ball_probability = 0.8
-
-    # # 進行抽球，根據設定的機率決定抽中好球("$2")還是壞球("$0")
-    # draw = random.random()  # 生成 0 到 1 的隨機數
-    # if draw < subsession.product_b_good_ball_probability:
-    #     subsession.quality_signal = "$65"
-    # else:
-    #     subsession.quality_signal = "$0"
 
 def set_payoffs(group: Group):
     # subsession = group.subsession

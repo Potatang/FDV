@@ -1,0 +1,27 @@
+{% block title %}本部分報酬說明{% endblock %}
+
+{% block content %}
+
+<p>
+    以下為您在本部分兩個回合中的抽樣結果與報酬說明：
+</p>
+
+<ul>
+  {% for msg in explanation_list %}
+    <li>{{ msg }}</li>
+  {% endfor %}
+</ul>
+
+<hr>
+
+<p>
+    綜合兩回合，本部分您共獲得：
+    <strong>{{ total_payoff }}</strong> 法幣。
+</p>
+
+<form method="post">
+
+  <button class="btn btn-primary">下一頁</button>
+</form>
+
+{% endblock %}

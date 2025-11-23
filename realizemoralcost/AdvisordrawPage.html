@@ -1,0 +1,25 @@
+{{ block title }}抽球決定推薦人的額外報酬{{ endblock }}
+{{ block content }}
+
+<p>
+    剛才擲硬幣所決定出來的產品 Y 品質如下圖所示：
+</p>
+<p style="text-align:center;">
+    <img src="{{ static product_image }}" width="200">
+</p>
+
+<p style="text-align:center;">
+    本回合抽出的結果為：
+</p>
+
+<p style="text-align:center;">
+    <img src="{{ static ball_image }}" width="100">
+</p>
+
+<p style="text-align:center;">
+    <b>{{ ball_color }}</b>
+</p>
+
+<button class="otree-btn-next btn btn-primary">下一頁</button>
+
+{{ endblock }}

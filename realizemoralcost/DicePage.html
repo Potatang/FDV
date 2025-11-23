@@ -1,0 +1,94 @@
+{{ block title }}擲骰子決定產品 Y 的品質{{ endblock }}
+{{ block content }}
+
+<style>
+  #coin-img {
+      width: 100px;
+      margin-top: 10px;
+  }
+
+  /* 硬幣旋轉動畫 */
+  #coin-img.spinning {
+      animation: spin 1s linear infinite;
+      transform-origin: center;
+  }
+
+  @keyframes spin {
+      0%   { transform: rotateY(0deg); }
+      50%  { transform: rotateY(90deg); }
+      100% { transform: rotateY(180deg); }
+  }
+</style>
+
+<p>
+  <b>產品 Y 可能為高品質或低品質，請點選「投擲」按鈕來決定本回合產品 Y 的實際品質。</b>
+</p>
+
+<img src="{{ static image_path1 }}" width="500px" />
+<br>
+
+<!-- 一開始顯示的硬幣（中立圖），並把正反面圖放在 data 屬性裡 -->
+<img id="coin-img"
+     src="{{ static image_path4 }}"
+     data-head="{{ static image_path2 }}"
+     data-tail="{{ static image_path3 }}" />
+
+<!-- 隱藏欄位：用來把 JS 的丟硬幣結果送回後端 -->
+<input type="hidden" name="advisor_dice" id="id_advisor_dice">
+
+<br><br>
+
+<!-- 一開始是「投擲」，type="submit" 讓第二次點擊可以正常送出 -->
+<button class="otree-btn-next btn btn-primary" type="submit">投擲</button>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+      const btn   = document.querySelector('.otree-btn-next');
+      const coin  = document.getElementById('coin-img');
+      const input = document.getElementById('id_advisor_dice');
+
+      let rolling  = false;  // 動畫進行中
+      let hasRolled = false; // 是否已經投擲過
+
+      btn.addEventListener('click', function (e) {
+          // 如果還沒投擲過，這次是「投擲」
+          if (!hasRolled) {
+              // 不要直接送出表單
+              e.preventDefault();
+
+              if (rolling) return;
+              rolling = true;
+
+              // 開始旋轉動畫
+              coin.classList.add('spinning');
+
+              // 決定這次是正面還是反面
+              const isHead = Math.random() < 0.5;
+
+              setTimeout(function () {
+                  coin.classList.remove('spinning');
+
+                  const headSrc = coin.dataset.head;
+                  const tailSrc = coin.dataset.tail;
+
+                  // 換成正面或反面的圖片
+                  coin.src = isHead ? headSrc : tailSrc;
+
+                  // 把結果寫進隱藏欄位（BooleanField 接 'True' / 'False'）
+                  input.value = isHead ? 'True' : 'False';
+
+                  // 更新狀態：已經投擲過了
+                  hasRolled = true;
+                  rolling   = false;
+
+                  // 把按鈕文字改成「下一頁」
+                  btn.textContent = '下一頁';
+              }, 1000); // 這裡控制旋轉多久
+          }
+          // 如果 hasRolled === true，就不要攔截，
+          // 讓瀏覽器正常提交表單 → 進下一頁
+      });
+  });
+</script>
+
+{{ endblock }}

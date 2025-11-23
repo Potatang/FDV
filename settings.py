@@ -6,12 +6,13 @@ SESSION_CONFIGS = [
         name='FDI',
         num_demo_participants=4,
         app_sequence=['start_app',
-                        # 'moralcost_IF',
+                        'moralcost_IF',
                         # 'experiment_IF', # experiment payoff
-                        'choice', # choice payoff
+                        # 'choice', # choice payoff
                         'moralcost2',
-                        'guessquality_IF', # part 2 payoff
-                        'guessproportion_IF',
+                        # 'guessquality_IF', # part 2 payoff
+                        # 'guessproportion_IF',
+                        'realizemoralcost',
                         'end_app'
                         ],
         order_global=1,
@@ -29,7 +30,14 @@ SESSION_CONFIG_DEFAULTS = dict(
 PARTICIPANT_FIELDS = dict(
     who = int(),
     seat = int(),
+    moral1_bonus_round_number = int(),
+    moral1_bonus_recommendation = str(),
+    moral1_bonus_recommended_Y = int(),
+    moral2_bonus_round_number = int(),
+    moral2_bonus_recommendation = str(),
+    moral2_bonus_recommended_Y = int(),
     experiment_payoff = int(),
+    moralpayoff = int(),
     part2_payoff = int(),
     part4_belief = int(),
     moralcost_payoff = int(),
