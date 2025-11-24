@@ -186,7 +186,10 @@ class MyWaitPage(WaitPage):
     group_by_arrival_time = True
     title_text = "請稍候"
     body_text = "正在等待其他參加者進入實驗，請耐心等候。"
-
+    @staticmethod
+    def is_displayed(player: Player):
+        # 只在第一回合出現，用來第一次配對
+        return player.round_number == 1
 
 class AdvisorPage(Page):
     form_model = 'player'
@@ -299,7 +302,9 @@ class ProductPage(Page):
     def vars_for_template(player: Player):
         group = player.group
 
-        advisor = group.get_player_by_role(C.ADVISOR_ROLE)
+        # 在 2 人一組的情況下，這個頁面只給「客戶」看，
+        # 所以「推薦人」一定是同組的另一個人
+        advisor = player.get_others_in_group()[0]
         adv_p = advisor.participant
 
         if player.round_number == 1:
@@ -352,7 +357,9 @@ class ClientdrawPage(Page):
     @staticmethod
     def vars_for_template(player: Player):
         group = player.group
-        advisor = group.get_player_by_role(C.ADVISOR_ROLE)
+
+        # 一樣，這頁只給「客戶」，所以推薦人一定是另一位
+        advisor = player.get_others_in_group()[0]
         adv_p = advisor.participant
 
         # 如果還沒抽過球，就抽一次

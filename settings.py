@@ -4,19 +4,39 @@ from os import environ
 SESSION_CONFIGS = [
     dict(
         name='FDI',
-        num_demo_participants=4,
-        app_sequence=['start_app',
-                        'moralcost_IF',
-                        # 'experiment_IF', # experiment payoff
-                        # 'choice', # choice payoff
-                        'moralcost2',
-                        # 'guessquality_IF', # part 2 payoff
-                        # 'guessproportion_IF',
-                        'realizemoralcost',
-                        'end_app'
-                        ],
+        num_demo_participants=6,   
+        app_sequence=[
+            'start_app',
+            'moralcost_IF',
+            'experiment_IF',
+            'choice',
+            'moralcost2',
+            'guessquality_IF',
+            'guessproportion_IF',
+            'realizemoralcost',
+            'end_app',
+        ],
         order_global=1,
+        use_browser_bots=True,
     ),
+    # dict(
+    #     name='FDI_6',
+    #     display_name='FDI Stress Test (6 players)',
+    #     num_demo_participants=6,
+    #     app_sequence=[
+    #         'start_app',
+    #         'moralcost_IF',
+    #         'experiment_IF',
+    #         'choice',
+    #         'moralcost2',
+    #         'guessquality_IF',
+    #         'guessproportion_IF',
+    #         'realizemoralcost',
+    #         'end_app',
+    #     ],
+    #     order_global=1,
+    #     use_browser_bots=True,
+    # ),
 ]
 # if you set a property in SESSION_CONFIG_DEFAULTS, it will be inherited by all configs
 # in SESSION_CONFIGS, except those that explicitly override it.
@@ -38,7 +58,7 @@ PARTICIPANT_FIELDS = dict(
     moral2_bonus_recommended_Y = int(),
     experiment_payoff = int(),
     moralpayoff = int(),
-    part2_payoff = int(),
+    qualitypayoff = int(),
     part4_belief = int(),
     moralcost_payoff = int(),
     choice_payoff = int(),

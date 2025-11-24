@@ -7,7 +7,7 @@
   <p>產品 X 的組成與前一部分抽出的產品 X 相同。</p>
 {% else %}
   <p>電腦替您選擇的產品是：<b>產品 Y</b>。</p>
-  {% if client_product_quality == 'H' %}
+  {% if client_product_quality == '高品質' %}
     <p>產品 Y 為 <b>高品質</b>，其品質與剛剛推薦人骰硬幣的結果相同。</p>
     <img src="{{ static productY_image }}" style="max-width:240px;">
   {% else %}

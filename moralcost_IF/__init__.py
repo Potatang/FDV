@@ -368,8 +368,4 @@ page_sequence = [InstructionPage,
                 ComprehensionCheck,
                 RecommendationPage,
                 MoralWaitPage,
-                # ChoosePage,
-                # NotChosenRevealPage,
-                # ChosenRevealAdvisorPage,
-                # ChosenRevealClientPage,
                 ]

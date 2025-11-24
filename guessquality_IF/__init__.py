@@ -47,7 +47,7 @@ class Player(BasePlayer):
 
     red_payoff = models.CurrencyField(initial=0)
     blue_payoff = models.CurrencyField(initial=0)
-    part2_payoff = models.CurrencyField(initial=0)
+    qualitypayoff = models.CurrencyField(initial=0)
 
 #FUNCTION
 def creating_session(subsession:Subsession):
@@ -91,16 +91,16 @@ def set_payoffs(group: Group):
 
     for p in group.get_players():
         if p.subsession.ball_color == "$65":
-            p.part2_payoff = p.blue_payoff
+            p.qualitypayoff = p.blue_payoff
         else:
-            p.part2_payoff = p.red_payoff
-        p.participant.part2_payoff = p.part2_payoff
+            p.qualitypayoff = p.red_payoff
+        p.participant.qualitypayoff = p.qualitypayoff
     # if p.subsession.ball_color == "$65":
-    #     p.part2_payoff = p.blue_payoff
+    #     p.qualitypayoff = p.blue_payoff
     # else:
-    #     p.part2_payoff = p.red_payoff
+    #     p.qualitypayoff = p.red_payoff
 
-    # p.participant.part2_payoff = p.part2_payoff
+    # p.participant.qualitypayoff = p.qualitypayoff
 
     
 
@@ -167,10 +167,10 @@ class Results(Page):
             image_path = 'blue_65.png'
         else:
             image_path = 'red_0.png'
-        player.participant.part2_payoff = player.part2_payoff
+        player.participant.qualitypayoff = player.qualitypayoff
 
         
-        return dict(part2_payoff = player.participant.part2_payoff,
+        return dict(qualitypayoff = player.participant.qualitypayoff,
                     ball_color=subsession.ball_color,
                     image_path=image_path
                     )
