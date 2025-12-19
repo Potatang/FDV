@@ -1,42 +1,42 @@
 {{ block title }}您的選擇{{ endblock }}
 {{ block content }}
-    <p>請先同時回答以下兩題，系統將在推薦人做出實際推薦後，自動套用對應的選擇作為本回合結果。</p>
+    <p>請先回答以下兩題，電腦將依推薦人的推薦和您對應的選擇，選出產品來抽球決定本回合報酬。</p>
 
     {{ formfields }}
 
     {{ if decision_list }}
     <h4>歷史回合</h4>
     <div style="max-height: 400px; overflow-y: auto;">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th style="width: 80px;">回合</th>
-                    <th style="width: 120px;">推薦可獲得<br>5法幣的產品</th>
-                    <th style="width: 100px;">推薦人看到的球</th>
-                    <th style="width: 100px;">推薦人決策</th>
-                    <th style="width: 100px;">客戶決策（實現）</th>
-                    <th style="width: 100px;">您本回合報酬</th>
-                    <th style="width: 90px;">產品A實際品質</th>
-                    <th style="width: 90px;">產品B實際品質</th>
-                    <th style="width: 120px;">對方本回合報酬</th>
-                </tr>
-            </thead>
-            <tbody>
-                {{ for record in decision_list }}
-                    <tr>
-                        <td>{{ record.round_number }}</td>
-                        <td>{{ record.commission_product }}</td>
-                        <td><img src="{{ static record.signal_image }}" width="40px"></td>
-                        <td>{{ record.advisor_recommendation }}</td>
-                        <td>{{ record.client_selection }}</td>
-                        <td>{{ record.round_payoff }}</td>
-                        <td><img src="{{ static record.producta_image }}" width="50px"></td>
-                        <td><img src="{{ static record.quality_image }}" width="50px"></td>
-                        <td>{{ record.partner_payoff }}</td>
-                    </tr>
-                {{ endfor }}
-            </tbody>
-        </table>
+    <table class="table">
+        <thead>
+        <tr>
+            <th style="width: 50px;">回合</th>
+            <th style="width: 110px;">產品B實際品質</th>
+            <th style="width: 100px;">產品指派資訊</th>
+            <th style="width: 100px;">抽球結果資訊</th>
+            <th style="width: 100px;">推薦人決策</th>
+            <th style="width: 100px;">客戶決策</th>
+            <th style="width: 100px;">您本回合報酬</th>
+            <!-- <th style="width: 90px;">產品A實際品質</th> -->
+            <th style="width: 120px;">對方本回合報酬</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{ for record in decision_list }}
+            <tr>
+            <td>{{ record.round_number }}</td>
+            <td><img src="{{ static record.quality_image }}" width="80px"></td>
+            <td>{{ record.commission_product }}</td>
+            <td><img src="{{ static record.signal_image }}" width="40px"></td>
+            <td>{{ record.advisor_recommendation }}</td>
+            <td>{{ record.client_selection }}</td>
+            <td>{{ record.round_payoff }}</td>
+            <!-- <td><img src="{{ static record.producta_image }}" width="50px"></td> -->
+            <td>{{ record.partner_payoff }}</td>
+            </tr>
+        {{ endfor }}
+        </tbody>
+    </table>
     </div>
     {{ endif }}
 

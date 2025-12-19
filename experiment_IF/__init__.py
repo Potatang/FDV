@@ -16,7 +16,7 @@ class C(BaseConstants):
     NAME_IN_URL = 'experiment_IF'
     PLAYERS_PER_GROUP = 2
     BLOCK_SIZE = 10  # 每段 10 回合
-    NUM_ROUNDS = 20
+    NUM_ROUNDS = 3
 
     ADVISOR_ROLE = '推薦人'
     CLIENT_ROLE = '客戶'
@@ -64,12 +64,12 @@ class Player(BasePlayer):
     selection_if_A = models.StringField(
         choices=[['A','產品A'], ['B','產品B']],
         widget=widgets.RadioSelect,
-        label='1. 假設這回合推薦人推薦「產品A」，你會選擇哪一個產品？'
+        label='1. 如果這回合推薦人推薦「產品A」，你會選擇哪一個產品？'
     )
     selection_if_B = models.StringField(
         choices=[['A','產品A'], ['B','產品B']],
         widget=widgets.RadioSelect,
-        label='2. 假設這回合推薦人推薦「產品B」，你會選擇哪一個產品？'
+        label='2. 如果這回合推薦人推薦「產品B」，你會選擇哪一個產品？'
     )
 
     round_payoff = models.CurrencyField(initial=0)

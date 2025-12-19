@@ -1,9 +1,9 @@
 {% load static %}
-{{ block title }} 產品 B 中抽出的球 {{ endblock }}
+{{ block title }} 抽球結果資訊 {{ endblock }}
 {{ block content }}
 {{ load static }}
     <p>
-        <br>本回合，電腦從產品 B 中隨機抽出的球是：</br>
+        <p><b>本回合，電腦從<u>產品 B </u>中隨機抽出的球是：</b></p>
         <p>
         <img src="{{ static image_path }}" width="80px" />
         </p>
@@ -11,7 +11,7 @@
 
 
 {{ formfields }}
-<br>
+<br></br>
 
 <!-- 中文的下一頁按鈕 -->
 <button class="otree-btn-next btn btn-primary">下一頁</button>

@@ -4,7 +4,7 @@ from os import environ
 SESSION_CONFIGS = [
     dict(
         name='FDI',
-        num_demo_participants=6,   
+        num_demo_participants=2,   
         app_sequence=[
             'start_app',
             'moralcost_IF',
@@ -17,7 +17,7 @@ SESSION_CONFIGS = [
             'end_app',
         ],
         order_global=1,
-        use_browser_bots=True,
+        # use_browser_bots=True,
     ),
     # dict(
     #     name='FDI_6',
