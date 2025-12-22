@@ -182,6 +182,12 @@ def set_payoffs(group: Group):
 
 #Pages
     
+class InstructionPage(Page):
+    @staticmethod
+    def is_displayed(player: Player):
+        # 只在第一回合出現，用來第一次配對
+        return player.round_number == 1
+
 class MyWaitPage(WaitPage):
     group_by_arrival_time = True
     title_text = "請稍候"
@@ -290,7 +296,7 @@ class AdvisordrawPage(Page):
 
 class WaitforAdvisor(WaitPage):
     title_text = "請稍候"
-    body_text = "正在等待推薦人做出推薦，請耐心等候。"
+    body_text = "正在等待推薦人，請耐心等候。"
 
 
 class ProductPage(Page):
@@ -430,7 +436,7 @@ class ClientdrawPage(Page):
     
 class WaitforClient(WaitPage):
     title_text = "請稍候"
-    body_text = "正在等待客戶做出選擇，請耐心等候。"
+    body_text = "正在等待客戶，請耐心等候。"
 
 class ResultsWaitPage(WaitPage):    
     after_all_players_arrive = set_payoffs
@@ -553,6 +559,7 @@ class ShuffleWaitPage(WaitPage):
 #PageSequence
 page_sequence = [
     MyWaitPage,
+    InstructionPage,
     AdvisorPage,
     ClientPage,
     DicePage,

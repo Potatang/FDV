@@ -246,7 +246,8 @@ class BIPagecopy(Page):
     def is_displayed(player):
         return not player.showA and not player.show_bi_first
     
-# class ResultsWaitPage(WaitPage):    
+class ResultsWaitPage(WaitPage):    
+    pass
 #     after_all_players_arrive = set_payoffs
 
 class Results(Page):
@@ -260,4 +261,5 @@ page_sequence = [Instruction4Page,
                 BIPage,
                 BQPage,
                 BIPagecopy,
-                Results]
+                # Results
+                ]
