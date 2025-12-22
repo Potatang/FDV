@@ -16,7 +16,7 @@ class C(BaseConstants):
     NAME_IN_URL = 'experiment_IF'
     PLAYERS_PER_GROUP = 2
     BLOCK_SIZE = 10  # 每段 10 回合
-    NUM_ROUNDS = 1
+    NUM_ROUNDS = 20
 
     ADVISOR_ROLE = '推薦人'
     CLIENT_ROLE = '客戶'

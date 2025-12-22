@@ -15,7 +15,7 @@ client 看到 advisor 推薦後，直接選擇商品 A 或 B，
 class C(BaseConstants):
     NAME_IN_URL = 'choice'
     PLAYERS_PER_GROUP = 2
-    NUM_ROUNDS = 1
+    NUM_ROUNDS = 10
 
     ADVISOR_ROLE = '推薦人'
     CLIENT_ROLE = '客戶'
