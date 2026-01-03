@@ -1,15 +1,88 @@
 {{ block title }}您的推薦{{ endblock }}
+
+{{ block styles }}
+<style>
+  /* 隱藏 oTree 自動產生的「欄位標題」（例如 recommendation） */
+  label[for="id_recommendation"]{
+    display: none;
+  }
+
+  /* 讓整個 radio 群組變成左右橫排（同時兼容 div / ul 兩種輸出） */
+  #id_recommendation,
+  ul#id_recommendation{
+    max-width: 1100px;
+    margin: 60px auto 20px;
+    display: flex;
+    justify-content: space-between;
+    gap: 200px;          /* 兩欄距離，可調 */
+    padding-left: 0;     /* 如果是 ul 會有預設 padding */
+    list-style: none;    /* 如果是 ul 會有點點 */
+  }
+
+  /* 每個選項佔一欄（兼容 div.form-check 或 ul>li） */
+  #id_recommendation .form-check,
+  ul#id_recommendation > li{
+    flex: 1;
+    margin: 0;
+    text-align: center;
+  }
+
+  /* 把 label 變成「上面文字、下面圓圈」 */
+  #id_recommendation .form-check-label,
+  ul#id_recommendation label{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;                 /* 文字與圓圈距離 */
+    font-weight: 700;
+    font-size: 36px;
+    cursor: pointer;
+  }
+
+  /* 放大圓圈 */
+  #id_recommendation input[type="radio"],
+  ul#id_recommendation input[type="radio"]{
+    transform: scale(1.2);
+  }
+  /* 讓每個選項變成：上文字、下圓圈 */
+#id_recommendation .form-check{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* label 在上 */
+#id_recommendation .form-check-label{
+  order: 1;
+  font-weight: 700;
+  font-size: 36px;
+  margin: 0;
+}
+
+/* radio 在下 */
+#id_recommendation .form-check-input{
+  order: 2;
+  margin: 16px 0 0 0;   /* 跟文字拉開距離 */
+  transform: scale(1.2);
+}
+</style>
+{{ endblock }}
+
 {{ block content }}
 
-    <p>
-        身為推薦人，你會推薦哪項產品給客戶？
-    </p>
-    <p>
-        <b>提醒您，如果您推薦{{group.commission_product}}，您可以額外獲得5法幣</b>。
-    </p>
-{{ formfields }}
+<p>做為推薦人，你會推薦哪項產品給客戶？</p>
 
-    {{ if previous_decision_record }}
+<p><b>如果您推薦{{ group.commission_product }}，您可以額外獲得5法幣</b>。</p>
+<br></br>
+<h2 style="text-align:center; font-weight:700; margin-top: 20px;">
+  您會推薦哪項產品給客戶？
+</h2>
+
+<!-- 用單一欄位渲染（不要用 formfields） -->
+{{ formfield 'recommendation' }}
+<br></br>
+
+    {{ if history_records }}
     <h4>歷史回合</h4>
     <div style="max-height: 400px; overflow-y: auto;">
         <table class="table">
@@ -27,7 +100,7 @@
                 </tr>
             </thead>
             <tbody>
-                {{ for key, record in previous_decision_record.items() }}
+                {{ for record in history_records }}
                     <tr>
                         <td>{{ record.round_number }}</td>
                         <td><img src="{{ static record.quality_image }}" width="50px"></td>

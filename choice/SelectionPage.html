@@ -6,7 +6,7 @@
     </p>
     
 {{ formfields }}
-    {{ if previous_decision_record }}
+    {{ if history_records }}
     <h4>歷史回合</h4>
     <div style="max-height: 400px; overflow-y: auto;">
         <table class="table">
@@ -24,7 +24,7 @@
                 </tr>
             </thead>
             <tbody>
-                {{ for key, record in previous_decision_record.items() }}
+                {{ for record in history_records }}
                     <tr>
                         <td>{{ record.round_number }}</td>
                         <td><img src="{{ static record.quality_image }}" width="50px"></td>

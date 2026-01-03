@@ -100,14 +100,14 @@ class Player(BasePlayer):
     question1 = models.StringField(
         label='1. 紅色卡片代表接下來出現的兩則資訊的順序為何？',
         choices=[
-            ('A', '(A) 先看到電腦指定的產品，再看到電腦從產品B中抽出的球'),
-            ('B', '(B) 先看到電腦從產品B中抽出的球，再看到電腦指定的產品'),
+            ('A', '(A) 先看到「產品指派資訊」，再看到「抽球結果資訊」'),
+            ('B', '(B) 先看到「抽球結果資訊」，再看到「產品指派資訊」'),
         ],
         widget=widgets.RadioSelect
     )
 
     question2 = models.StringField(
-        label='2. 假設有一個人選擇將四張卡片調整為「紅紅紅黑」，請問這個人待會先看到電腦指定的產品的機率為何？',
+        label='2. 假設有一個人選擇將四張卡片調整為「紅紅紅黑」，請問他待會先看到「產品指派資訊」的機率為何？',
         choices=[
             ('A', '(A) 25%'),
             ('B', '(B) 50%'),
@@ -117,7 +117,7 @@ class Player(BasePlayer):
     )
 
     question3 = models.StringField(
-        label='3. 假設有一個人選擇將四張卡片調整為四張黑色，請問這個選擇需要支付額外幣嗎？若是需要，請問支付多少法幣？',
+        label='3. 假設有一個人選擇將四張卡片調整為四張黑色，請問他需要支付額外法幣嗎？若是需要，請問支付多少法幣？',
         choices=[
             ('A', '(A) 不需要'),
             ('B', '(B) 需要。 支付 5 法幣'),
@@ -289,7 +289,7 @@ class ComprehensionCheck(Page):
         correct_answers = {
             'question1': 'A',
             'question2': 'C',
-            'question3': 'C',
+            'question3': 'B',
         }
         errors = []
         for q_name, correct_ans in correct_answers.items():
@@ -441,21 +441,19 @@ class IncentivePage2(Page):
         return dict(commission_product=group.commission_product)
     
 class RecommendationPage(Page):
-
     form_model = 'group'
     form_fields = ['recommendation']
 
     @staticmethod
     def is_displayed(player):
         return player.role == C.ADVISOR_ROLE
-    
 
     @staticmethod
     def vars_for_template(player: Player):
         group = player.group
-        
-        previous_decision_record = {
-            (p.round_number, p.id_in_group): {
+
+        history_records = [
+            {
                 "round_number": p.round_number,
                 "id_in_group": p.id_in_group,
                 "advisor_recommendation": p.advisor_recommendation,
@@ -471,21 +469,61 @@ class RecommendationPage(Page):
                 "partner_payoff": p.partner_payoff,
             }
             for p in player.in_previous_rounds()
-        }
+        ]
+
+        # 依回合倒序：最新的在最上面
+        history_records.sort(key=lambda r: r["round_number"], reverse=True)
+
+        return dict(
+            commission_product=group.commission_product,
+            history_records=history_records,
+        )
+
+# class RecommendationPage(Page):
+
+#     form_model = 'group'
+#     form_fields = ['recommendation']
+
+#     @staticmethod
+#     def is_displayed(player):
+#         return player.role == C.ADVISOR_ROLE
+    
+
+#     @staticmethod
+#     def vars_for_template(player: Player):
+#         group = player.group
         
-        return dict(commission_product=group.commission_product,
-                    previous_decision_record=previous_decision_record,
-                    )
+#         previous_decision_record = {
+#             (p.round_number, p.id_in_group): {
+#                 "round_number": p.round_number,
+#                 "id_in_group": p.id_in_group,
+#                 "advisor_recommendation": p.advisor_recommendation,
+#                 "client_selection": p.client_selection,
+#                 "commission_product": p.group.commission_product,
+#                 "product_b_quality": p.group.product_b_quality,
+#                 "quality_signal": p.group.quality_signal,
+#                 "round_payoff": p.round_payoff,
+#                 "roundsum_payoff": p.roundsum_payoff,
+#                 "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
+#                 "signal_image": 'blue_65.png' if p.group.quality_signal == "$65" else 'red_0.png',
+#                 "producta_image": 'ProductA.png',
+#                 "partner_payoff": p.partner_payoff,
+#             }
+#             for p in player.in_previous_rounds()
+#         }
+        
+#         return dict(commission_product=group.commission_product,
+#                     previous_decision_record=previous_decision_record,
+#                     )
 
 class WaitforAdvisor(WaitPage):
     title_text = "請稍候"
     body_text = "正在等待推薦人做出推薦，請耐心等候。"
 
 class SelectionPage(Page):
-
     form_model = 'player'
     form_fields = ['selection_if_A', 'selection_if_B']
-    
+
     @staticmethod
     def is_displayed(player):
         return player.role == C.CLIENT_ROLE
@@ -494,8 +532,8 @@ class SelectionPage(Page):
     def vars_for_template(player: Player):
         group = player.group
 
-        previous_decision_record = {
-            (p.round_number, p.id_in_group): {
+        history_records = [
+            {
                 "round_number": p.round_number,
                 "id_in_group": p.id_in_group,
                 "advisor_recommendation": p.advisor_recommendation,
@@ -511,11 +549,15 @@ class SelectionPage(Page):
                 "partner_payoff": p.partner_payoff,
             }
             for p in player.in_previous_rounds()
-        }
+        ]
 
-        return dict(recommendation=group.recommendation, 
-                    previous_decision_record=previous_decision_record,
-                    )
+        history_records.sort(key=lambda r: r["round_number"], reverse=True)
+
+        return dict(
+            recommendation=group.recommendation,
+            history_records=history_records,
+        )
+
     
 class WaitforClient(WaitPage):
     title_text = "請稍候"
@@ -525,16 +567,12 @@ class ResultsWaitPage(WaitPage):
     after_all_players_arrive = set_payoffs
 
 class HistoryPage(Page):
-    
-    # def before_next_page(player: Player):
-    #     import time
-    #     player.round_duration = time.time() - player.round_start_time
 
     @staticmethod
     def vars_for_template(player: Player):
 
-        decision_record = {
-            (p.round_number, p.id_in_group): {
+        history_records = [
+            {
                 "round_number": p.round_number,
                 "id_in_group": p.id_in_group,
                 "advisor_recommendation": p.advisor_recommendation,
@@ -550,13 +588,14 @@ class HistoryPage(Page):
                 "partner_payoff": p.partner_payoff,
             }
             for p in player.in_all_rounds()
-        }
-        # print(decision_record)        
+        ]
 
-        return dict(decision_record=decision_record)
-    
+        # 回合倒序（最新在上）
+        history_records.sort(key=lambda r: r["round_number"], reverse=True)
 
-    
+        return dict(history_records=history_records)
+
+
 class ShuffleWaitPage(WaitPage):
     wait_for_all_groups = True
     title_text = "請稍候"

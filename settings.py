@@ -10,8 +10,8 @@ SESSION_CONFIGS = [
             'moralcost_IF',
             'experiment_IF',
             'choice',
-            'moralcost2',
             'guessquality_IF',
+            'moralcost2',
             'guessproportion_IF',
             'realizemoralcost',
             'end_app',
@@ -66,6 +66,7 @@ PARTICIPANT_FIELDS = dict(
     choice_payoff = int(),
     total_payoff = int(),
     twd_payoff = int(),
+    qualitypayoff_twd = int(),
 )
 SESSION_FIELDS = []
 

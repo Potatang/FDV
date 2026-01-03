@@ -18,7 +18,7 @@
         </tr>
         </thead>
         <tbody>
-        {{ for key, record in decision_record.items() }}
+        {{ for record in history_records }}
             <tr>
             <td>{{ record.round_number }}</td>
             <td><img src="{{ static record.quality_image }}" width="50px"></td>

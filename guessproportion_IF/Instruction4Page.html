@@ -1,7 +1,93 @@
-{{ block title }}第七部分實驗說明{{ endblock }}
+{{ block title }}實驗說明{{ endblock }}
 {{ block content }}
 <p>請您暫時<b>不要按下一頁</b>，仔細聆聽實驗說明。</p>
+<p>
+    本部分共有四個情境：
+</p> 
+<style>
+  .scenario-table{
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 8px;
+  }
+  .scenario-table th,
+  .scenario-table td{
+    border: 1px solid #ccc;
+    padding: 14px 16px;
+    vertical-align: top;
+  }
+  .scenario-table th{
+    background: #f5f5f5;
+    font-weight: 700;
+    text-align: left;
+    width: 50%;
+  }
+  .scenario-title{
+    font-weight: 700;
+    margin: 0 0 8px 0;
+  }
+  .scenario-subtitle{
+    margin: 0 0 10px 0;
+  }
+  .scenario-list{
+    margin: 0;
+    padding-left: 20px;
+  }
+  .scenario-list li{
+    margin: 6px 0;
+  }
+</style>
 
+<table class="scenario-table">
+  <tr>
+    <th>情境一</th>
+    <th>情境二</th>
+  </tr>
+  <tr>
+    <td>
+      <p class="scenario-subtitle">推薦人「<b>先看到</b>產品指派資訊、<b>再看到</b>抽球結果資訊」</p>
+      <ol class="scenario-list">
+        <li>推薦產品A可以獲得5法幣</li>
+        <li>電腦從產品B中抽出藍色球（65法幣）</li>
+      </ol>
+    </td>
+    <td>
+      <p class="scenario-subtitle">推薦人「<b>先看到</b>產品指派資訊、<b>再看到</b>抽球結果資訊」</p>
+      <ol class="scenario-list">
+        <li>推薦產品B可以獲得5法幣</li>
+        <li>電腦從產品B中抽出紅色球（0法幣）</li>
+      </ol>
+    </td>
+  </tr>
+
+  <tr>
+    <th>情境三</th>
+    <th>情境四</th>
+  </tr>
+  <tr>
+    <td>
+      <p class="scenario-subtitle">推薦人「<b>先看到</b>抽球結果資訊、<b>再看到</b>產品指派資訊」</p>
+      <ol class="scenario-list">
+        <li>電腦從產品B中抽出藍色球（65法幣）</li>
+        <li>推薦產品A可以獲得5法幣</li>
+      </ol>
+    </td>
+    <td>
+      <p class="scenario-subtitle">推薦人「<b>先看到</b>抽球結果資訊、<b>再看到</b>產品指派資訊」</p>
+      <ol class="scenario-list">
+        <li>電腦從產品B中抽出紅色球（0法幣）</li>
+        <li>推薦產品B可以獲得5法幣</li>
+      </ol>
+    </td>
+  </tr>
+</table>
+  
+<p>
+    本部分要請您在四種不同情境下，預測<u><b>同類實驗所有參與的推薦人在第二部分及第三部分中推薦產品指派資訊所指的產品</b></u>的機率。
+</p>
+<p>
+    當您完成四個情境的預測後，電腦會隨機抽出一個情境，根據您在對應情境中的預測來決定本部分的報酬。
+</p>
     {{ formfields }}
 <!-- 中文的下一頁按鈕 -->
 <button class="otree-btn-next btn btn-primary" id="btn" style='float:right'>下一頁(300)</button>

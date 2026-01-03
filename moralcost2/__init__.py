@@ -49,27 +49,27 @@ class Player(BasePlayer):
     recommendation1 = models.StringField(
         choices=[['X', '產品X'], ['Y', '產品Y']],
         widget=widgets.RadioSelect,
-        label="我推薦：",
+        label="請問您會推薦哪一個產品給對方？",
     )
     recommendation2 = models.StringField(
         choices=[['X', '產品X'], ['Y', '產品Y']],
         widget=widgets.RadioSelect,
-        label="我推薦：",
+        label="請問您會推薦哪一個產品給對方？",
     )
     recommendation3 = models.StringField(
         choices=[['X', '產品X'], ['Y', '產品Y']],
         widget=widgets.RadioSelect,
-        label="我推薦：",
+        label="請問您會推薦哪一個產品給對方？",
     )
     recommendation4 = models.StringField(
         choices=[['X', '產品X'], ['Y', '產品Y']],
         widget=widgets.RadioSelect,
-        label="我推薦：",
+        label="請問您會推薦哪一個產品給對方？",
     )
     recommendation5 = models.StringField(
         choices=[['X', '產品X'], ['Y', '產品Y']],
         widget=widgets.RadioSelect,
-        label="我推薦：",
+        label="請問您會推薦哪一個產品給對方？",
     )
     selected_reco = models.StringField()
     

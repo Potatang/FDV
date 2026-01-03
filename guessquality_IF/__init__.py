@@ -2,7 +2,7 @@ from otree.api import *
 
 
 doc = """
-This is the second part of the experiment, which assesses participants' ability to perform Bayesian updating.
+Belief of Quality: Assesses participants' ability to perform Bayesian updating.
 """
 
 
@@ -48,6 +48,7 @@ class Player(BasePlayer):
     red_payoff = models.CurrencyField(initial=0)
     blue_payoff = models.CurrencyField(initial=0)
     qualitypayoff = models.CurrencyField(initial=0)
+    qualitypayoff_twd = models.CurrencyField(initial=0)
 
 #FUNCTION
 def creating_session(subsession:Subsession):
@@ -66,41 +67,35 @@ def creating_session(subsession:Subsession):
 def set_payoffs(group: Group): 
     import random  
     for p in group.get_players():
-        p.red_payoff = cu(0)
-        stoobid = random.choice(range(0, 101, 1))
+            p.red_payoff = cu(0)
+            stoobid = random.choice(range(0, 101, 1))
+            print(stoobid)
+            if p.belief_qualityred > stoobid:
+                if random.random() <= C.RED_LOW:
+                    p.red_payoff = cu(100)
+            else:
+                import math
+                if random.random() <= math.floor(stoobid / 10) / 10:
+                    p.red_payoff = cu(100)
 
-        if p.belief_qualityred > stoobid:
-            if random.random() <= C.RED_LOW:
-                p.red_payoff = cu(150)
-        else:
-            import math
-            if random.random() <= math.floor(stoobid / 10) / 10:
-                p.red_payoff = cu(150)
+            p.blue_payoff = cu(0)
+            stoobid = random.choice(range(0, 101, 1))
 
-    for p in group.get_players():
-        p.blue_payoff = cu(0)
-        stoobid = random.choice(range(0, 101, 1))
+            if p.belief_qualityblue > stoobid:
+                if random.random() <= C.BLUE_LOW:
+                        p.blue_payoff = cu(100)
+            else:
+                import math
+                if random.random() <= math.floor(stoobid / 10) / 10:
+                        p.blue_payoff = cu(100)
 
-        if p.belief_qualityblue > stoobid:
-            if random.random() <= C.BLUE_LOW:
-                p.blue_payoff = cu(150)
-        else:
-            import math
-            if random.random() <= math.floor(stoobid / 10) / 10:
-                p.blue_payoff = cu(150)
+            for p in group.get_players():
+                if p.subsession.ball_color == "$65":
+                    p.qualitypayoff = p.blue_payoff
+                else:
+                    p.qualitypayoff = p.red_payoff
 
-    for p in group.get_players():
-        if p.subsession.ball_color == "$65":
-            p.qualitypayoff = p.blue_payoff
-        else:
-            p.qualitypayoff = p.red_payoff
-        p.participant.qualitypayoff = p.qualitypayoff
-    # if p.subsession.ball_color == "$65":
-    #     p.qualitypayoff = p.blue_payoff
-    # else:
-    #     p.qualitypayoff = p.red_payoff
-
-    # p.participant.qualitypayoff = p.qualitypayoff
+            p.participant.qualitypayoff = p.qualitypayoff
 
     
 
@@ -167,13 +162,19 @@ class Results(Page):
             image_path = 'blue_65.png'
         else:
             image_path = 'red_0.png'
-        player.participant.qualitypayoff = player.qualitypayoff
 
-        
-        return dict(qualitypayoff = player.participant.qualitypayoff,
-                    ball_color=subsession.ball_color,
-                    image_path=image_path
-                    )
+        # 這個 app 的 qualitypayoff 視為「新台幣金額」
+        # 若 qualitypayoff 是 oTree Currency/points，float() 可轉成數值
+        qualitypayoff_twd = int(round(float(player.qualitypayoff)))
+
+        # 存到 participant 的「台幣專用欄位」（建議不要覆蓋原本 participant.qualitypayoff）
+        player.participant.qualitypayoff_twd = qualitypayoff_twd
+
+        return dict(
+            qualitypayoff_twd=player.participant.qualitypayoff_twd,
+            ball_color=subsession.ball_color,
+            image_path=image_path,
+        )
 
 
 page_sequence = [Instruction2Page, 

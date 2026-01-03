@@ -4,11 +4,10 @@ import random
 
 doc = """
 Advisor-Client Recommendation Experiment
-SEE INCENTIVE FIRST
-在本實驗中，20 位受試者中 10 位為 advisor，10 位為 client。
+在本實驗中，一半是 advisor，一半是 client。
 每回合 advisor 依據產品 B 的品質訊息與附加的佣金訊息決定推薦 A 或 B，
 client 看到 advisor 推薦後，直接選擇商品 A 或 B，
-最終支付則依據每回合抽球結果決定，並且所有 10 回合都會計入最終報酬。
+最終支付則依據每回合抽球結果決定，並且所有回合都會計入最終報酬。
 """
 
 #Models
@@ -64,12 +63,12 @@ class Player(BasePlayer):
     selection_if_A = models.StringField(
         choices=[['A','產品A'], ['B','產品B']],
         widget=widgets.RadioSelect,
-        label='1. 如果這回合推薦人推薦「產品A」，你會選擇哪一個產品？'
+        label='1. 如果這回合推薦人向您推薦「產品A」，你會選擇哪一個產品？'
     )
     selection_if_B = models.StringField(
         choices=[['A','產品A'], ['B','產品B']],
         widget=widgets.RadioSelect,
-        label='2. 如果這回合推薦人推薦「產品B」，你會選擇哪一個產品？'
+        label='2. 如果這回合推薦人向您推薦「產品B」，你會選擇哪一個產品？'
     )
 
     round_payoff = models.CurrencyField(initial=0)
@@ -97,7 +96,7 @@ class Player(BasePlayer):
     )
 
     question3 = models.StringField(
-        label='3. 假設電腦從客戶選擇的產品中抽到紅色球，請問他的報酬為多少？',
+        label='3. 假設電腦從客戶選擇的產品中抽到紅色球，請問該客戶的報酬為多少？',
         choices=[
             ('A', '(A) $0'),
             ('B', '(B) $5'),
@@ -108,7 +107,7 @@ class Player(BasePlayer):
     )
 
     question4 = models.StringField(
-        label='4. 假設客戶選擇了產品 A，客戶獲得 $65（即抽到藍色球）的機率是多少？',
+        label='4. 假設有一位客戶選擇了產品 A，請問他獲得 $65（即抽到藍色球）的機率是多少？',
         choices=[
             ('A', '(A) 20%，因為產品 A 中 5 顆球中有 1 顆是藍色球（$65）。'),
             ('B', '(B) 40%，因為產品 A 中 5 顆球中有 2 顆是藍色球（$65）。'),

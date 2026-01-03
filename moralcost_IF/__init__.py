@@ -135,7 +135,7 @@ class InstructionPage(Page):
 
 class ComprehensionCheck(Page):
     form_model = 'player'
-    form_fields = ['question1', 'question2', 'question3', 'question4', 'question5']
+    form_fields = ['question1', 'question2', 'question3', 'question4']
 
     # 整頁驗證：使用 error_message 檢查是否答對
     def error_message(self, values):
@@ -146,7 +146,7 @@ class ComprehensionCheck(Page):
             'question2': 'B',
             'question3': 'A',
             'question4': 'A',
-            'question5': 'A',
+            # 'question5': 'A',
         }
         errors = []
         for q_name, correct_ans in correct_answers.items():

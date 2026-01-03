@@ -135,20 +135,6 @@ def creating_session(subsession: Subsession):
 class Instruction4Page(Page):
     pass
 
-    # @staticmethod
-    # def before_next_page(player, timeout_happened):
-    #     subsession = player.subsession
-        
-        # import random
-
-        # for p in subsession.get_players():
-        #     p.showA = random.choice([True, False])
-        #     # print(f'{showA=}')
-        #     p.show_ai_first = random.choice([True, False])
-        #     # print(f'{show_ai_first=}')
-        #     p.show_bi_first = random.choice([True, False])
-        #     # print(f'{show_bi_first=}')
-
 
 class AIPage(Page):
 
@@ -161,10 +147,12 @@ class AIPage(Page):
             image_path1='productB.png',
             image_path2='blue_65.png',
         )
-    
     @staticmethod
     def is_displayed(player):
-        return player.showA and player.show_ai_first
+        return player.show_ai_first
+    # @staticmethod
+    # def is_displayed(player):
+    #     return player.showA and player.show_ai_first
 
 class AQPage(Page):
 
@@ -178,9 +166,9 @@ class AQPage(Page):
             image_path2='blue_65.png',
         )
     
-    @staticmethod
-    def is_displayed(player):
-        return player.showA 
+    # @staticmethod
+    # def is_displayed(player):
+    #     return player.showA 
 
 class AIPagecopy(Page):
 
@@ -193,10 +181,13 @@ class AIPagecopy(Page):
             image_path1='productB.png',
             image_path2='blue_65.png',
         )
-    
+
     @staticmethod
     def is_displayed(player):
-        return player.showA and not player.show_ai_first
+        return not player.show_ai_first        
+    # @staticmethod
+    # def is_displayed(player):
+    #     return player.showA and not player.show_ai_first
     
 class BIPage(Page):
 
@@ -212,7 +203,12 @@ class BIPage(Page):
     
     @staticmethod
     def is_displayed(player):
-        return not player.showA and player.show_bi_first
+        return player.show_bi_first
+    
+
+    # @staticmethod
+    # def is_displayed(player):
+    #     return not player.showA and player.show_bi_first
 
 class BQPage(Page):
 
@@ -226,9 +222,9 @@ class BQPage(Page):
             image_path2='red_0.png',
         )
     
-    @staticmethod
-    def is_displayed(player):
-        return not player.showA 
+    # @staticmethod
+    # def is_displayed(player):
+    #     return not player.showA 
 
 class BIPagecopy(Page):
 
@@ -241,10 +237,13 @@ class BIPagecopy(Page):
             image_path1='productB.png',
             image_path2='red_0.png',
         )
-    
+
     @staticmethod
     def is_displayed(player):
-        return not player.showA and not player.show_bi_first
+        return not player.show_bi_first    
+    # @staticmethod
+    # def is_displayed(player):
+    #     return not player.showA and not player.show_bi_first
     
 class ResultsWaitPage(WaitPage):    
     pass
