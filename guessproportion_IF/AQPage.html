@@ -1,7 +1,7 @@
 {% load static %}
 
 {% block title %}
-第七部分預測
+預測推薦人按照指派資訊推薦產品的機率
 {% endblock %}
 
 {% block content %}
@@ -18,7 +18,7 @@
     <br><br>
     <p>也就是說：</p>
     <p>他們首先得知從產品B中抽出的球是：<img src="{{ static image_path2 }}" width="50px" /></p>
-    <p>接著他們才得知推薦產品 A 可獲得額外5法幣。</p>
+    <p>接著他們才得知推薦產品 A 可獲得額外15法幣。</p>
     <br>
     <p>請您根據上述情況，在下方選項中作出選擇。</p>
 
@@ -44,7 +44,7 @@
             <!-- 第0行 -->
             <tr>
                 <td align="right">第<b>0</b>行:</td>
-                <td align="right"><b>推薦人決定推薦產品B</b>的話獲得 100 元 7-11 禮卷</td>
+                <td align="right"><b>推薦人決定推薦產品B</b>的話獲得 50 元 7-11 禮卷</td>
                 <td align="middle">
                     <input type="radio" name="0" value="left" data-amount="0" checked required>&nbsp;&nbsp;
                     <input type="radio" name="0" value="right" data-amount="0" disabled required>
@@ -58,7 +58,7 @@
                         </select>
                     </span>
                 </td>
-                <td align="left"><b>0%</b> 機率獲得 100 元 7-11 禮卷</td>
+                <td align="left"><b>0%</b> 機率獲得 50 元 7-11 禮卷</td>
             </tr>
             <tr><td colspan="4">
                 <div id="messages-0" style="display: none;">
@@ -70,7 +70,7 @@
             <!-- 第1行 -->
             <tr>
                 <td align="right">第<b>1</b>行:</td>
-                <td align="right"><b>推薦人決定推薦產品B</b>的話獲得 100 元 7-11 禮卷</td>
+                <td align="right"><b>推薦人決定推薦產品B</b>的話獲得 50 元 7-11 禮卷</td>
                 <td align="middle">
                     <input type="radio" name="1" value="left" data-amount="1" required>&nbsp;&nbsp;
                     <input type="radio" name="1" value="right" data-amount="1" required>
@@ -84,7 +84,7 @@
                         </select>
                     </span>
                 </td>
-                <td align="left"><b>10%</b> 機率獲得 100 元 7-11 禮卷</td>
+                <td align="left"><b>10%</b> 機率獲得 50 元 7-11 禮卷</td>
             </tr>
             <tr><td colspan="4">
                 <div id="messages-1" style="display: none;">
@@ -96,7 +96,7 @@
             <!-- 第2行 -->
             <tr>
                 <td align="right">第<b>2</b>行:</td>
-                <td align="right"><b>推薦人決定推薦產品B</b>的話獲得 100 元 7-11 禮卷</td>
+                <td align="right"><b>推薦人決定推薦產品B</b>的話獲得 50 元 7-11 禮卷</td>
                 <td align="middle">
                     <input type="radio" name="2" value="left" data-amount="2" required>&nbsp;&nbsp;
                     <input type="radio" name="2" value="right" data-amount="2" required>
@@ -110,7 +110,7 @@
                         </select>
                     </span>
                 </td>
-                <td align="left"><b>20%</b> 機率獲得 100 元 7-11 禮卷</td>
+                <td align="left"><b>20%</b> 機率獲得 50 元 7-11 禮卷</td>
             </tr>
             <tr><td colspan="4">
                 <div id="messages-2" style="display: none;">
@@ -122,7 +122,7 @@
             <!-- 第3行 -->
             <tr>
                 <td align="right">第<b>3</b>行:</td>
-                <td align="right"><b>推薦人決定推薦產品B</b>的話獲得 100 元 7-11 禮卷</td>
+                <td align="right"><b>推薦人決定推薦產品B</b>的話獲得 50 元 7-11 禮卷</td>
                 <td align="middle">
                     <input type="radio" name="3" value="left" data-amount="3" required>&nbsp;&nbsp;
                     <input type="radio" name="3" value="right" data-amount="3" required>
@@ -136,7 +136,7 @@
                         </select>
                     </span>
                 </td>
-                <td align="left"><b>30%</b> 機率獲得 100 元 7-11 禮卷</td>
+                <td align="left"><b>30%</b> 機率獲得 50 元 7-11 禮卷</td>
             </tr>
             <tr><td colspan="4">
                 <div id="messages-3" style="display: none;">
@@ -148,7 +148,7 @@
             <!-- 第4行 -->
             <tr>
                 <td align="right">第<b>4</b>行:</td>
-                <td align="right"><b>推薦人決定推薦產品B</b>的話獲得 100 元 7-11 禮卷</td>
+                <td align="right"><b>推薦人決定推薦產品B</b>的話獲得 50 元 7-11 禮卷</td>
                 <td align="middle">
                     <input type="radio" name="4" value="left" data-amount="4" required>&nbsp;&nbsp;
                     <input type="radio" name="4" value="right" data-amount="4" required>
@@ -162,7 +162,7 @@
                         </select>
                     </span>
                 </td>
-                <td align="left"><b>40%</b> 機率獲得 100 元 7-11 禮卷</td>
+                <td align="left"><b>40%</b> 機率獲得 50 元 7-11 禮卷</td>
             </tr>
             <tr><td colspan="4">
                 <div id="messages-4" style="display: none;">
@@ -174,7 +174,7 @@
             <!-- 第5行 -->
             <tr>
                 <td align="right">第<b>5</b>行:</td>
-                <td align="right"><b>推薦人決定推薦產品B</b>的話獲得 100 元 7-11 禮卷</td>
+                <td align="right"><b>推薦人決定推薦產品B</b>的話獲得 50 元 7-11 禮卷</td>
                 <td align="middle">
                     <input type="radio" name="5" value="left" data-amount="5" required>&nbsp;&nbsp;
                     <input type="radio" name="5" value="right" data-amount="5" required>
@@ -188,7 +188,7 @@
                         </select>
                     </span>
                 </td>
-                <td align="left"><b>50%</b> 機率獲得 100 元 7-11 禮卷</td>
+                <td align="left"><b>50%</b> 機率獲得 50 元 7-11 禮卷</td>
             </tr>
             <tr><td colspan="4">
                 <div id="messages-5" style="display: none;">
@@ -200,7 +200,7 @@
             <!-- 第6行 -->
             <tr>
                 <td align="right">第<b>6</b>行:</td>
-                <td align="right"><b>推薦人決定推薦產品B</b>的話獲得 100 元 7-11 禮卷</td>
+                <td align="right"><b>推薦人決定推薦產品B</b>的話獲得 50 元 7-11 禮卷</td>
                 <td align="middle">
                     <input type="radio" name="6" value="left" data-amount="6" required>&nbsp;&nbsp;
                     <input type="radio" name="6" value="right" data-amount="6" required>
@@ -214,7 +214,7 @@
                         </select>
                     </span>
                 </td>
-                <td align="left"><b>60%</b> 機率獲得 100 元 7-11 禮卷</td>
+                <td align="left"><b>60%</b> 機率獲得 50 元 7-11 禮卷</td>
             </tr>
             <tr><td colspan="4">
                 <div id="messages-6" style="display: none;">
@@ -226,7 +226,7 @@
             <!-- 第7行 -->
             <tr>
                 <td align="right">第<b>7</b>行:</td>
-                <td align="right"><b>推薦人決定推薦產品B</b>的話獲得 100 元 7-11 禮卷</td>
+                <td align="right"><b>推薦人決定推薦產品B</b>的話獲得 50 元 7-11 禮卷</td>
                 <td align="middle">
                     <input type="radio" name="7" value="left" data-amount="7" required>&nbsp;&nbsp;
                     <input type="radio" name="7" value="right" data-amount="7" required>
@@ -240,7 +240,7 @@
                         </select>
                     </span>
                 </td>
-                <td align="left"><b>70%</b> 機率獲得 100 元 7-11 禮卷</td>
+                <td align="left"><b>70%</b> 機率獲得 50 元 7-11 禮卷</td>
             </tr>
             <tr><td colspan="4">
                 <div id="messages-7" style="display: none;">
@@ -252,7 +252,7 @@
             <!-- 第8行 -->
             <tr>
                 <td align="right">第<b>8</b>行:</td>
-                <td align="right"><b>推薦人決定推薦產品B</b>的話獲得 100 元 7-11 禮卷</td>
+                <td align="right"><b>推薦人決定推薦產品B</b>的話獲得 50 元 7-11 禮卷</td>
                 <td align="middle">
                     <input type="radio" name="8" value="left" data-amount="8" required>&nbsp;&nbsp;
                     <input type="radio" name="8" value="right" data-amount="8" required>
@@ -266,7 +266,7 @@
                         </select>
                     </span>
                 </td>
-                <td align="left"><b>80%</b> 機率獲得 100 元 7-11 禮卷</td>
+                <td align="left"><b>80%</b> 機率獲得 50 元 7-11 禮卷</td>
             </tr>
             <tr><td colspan="4">
                 <div id="messages-8" style="display: none;">
@@ -278,7 +278,7 @@
             <!-- 第9行 -->
             <tr>
                 <td align="right">第<b>9</b>行:</td>
-                <td align="right"><b>推薦人決定推薦產品B</b>的話獲得 100 元 7-11 禮卷</td>
+                <td align="right"><b>推薦人決定推薦產品B</b>的話獲得 50 元 7-11 禮卷</td>
                 <td align="middle">
                     <input type="radio" name="9" value="left" data-amount="9" required>&nbsp;&nbsp;
                     <input type="radio" name="9" value="right" data-amount="9" required>
@@ -292,7 +292,7 @@
                         </select>
                     </span>
                 </td>
-                <td align="left"><b>90%</b> 機率獲得 100 元 7-11 禮卷</td>
+                <td align="left"><b>90%</b> 機率獲得 50 元 7-11 禮卷</td>
             </tr>
             <tr><td colspan="4">
                 <div id="messages-9" style="display: none;">
@@ -304,7 +304,7 @@
             <!-- 最後第10行 (特別：disabled在left) -->
             <tr>
                 <td align="right">第<b>10</b>行:</td>
-                <td align="right"><b>推薦人決定推薦產品B</b>的話獲得 100 元 7-11 禮卷</td>
+                <td align="right"><b>推薦人決定推薦產品B</b>的話獲得 50 元 7-11 禮卷</td>
                 <td align="middle">
                     <input type="radio" name="10" value="left" data-amount="10" disabled required>&nbsp;&nbsp;
                     <input type="radio" name="10" value="right" data-amount="10" checked required>
@@ -318,7 +318,7 @@
                         </select>
                     </span>
                 </td>
-                <td align="left"><b>100%</b> 機率獲得 100 元 7-11 禮卷</td>
+                <td align="left"><b>100%</b> 機率獲得 50 元 7-11 禮卷</td>
             </tr>
             <tr><td colspan="4">
                 <div id="messages-10" style="display: none;">

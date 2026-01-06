@@ -20,14 +20,14 @@ class C(BaseConstants):
     PRODUCT_B_SUCCESS_PROB_H = 0.8
     PRODUCT_B_SUCCESS_PROB_L = 0.4
     # wage
-    WAGE = 15
+    WAGE = 50
     # commission price
-    COMMISSION = 5
+    COMMISSION = 15
     # 球的價值
-    GOODBALL = 65
+    GOODBALL = 200
     BADBALL = 0  
 
-    # probability of recommendation the "right" product, i.e. best advice for client, from the last experiment (two treatment).
+    # probability of recommendation the inccentivized product.
     A_IF = 0.4
     A_QF = 0.6
     B_IF = 0.4

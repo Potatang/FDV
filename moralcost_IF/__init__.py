@@ -21,11 +21,11 @@ class C(BaseConstants):
     PRODUCT_B_SUCCESS_PROB_H = 0.8
     PRODUCT_B_SUCCESS_PROB_L = 0.4
     # wage
-    WAGE = 15
+    WAGE = 50
     # commission price
-    COMMISSION = 5
+    COMMISSION = 15
     # 球的價值
-    GOODBALL = 65
+    GOODBALL = 200
     BADBALL = 0   
     #probability of recommend product B in pilot test
     PRO_RB = 0.7
@@ -111,9 +111,9 @@ class Player(BasePlayer):
     question4 = models.StringField(
         label='4. 以下敘述何者正確？',
         choices=[
-            ('A', '(A) 產品 Y 包含4 顆綠色球（$65）和 1 顆黃色球（$0）（如果其為高品質），或是包含2 顆綠色球（$65）和 3 顆黃色球（$0）（如果其為低品質）。'),
-            ('B', '(B) 產品 Y 包含3 顆綠色球（$65）和 2 顆黃色球（$0）（如果其為高品質），或是包含3 顆綠色球（$65）和 2 顆黃色球（$0）（如果其為低品質）。'),
-            ('C', '(C) 產品 Y 包含5 顆綠色球（$65）和 0 顆黃色球（$0）（如果其為高品質），或是包含0 顆綠色球（$65）和 5 顆黃色球（$0）（如果其為低品質）。'),
+            ('A', '(A) 產品 Y 包含4 顆綠色球（$200）和 1 顆黃色球（$0）（如果其為高品質），或是包含2 顆綠色球（$200）和 3 顆黃色球（$0）（如果其為低品質）。'),
+            ('B', '(B) 產品 Y 包含3 顆綠色球（$200）和 2 顆黃色球（$0）（如果其為高品質），或是包含3 顆綠色球（$200）和 2 顆黃色球（$0）（如果其為低品質）。'),
+            ('C', '(C) 產品 Y 包含5 顆綠色球（$200）和 0 顆黃色球（$0）（如果其為高品質），或是包含0 顆綠色球（$200）和 5 顆黃色球（$0）（如果其為低品質）。'),
         ],
         widget=widgets.RadioSelect
     )
@@ -122,9 +122,9 @@ class Player(BasePlayer):
         label='5. 假設客戶從產品中抽到黃色球，請問他的報酬為多少？',
         choices=[
             ('A', '(A) $0'),
-            ('B', '(B) $5'),
-            ('C', '(C) $15'),
-            ('D', '(D) $65'),
+            ('B', '(B) $15'),
+            ('C', '(C) $50'),
+            ('D', '(D) $200'),
         ],
         widget=widgets.RadioSelect
     )

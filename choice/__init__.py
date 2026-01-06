@@ -26,11 +26,11 @@ class C(BaseConstants):
     PRODUCT_B_SUCCESS_PROB_H = 0.8
     PRODUCT_B_SUCCESS_PROB_L = 0.4
     # wage
-    WAGE = 15
+    WAGE = 50
     # commission price
-    COMMISSION = 5
+    COMMISSION = 15
     # 球的價值
-    GOODBALL = 65
+    GOODBALL = 200
     BADBALL = 0   
     # 全選 Quality 或全選 Incentive 的扣除額
     # CHOICE_DECUCTION = 5
@@ -173,7 +173,7 @@ def creating_session(subsession: Subsession):
     # # 進行抽球，根據設定的機率決定抽中好球("$2")還是壞球("$0")
     # draw = random.random()  # 生成 0 到 1 的隨機數
     # if draw < subsession.product_b_good_ball_probability:
-    #     subsession.quality_signal = "$65"
+    #     subsession.quality_signal = "$200"
     # else:
     #     subsession.quality_signal = "$0"
 
@@ -266,10 +266,10 @@ class MyWaitPage(WaitPage):
         else:
             group.product_b_good_ball_probability = 0.8
 
-        # 抽 quality signal：$65 或 $0
+        # 抽 quality signal：$200 或 $0
         draw = random.random()
         if draw < group.product_b_good_ball_probability:
-            group.quality_signal = "$65"
+            group.quality_signal = "$200"
         else:
             group.quality_signal = "$0"
 
@@ -399,7 +399,7 @@ class QualityPage1(Page):
     def vars_for_template(player: Player):
         group = player.group
         quality = player.group.quality_signal
-        if quality == "$65":
+        if quality == "$200":
             image_path = 'blue_65.png'
         else:
             image_path = 'red_0.png'
@@ -419,7 +419,7 @@ class QualityPage2(Page):
     def vars_for_template(player: Player):
         group = player.group
         quality = player.group.quality_signal
-        if quality == "$65":
+        if quality == "$200":
             image_path = 'blue_65.png'
         else:
             image_path = 'red_0.png'
@@ -464,7 +464,7 @@ class RecommendationPage(Page):
                 "round_payoff": p.round_payoff,
                 "roundsum_payoff": p.roundsum_payoff,
                 "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
-                "signal_image": 'blue_65.png' if p.group.quality_signal == "$65" else 'red_0.png',
+                "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
                 "producta_image": 'ProductA.png',
                 "partner_payoff": p.partner_payoff,
             }
@@ -544,7 +544,7 @@ class SelectionPage(Page):
                 "round_payoff": p.round_payoff,
                 "roundsum_payoff": p.roundsum_payoff,
                 "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
-                "signal_image": 'blue_65.png' if p.group.quality_signal == "$65" else 'red_0.png',
+                "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
                 "producta_image": 'ProductA.png',
                 "partner_payoff": p.partner_payoff,
             }
@@ -583,7 +583,7 @@ class HistoryPage(Page):
                 "round_payoff": p.round_payoff,
                 "roundsum_payoff": p.roundsum_payoff,
                 "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
-                "signal_image": 'blue_65.png' if p.group.quality_signal == "$65" else 'red_0.png',
+                "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
                 "producta_image": 'ProductA.png',
                 "partner_payoff": p.partner_payoff,
             }

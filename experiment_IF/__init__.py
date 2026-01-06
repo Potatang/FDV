@@ -26,11 +26,11 @@ class C(BaseConstants):
     PRODUCT_B_SUCCESS_PROB_H = 0.8
     PRODUCT_B_SUCCESS_PROB_L = 0.4
     # wage
-    WAGE = 15
+    WAGE = 50
     # commission price
-    COMMISSION = 5
+    COMMISSION = 15
     # 球的價值
-    GOODBALL = 65
+    GOODBALL = 200
     BADBALL = 0   
 
 class Subsession(BaseSubsession):
@@ -76,7 +76,7 @@ class Player(BasePlayer):
     partner_payoff = models.CurrencyField(initial=0)
 
     question1 = models.StringField(
-        label='1. 產品A中有多少顆藍色的球？',
+        label='1. 產品 A 中有多少顆藍色的球？',
         choices=[
             ('A', '(A) 2顆'),
             ('B', '(B) 3顆'),
@@ -86,7 +86,7 @@ class Player(BasePlayer):
     )
 
     question2 = models.StringField(
-        label='2. 產品B可能是高品質的機率為何？',
+        label='2. 產品 B 可能是高品質的機率為何？',
         choices=[
             ('A', '(A) 25%'),
             ('B', '(B) 50%'),
@@ -99,20 +99,20 @@ class Player(BasePlayer):
         label='3. 假設電腦從客戶選擇的產品中抽到紅色球，請問該客戶的報酬為多少？',
         choices=[
             ('A', '(A) $0'),
-            ('B', '(B) $5'),
-            ('C', '(C) $15'),
-            ('D', '(D) $65'),
+            ('B', '(B) $15'),
+            ('C', '(C) $50'),
+            ('D', '(D) $200'),
         ],
         widget=widgets.RadioSelect
     )
 
     question4 = models.StringField(
-        label='4. 假設有一位客戶選擇了產品 A，請問他獲得 $65（即抽到藍色球）的機率是多少？',
+        label='4. 假設有一位客戶選擇了產品 A，請問他獲得 $200（即抽到藍色球）的機率是多少？',
         choices=[
-            ('A', '(A) 20%，因為產品 A 中 5 顆球中有 1 顆是藍色球（$65）。'),
-            ('B', '(B) 40%，因為產品 A 中 5 顆球中有 2 顆是藍色球（$65）。'),
-            ('C', '(C) 60%，因為產品 A 中 5 顆球中有 3 顆是藍色球（$65）。'),
-            ('D', '(D) 100%，因為產品 A 中 5 顆球中有 5 顆是藍色球（$65）。'),
+            ('A', '(A) 20%，因為產品 A 中 5 顆球中有 1 顆是藍色球（$200）。'),
+            ('B', '(B) 40%，因為產品 A 中 5 顆球中有 2 顆是藍色球（$200）。'),
+            ('C', '(C) 60%，因為產品 A 中 5 顆球中有 3 顆是藍色球（$200）。'),
+            ('D', '(D) 100%，因為產品 A 中 5 顆球中有 5 顆是藍色球（$200）。'),
         ],
         widget=widgets.RadioSelect
     )
@@ -120,9 +120,9 @@ class Player(BasePlayer):
     question5 = models.StringField(
         label='5. 以下敘述何者正確？',
         choices=[
-            ('A', '(A) 產品B包含4 顆藍色球（$65）和 1 顆紅色球（$0）（如果其為高品質），或是包含2 顆藍色球（$65）和 3 顆紅色球（$0）（如果其為低品質）。'),
-            ('B', '(B) 產品B包含3 顆藍色球（$65）和 2 顆紅色球（$0）（如果其為高品質），或是包含3 顆藍色球（$65）和 2 顆紅色球（$0）（如果其為低品質）。'),
-            ('C', '(C) 產品B包含5 顆藍色球（$65）和 0 顆紅色球（$0）（如果其為高品質），或是包含0 顆藍色球（$65）和 5 顆紅色球（$0）（如果其為低品質）。'),
+            ('A', '(A) 產品 B 包含4 顆藍色球（$200）和 1 顆紅色球（$0）（如果其為高品質），或是包含2 顆藍色球（$200）和 3 顆紅色球（$0）（如果其為低品質）。'),
+            ('B', '(B) 產品 B 包含3 顆藍色球（$200）和 2 顆紅色球（$0）（如果其為高品質），或是包含3 顆藍色球（$200）和 2 顆紅色球（$0）（如果其為低品質）。'),
+            ('C', '(C) 產品 B 包含5 顆藍色球（$200）和 0 顆紅色球（$0）（如果其為高品質），或是包含0 顆藍色球（$200）和 5 顆紅色球（$0）（如果其為低品質）。'),
         ],
         widget=widgets.RadioSelect
     )
@@ -235,7 +235,7 @@ def set_payoffs(group: Group):
 #         p.advisor_recommendation = p.group.recommendation
 #         p.client_selection = p.group.selection
 #         if p.role == C.ADVISOR_ROLE:
-#             # Advisor 固定報酬 $15
+#             # Advisor 固定報酬 $50
 #             payoff = C.WAGE
 #             # 若 advisor 的推薦與當回合電腦決定的佣金產品相符，額外加 $5
 #             if p.advisor_recommendation == subsession.commission_product.replace("產品", ""):
@@ -299,10 +299,10 @@ class MyWaitPage(WaitPage):
         else:
             group.product_b_good_ball_probability = 0.8
 
-        # 抽 quality signal：$65 或 $0
+        # 抽 quality signal：$200 或 $0
         draw = random.random()
         if draw < group.product_b_good_ball_probability:
-            group.quality_signal = "$65"
+            group.quality_signal = "$200"
         else:
             group.quality_signal = "$0"
 
@@ -387,7 +387,7 @@ class QualityPage1(Page):
     def vars_for_template(player: Player):
         group = player.group
         quality = group.quality_signal
-        if quality == "$65":
+        if quality == "$200":
             image_path = 'blue_65.png'
         else:
             image_path = 'red_0.png'
@@ -408,7 +408,7 @@ class QualityPage2(Page):
     def vars_for_template(player: Player):
         group = player.group
         quality = group.quality_signal
-        if quality == "$65":
+        if quality == "$200":
             image_path = 'blue_65.png'
         else:
             image_path = 'red_0.png'
@@ -467,7 +467,7 @@ class RecommendationPage(Page):
                 "round_payoff": p.round_payoff,
                 "roundsum_payoff": p.roundsum_payoff,
                 "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
-                "signal_image": 'blue_65.png' if p.group.quality_signal == "$65" else 'red_0.png',
+                "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
                 "producta_image": 'ProductA.png',
                 "partner_payoff": p.partner_payoff,
             })
@@ -558,7 +558,7 @@ class SelectionPage(Page):
                 "round_payoff": p.round_payoff,
                 "roundsum_payoff": p.roundsum_payoff,
                 "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
-                "signal_image": 'blue_65.png' if p.group.quality_signal == "$65" else 'red_0.png',
+                "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
                 "producta_image": 'ProductA.png',
                 "partner_payoff": p.partner_payoff,
             })
@@ -691,7 +691,7 @@ class HistoryPage(Page):
                 "round_payoff": p.round_payoff,
                 "roundsum_payoff": p.roundsum_payoff,
                 "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
-                "signal_image": 'blue_65.png' if p.group.quality_signal == "$65" else 'red_0.png',
+                "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
                 "producta_image": 'ProductA.png',
                 "partner_payoff": p.partner_payoff,
             })

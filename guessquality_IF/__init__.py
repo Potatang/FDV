@@ -20,12 +20,12 @@ class C(BaseConstants):
     PRODUCT_B_SUCCESS_PROB_H = 0.8
     PRODUCT_B_SUCCESS_PROB_L = 0.4
     # wage
-    WAGE = 15
+    WAGE = 50
     # commission price
-    COMMISSION = 5
+    COMMISSION = 15
     # 球的價值
-    GOODBALL = 65
-    BADBALL = 0  
+    GOODBALL = 200
+    BADBALL = 0
 
     # Ｂ的品質機率
     RED_LOW = 0.75
@@ -58,8 +58,8 @@ def creating_session(subsession:Subsession):
         p.page_RED_first = random.choice([True, False])
 
     draw = random.random()  # 生成 0 到 1 的隨機數
-    if draw < 0.5:
-        subsession.ball_color = "$65"
+    if draw < 0.6:
+        subsession.ball_color = "$200"
     else:
         subsession.ball_color = "$0"
 
@@ -72,25 +72,25 @@ def set_payoffs(group: Group):
             print(stoobid)
             if p.belief_qualityred > stoobid:
                 if random.random() <= C.RED_LOW:
-                    p.red_payoff = cu(100)
+                    p.red_payoff = cu(50)
             else:
                 import math
                 if random.random() <= math.floor(stoobid / 10) / 10:
-                    p.red_payoff = cu(100)
+                    p.red_payoff = cu(50)
 
             p.blue_payoff = cu(0)
             stoobid = random.choice(range(0, 101, 1))
 
             if p.belief_qualityblue > stoobid:
                 if random.random() <= C.BLUE_LOW:
-                        p.blue_payoff = cu(100)
+                        p.blue_payoff = cu(50)
             else:
                 import math
                 if random.random() <= math.floor(stoobid / 10) / 10:
-                        p.blue_payoff = cu(100)
+                        p.blue_payoff = cu(50)
 
             for p in group.get_players():
-                if p.subsession.ball_color == "$65":
+                if p.subsession.ball_color == "$200":
                     p.qualitypayoff = p.blue_payoff
                 else:
                     p.qualitypayoff = p.red_payoff
@@ -158,7 +158,7 @@ class Results(Page):
     def vars_for_template(player:Player):
         subsession = player.subsession
         ball = player.subsession.ball_color
-        if ball == "$65":
+        if ball == "$200":
             image_path = 'blue_65.png'
         else:
             image_path = 'red_0.png'

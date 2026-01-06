@@ -21,11 +21,11 @@ class C(BaseConstants):
     PRODUCT_B_SUCCESS_PROB_H = 0.8
     PRODUCT_B_SUCCESS_PROB_L = 0.4
     # wage
-    WAGE = 15
+    WAGE = 50
     # commission price
-    COMMISSION = 5
+    COMMISSION = 15
     # 球的價值
-    GOODBALL = 65
+    GOODBALL = 200
     BADBALL = 0   
 
 class Subsession(BaseSubsession):
@@ -103,8 +103,8 @@ def set_payoffs(group: Group):
         (A) 前面 moral app 被抽中的那次推薦是產品 Y
         (B) 在本 app 中抽到的球是「黃球」
        若 (A)+(B) 都成立：
-         - 推薦人 (advisor) 拿 5 法幣
-         - 客戶 (client) 只有在「自己在 ClientdrawPage 抽到綠球」時，才拿 65 法幣
+         - 推薦人 (advisor) 拿 15 法幣
+         - 客戶 (client) 只有在「自己在 ClintdrawPage 抽到綠球」時，才拿 200 法幣
        其他情況一律 0。
     """
 
@@ -159,11 +159,11 @@ def set_payoffs(group: Group):
         if base_condition:
             if p.role == C.ADVISOR_ROLE:
                 # 推薦人只要滿足 base_condition 就拿 5，與 client 是否抽到綠球無關
-                payoff = 5
+                payoff = 15
             elif p.role == C.CLIENT_ROLE:
-                # client 除了 base_condition 外，還要自己抽到綠球才拿 65
+                # client 除了 base_condition 外，還要自己抽到綠球才拿 200
                 if client_ball_color == '綠球':
-                    payoff = 65
+                    payoff = 200
 
         # 非支付組、或條件不成立 → payoff = 0
         p.round_payoff = cu(payoff)
@@ -465,7 +465,8 @@ class RevealPage(Page):
             p_r = player.in_round(r)
             g_r = p_r.group
 
-            is_paying = (g_r.id_in_subsession == paying_gid)
+            paying_gid_r = p_r.subsession.paying_group_id  # 用該回合的
+            is_paying = (g_r.id_in_subsession == paying_gid_r)
             if not is_paying:
                 # 這一回合所在的組不是支付組，先略過，最後再給統一說明
                 continue
@@ -497,7 +498,7 @@ class RevealPage(Page):
                         f"您在第 {r} 回合被抽中為推薦人。"
                         f"在先前的道德成本部分，被抽中的那一次您推薦了產品 Y，"
                         f"且本回合從產品中抽出的球為黃色球，"
-                        f"因此您在第 {r} 回合獲得 5 法幣。"
+                        f"因此您在第 {r} 回合獲得 15 法幣。"
                     )
                 else:
                     # 有被抽中為支付組，但條件沒成
@@ -518,10 +519,10 @@ class RevealPage(Page):
                         f"由於與您配對的推薦人在先前被抽中的那次推薦中選擇產品 Y，"
                         f"且剛才他從產品中抽出的球為黃色球，"
                         f"同時您在本回合從自己的產品中抽到綠球，"
-                        f"因此您在第 {r} 回合獲得 65 法幣。"
+                        f"因此您在第 {r} 回合獲得 200 法幣。"
                     )
                 else:
-                    # 有被抽中為支付組，但沒拿到 65 的情況
+                    # 有被抽中為支付組，但沒拿到 200 的情況
                     if not bonus_Y or advisor_ball != '黃球':
                         reason = "推薦人先前的推薦與抽球結果未同時符合支付條件"
                     elif client_ball != '綠球':

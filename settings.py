@@ -4,13 +4,13 @@ from os import environ
 SESSION_CONFIGS = [
     dict(
         name='FDI',
-        num_demo_participants=2,   
+        num_demo_participants=4,   
         app_sequence=[
             'start_app',
             'moralcost_IF',
-            'experiment_IF',
-            'choice',
-            'guessquality_IF',
+            # 'experiment_IF',
+            # 'choice',
+            # 'guessquality_IF',
             'moralcost2',
             'guessproportion_IF',
             'realizemoralcost',
@@ -45,8 +45,8 @@ SESSION_CONFIGS = [
 
 SESSION_CONFIG_DEFAULTS = dict(
     real_world_currency_per_point=5.00, participation_fee=250, doc="",
-    advisor_points_per_ntd=2,  # advisor ratio 1:2
-    client_points_per_ntd=4,   # client ratio 1:4
+    advisor_points_per_ntd=6,  # advisor ratio 1:6
+    client_points_per_ntd=12,   # client ratio 1:12
 )
 
 PARTICIPANT_FIELDS = dict(

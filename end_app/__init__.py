@@ -45,10 +45,10 @@ class ResultPage(Page):
 
         # 2) who 決定匯率（用 bool() 兼容 True/False 或 1/0）
         if bool(player.participant.who):
-            points_per_ntd = player.session.config['advisor_points_per_ntd']  # 2
+            points_per_ntd = player.session.config['advisor_points_per_ntd']  # 6
             role = 'advisor'
         else:
-            points_per_ntd = player.session.config['client_points_per_ntd']   # 4
+            points_per_ntd = player.session.config['client_points_per_ntd']   # 12
             role = 'client'
 
         # 3) 先把 points -> 台幣，再加 participation fee
