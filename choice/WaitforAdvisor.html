@@ -1,0 +1,47 @@
+{% extends "otree/WaitPage.html" %}
+{% load static %}
+
+{% block title %}
+  {{ title_text }}
+{% endblock %}
+
+{% block content %}
+  <p>{{ body_text }}</p>
+
+  <hr>
+
+  <h4>歷史紀錄</h4>
+
+  {% if history_records %}
+    <table class="table table-sm table-striped">
+      <thead>
+        <tr>
+          <th style="width: 50px;">回合</th>
+          <th style="width: 110px;">產品B實際品質</th>
+          <th style="width: 120px;">產品指派資訊</th>
+          <th style="width: 100px;">抽球結果資訊</th>
+          <th style="width: 100px;">推薦人決策</th>
+          <th style="width: 100px;">客戶決策</th>
+          <th style="width: 100px;">您本回合報酬</th>
+          <th style="width: 120px;">對方本回合報酬</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in history_records %}
+          <tr>
+            <td>{{ r.round_number }}</td>
+            <td><img src="{% static r.quality_image %}" width="50px"></td>
+            <td>{{ r.commission_product }}</td>
+            <td><img src="{% static r.signal_image %}" width="40px"></td>
+            <td>{{ r.advisor_recommendation }}</td>
+            <td>{{ r.client_selection }}</td>
+            <td>{{ r.round_payoff }}</td>
+            <td>{{ r.partner_payoff }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>目前沒有歷史紀錄。</p>
+  {% endif %}
+{% endblock %}

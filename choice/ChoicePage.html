@@ -27,6 +27,12 @@
     box-shadow:0 6px 18px rgba(0,0,0,.12);
     transition:transform .08s ease, filter .15s ease;
     position:relative; overflow:hidden;   /* 供中間的「塗滿」覆蓋層使用 */
+      /* card text style */
+    text-align:center;
+    padding:10px;
+    line-height:1.25;
+    white-space:pre-line;   /* 讓 \n 真的換行 */
+    font-size:14px;
   }
   #cards .flipcard:active{ transform:scale(.98); }
   #cards .flipcard.red{ background:#e63946; }
@@ -133,6 +139,15 @@ document.addEventListener('DOMContentLoaded', function(){
     if (lbl === 'Quality') return 'black';
     return 'blank';
   }
+  function textOf(lbl){
+  if (lbl === 'Incentive'){
+    return '「先看到」產品指派資訊\n「再看到」抽球結果資訊';
+  }
+  if (lbl === 'Quality'){
+    return '「先看到」抽球結果資訊\n「再看到」產品指派資訊';
+  }
+  return ''; // Blank 不顯示字
+  }
   // 標籤 -> 十六進位色（給中間「塗滿」動畫用）
   function colorHex(lbl){
     if (lbl === 'Incentive') return '#e63946';
@@ -149,7 +164,10 @@ document.addEventListener('DOMContentLoaded', function(){
   function setFromLabel(el, label){
     el.classList.remove('red','black','blank');
     el.classList.add(colorOf(label));
-    el.textContent = '';
+
+    // 依 label 顯示文字（紅/黑顯示，空白不顯示）
+    el.textContent = textOf(label);
+
     const idx = el.getAttribute('data-idx');
     const inp = document.getElementById('label'+idx+'_input');
     if (inp) inp.value = label;

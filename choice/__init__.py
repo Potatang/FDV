@@ -39,10 +39,7 @@ class C(BaseConstants):
 
 class Subsession(BaseSubsession):
     pass
-    # commission_product = models.StringField(blank=True)
-    # product_b_quality = models.StringField(blank=True)
-    # product_b_good_ball_probability = models.FloatField(blank=True)
-    # quality_signal = models.StringField(blank=True)
+
 
 class Group(BaseGroup):
     recommendation = models.StringField(
@@ -88,14 +85,22 @@ class Player(BasePlayer):
     choice_2 = models.StringField(choices=['Quality','Incentive','Blank'], initial='Blank')   # 中左
     choice_3 = models.StringField(choices=['Quality','Incentive','Blank'], initial='Blank')   # 中右
     choice_4 = models.StringField(choices=['Quality','Incentive'], initial='Quality')    # 右
-    def treatment_this_round(self):
-        choices = [self.choice_1, self.choice_2, self.choice_3, self.choice_4]
-        chosen_choice = random.choice(choices)
+    # 存「這回合」抽到的資訊順序：'IF' 或 'QF'
+    treatment_draw = models.StringField(blank=True)
 
-        if chosen_choice == 'Quality':
-            return 'QF'
-        elif chosen_choice == 'Incentive':
-            return 'IF'
+    def treatment_this_round(self):
+        # 不要在這裡抽籤，這裡只回傳已經存好的結果
+        return self.treatment_draw
+    # def treatment_this_round(self):
+    #     choices = [self.choice_1, self.choice_2, self.choice_3, self.choice_4]
+    #     # print(choices)
+    #     chosen_choice = random.choice(choices)
+    #     # print(chosen_choice)
+
+    #     if chosen_choice == 'Quality':
+    #         return 'QF'
+    #     elif chosen_choice == 'Incentive':
+    #         return 'IF'
         
     question1 = models.StringField(
         label='1. 紅色卡片代表接下來出現的兩則資訊的順序為何？',
@@ -248,6 +253,7 @@ class MyWaitPage(WaitPage):
     group_by_arrival_time = True
     title_text = "請稍候"
     body_text = "正在等待其他參加者進入實驗，請耐心等候。"
+
     @staticmethod
     def after_all_players_arrive(group: Group):
         import random
@@ -330,48 +336,28 @@ class ClientPage(Page):
 class ChoicePage(Page):
     form_model = 'player'
     form_fields = ['choice_1','choice_2','choice_3','choice_4','left_changed','right_changed']
-    # form_invalid_message = "請做出選擇，再按下一頁。"
 
-    @staticmethod  
+    @staticmethod
     def error_message(player, values):
-        # 先擋「中間有 Blank」
         if values.get('choice_2') == 'Blank' or values.get('choice_3') == 'Blank':
             return "請做出選擇"
 
-        # 再擋「兩紅兩黑」（紅=Incentive，黑=Quality；Blank 不計）
         labels = [values.get(f'choice_{i}') for i in range(1, 5)]
         red_cnt   = sum(x == 'Incentive' for x in labels)
         black_cnt = sum(x == 'Quality'   for x in labels)
         if red_cnt == 2 and black_cnt == 2:
             return "不得為兩紅兩黑，請修改卡片組合。"
 
-    # def error_message(player, values):
-    #     # Count "Quality" among the 4 choices
-    #     q = sum(1 for i in range(1, 5) if values.get(f'choice_{i}') == 'Quality')
-    #     # exactly 2 Quality and 2 Incentive is not allowed
-    #     if q == 2:
-    #         return "目前是兩張紅與兩張黑，請調整卡片後再繼續。"
-    
     @staticmethod
-    def vars_for_template(player: Player):
-        # 左=Quality(紅)、右=Incentive(黑)、中兩張空白
-        choices = dict(choice_1='Quality', choice_2='Blank', choice_3='Blank', choice_4='Incentive')
-        if player.round_number == 1:
-            current_sum = 0
-        else:
-            current_sum = player.in_round(player.round_number - 1).roundsum_payoff
-        return dict(choices=choices, current_sum=current_sum)
-    # @staticmethod
-    # def vars_for_template(player: Player):
-    #     choices = dict(choice_1='Quality', choice_2='Quality',
-    #                    choice_3='Incentive', choice_4='Incentive')
-    #     if player.round_number == 1:
-    #         current_sum = 0
-    #     else:
-    #         current_sum = player.in_round(player.round_number - 1).roundsum_payoff
-    #     return dict(choices=choices,
-    #                 current_sum=current_sum
-    #             )
+    def before_next_page(player: Player, timeout_happened):
+        # 走到這裡代表：已經通過 error_message，choice_2/3 不會是 Blank
+        cards = [player.choice_1, player.choice_2, player.choice_3, player.choice_4]
+
+        # 等機率抽一張卡（random.choices 會回傳 list，所以取 [0]）
+        picked = random.choices(cards, k=1)[0]
+
+        # 把結果存起來，後面頁面只讀這個值
+        player.treatment_draw = 'IF' if picked == 'Incentive' else 'QF'
     
     @staticmethod
     def is_displayed(player):
@@ -479,46 +465,32 @@ class RecommendationPage(Page):
             history_records=history_records,
         )
 
-# class RecommendationPage(Page):
-
-#     form_model = 'group'
-#     form_fields = ['recommendation']
-
-#     @staticmethod
-#     def is_displayed(player):
-#         return player.role == C.ADVISOR_ROLE
-    
-
-#     @staticmethod
-#     def vars_for_template(player: Player):
-#         group = player.group
-        
-#         previous_decision_record = {
-#             (p.round_number, p.id_in_group): {
-#                 "round_number": p.round_number,
-#                 "id_in_group": p.id_in_group,
-#                 "advisor_recommendation": p.advisor_recommendation,
-#                 "client_selection": p.client_selection,
-#                 "commission_product": p.group.commission_product,
-#                 "product_b_quality": p.group.product_b_quality,
-#                 "quality_signal": p.group.quality_signal,
-#                 "round_payoff": p.round_payoff,
-#                 "roundsum_payoff": p.roundsum_payoff,
-#                 "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
-#                 "signal_image": 'blue_65.png' if p.group.quality_signal == "$65" else 'red_0.png',
-#                 "producta_image": 'ProductA.png',
-#                 "partner_payoff": p.partner_payoff,
-#             }
-#             for p in player.in_previous_rounds()
-#         }
-        
-#         return dict(commission_product=group.commission_product,
-#                     previous_decision_record=previous_decision_record,
-#                     )
-
 class WaitforAdvisor(WaitPage):
     title_text = "請稍候"
     body_text = "正在等待推薦人做出推薦，請耐心等候。"
+    template_name = "choice/WaitforAdvisor.html"
+
+    @staticmethod
+    def vars_for_template(player: Player):
+        history_records = [
+            {
+                "round_number": p.round_number,
+                "advisor_recommendation": p.advisor_recommendation,
+                "client_selection": p.client_selection,
+                "commission_product": p.group.commission_product,
+                "product_b_quality": p.group.product_b_quality,
+                "quality_signal": p.group.quality_signal,
+                "round_payoff": p.round_payoff,
+                "roundsum_payoff": p.roundsum_payoff,
+                "partner_payoff": p.partner_payoff,
+                "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
+                "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
+                "producta_image": 'ProductA.png',
+            }
+            for p in player.in_previous_rounds()
+        ]
+        history_records.sort(key=lambda r: r["round_number"], reverse=True)
+        return dict(history_records=history_records)
 
 class SelectionPage(Page):
     form_model = 'player'
@@ -562,7 +534,29 @@ class SelectionPage(Page):
 class WaitforClient(WaitPage):
     title_text = "請稍候"
     body_text = "正在等待客戶做出選擇，請耐心等候。"
-
+    template_name = "choice/WaitforClient.html"
+    @staticmethod
+    def vars_for_template(player: Player):
+        history_records = [
+            {
+                "round_number": p.round_number,
+                "advisor_recommendation": p.advisor_recommendation,
+                "client_selection": p.client_selection,
+                "commission_product": p.group.commission_product,
+                "product_b_quality": p.group.product_b_quality,
+                "quality_signal": p.group.quality_signal,
+                "round_payoff": p.round_payoff,
+                "roundsum_payoff": p.roundsum_payoff,
+                "partner_payoff": p.partner_payoff,
+                "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
+                "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
+                "producta_image": 'ProductA.png',
+            }
+            for p in player.in_previous_rounds()
+        ]
+        history_records.sort(key=lambda r: r["round_number"], reverse=True)
+        return dict(history_records=history_records)
+    
 class ResultsWaitPage(WaitPage):    
     after_all_players_arrive = set_payoffs
 
@@ -600,7 +594,28 @@ class ShuffleWaitPage(WaitPage):
     wait_for_all_groups = True
     title_text = "請稍候"
     body_text = "正在等待所有人準備完成，請耐心等候其他參與者。"
-
+    template_name = "choice/WaitforAll.html"
+    @staticmethod
+    def vars_for_template(player: Player):
+        history_records = [
+            {
+                "round_number": p.round_number,
+                "advisor_recommendation": p.advisor_recommendation,
+                "client_selection": p.client_selection,
+                "commission_product": p.group.commission_product,
+                "product_b_quality": p.group.product_b_quality,
+                "quality_signal": p.group.quality_signal,
+                "round_payoff": p.round_payoff,
+                "roundsum_payoff": p.roundsum_payoff,
+                "partner_payoff": p.partner_payoff,
+                "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
+                "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
+                "producta_image": 'ProductA.png',
+            }
+            for p in player.in_all_rounds()
+        ]
+        history_records.sort(key=lambda r: r["round_number"], reverse=True)
+        return dict(history_records=history_records)
 
 
 #PageSequence
