@@ -1,39 +1,67 @@
 {{ block title }} 第 {{ display_round }} 回合 {{ endblock }}
 {{ block content }}
 
-    <h4>歷史回合</h4>
-    <div style="max-height: 400px; overflow-y: auto;">
-    <table class="table">
-        <thead>
-        <tr>
-            <th style="width: 50px;">回合</th>
-            <th style="width: 110px;">產品B實際品質</th>
-            <th style="width: 100px;">產品指派資訊</th>
-            <th style="width: 100px;">抽球結果資訊</th>
-            <th style="width: 100px;">推薦人決策</th>
-            <th style="width: 100px;">客戶決策</th>
-            <th style="width: 100px;">您本回合報酬</th>
-            <!-- <th style="width: 90px;">產品A實際品質</th> -->
-            <th style="width: 120px;">對方本回合報酬</th>
-        </tr>
-        </thead>
-        <tbody>
-        {{ for record in decision_list }}
-            <tr>
-            <td>{{ record.round_number }}</td>
-            <td><img src="{{ static record.quality_image }}" width="80px"></td>
-            <td>{{ record.commission_product }}</td>
-            <td><img src="{{ static record.signal_image }}" width="40px"></td>
-            <td>{{ record.advisor_recommendation }}</td>
-            <td>{{ record.client_selection }}</td>
-            <td>{{ record.round_payoff }}</td>
-            <!-- <td><img src="{{ static record.producta_image }}" width="50px"></td> -->
-            <td>{{ record.partner_payoff }}</td>
-            </tr>
-        {{ endfor }}
-        </tbody>
-    </table>
-    </div>
+<h4>本回合結果</h4>
+<table class="table">
+  <thead>
+    <tr>
+      <th style="width: 50px;">回合</th>
+      <th style="width: 110px;">產品B實際品質</th>
+      <th style="width: 100px;">推薦人看到的抽球結果資訊</th>
+      <th style="width: 100px;">推薦人看到的產品指派資訊</th>
+      <th style="width: 100px;">推薦人決策</th>
+      <th style="width: 100px;">客戶決策</th>
+      <th style="width: 100px;">您本回合報酬</th>
+      <th style="width: 120px;">對方本回合報酬</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>{{ this_round_record.round_number }}</td>
+      <td><img src="{{ static this_round_record.quality_image }}" width="60px"></td>
+      <td><img src="{{ static this_round_record.signal_image }}" width="40px"></td>
+      <td>{{ this_round_record.commission_product }}</td>
+      <td>產品{{ this_round_record.advisor_recommendation }}</td>
+      <td>產品{{ this_round_record.client_selection }}</td>
+      <td>{{ this_round_record.round_payoff }}</td>
+      <td>{{ this_round_record.partner_payoff }}</td>
+    </tr>
+  </tbody>
+</table>
 
-    <button class="otree-btn-next btn btn-primary">下一頁</button>
+<hr>
+<br><br>
+
+<h4>歷史回合</h4>
+  <table class="table table-sm">
+    <thead>
+      <tr>
+        <th style="width: 50px;">回合</th>
+        <th style="width: 110px;">產品B實際品質</th>
+        <th style="width: 100px;">推薦人看到的產品指派資訊</th>
+        <th style="width: 100px;">推薦人看到的抽球結果資訊</th>
+        <th style="width: 100px;">推薦人決策</th>
+        <th style="width: 100px;">客戶決策</th>
+        <th style="width: 100px;">您本回合報酬</th>
+        <th style="width: 120px;">對方本回合報酬</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ for record in decision_list }}
+        <tr>
+          <td>{{ record.round_number }}</td>
+          <td><img src="{{ static record.quality_image }}" width="60px"></td>
+          <td>{{ record.commission_product }}</td>
+          <td><img src="{{ static record.signal_image }}" width="40px"></td>
+          <td>產品{{ record.advisor_recommendation }}</td>
+          <td>產品{{ record.client_selection }}</td>
+          <td>{{ record.round_payoff }}</td>
+          <td>{{ record.partner_payoff }}</td>
+        </tr>
+      {{ endfor }}
+    </tbody>
+  </table>
+
+
+<button class="otree-btn-next btn btn-primary">下一頁</button>
 {{ endblock }}

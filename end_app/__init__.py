@@ -31,7 +31,10 @@ class BeforeResultPage(Page):
 
 class ResultPage(Page):
     form_model = 'player'
-
+    @staticmethod
+    def is_displayed(player):
+        return player.participant.seat < 99
+    
     @staticmethod
     def vars_for_template(player):
         # 1) points 的部分：只加總「其他 app」的 points（不包含 quality 這個台幣 app）
@@ -74,7 +77,11 @@ class ResultPage(Page):
             twd_payoff=player.participant.twd_payoff,
         )
 
-    
+class OutPage(Page):
+    @staticmethod
+    def is_displayed(player):
+        return player.participant.seat == 99
 
 page_sequence = [BeforeResultPage,
-                 ResultPage]
+                 ResultPage,
+                 OutPage]

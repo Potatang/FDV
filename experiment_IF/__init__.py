@@ -228,52 +228,6 @@ def set_payoffs(group: Group):
         partner = p.get_others_in_group()[0] if p.get_others_in_group() else None
         p.partner_payoff = partner.round_payoff if partner else None
 
-# def set_payoffs(group: Group):
-#     subsession = group.subsession
-    
-#     for p in group.get_players():
-#         p.advisor_recommendation = p.group.recommendation
-#         p.client_selection = p.group.selection
-#         if p.role == C.ADVISOR_ROLE:
-#             # Advisor 固定報酬 $50
-#             payoff = C.WAGE
-#             # 若 advisor 的推薦與當回合電腦決定的佣金產品相符，額外加 $5
-#             if p.advisor_recommendation == subsession.commission_product.replace("產品", ""):
-#                 payoff += C.COMMISSION
-#         elif p.role == C.CLIENT_ROLE:
-#             # Client 固定報酬為參與費
-#             payoff = 0
-#             rnd = random.random()  # 生成 0～1 的隨機數
-#             if p.client_selection == 'A':
-#                 # 產品 A：60% 機率得到 $65
-#                 if rnd <= 0.6:
-#                     payoff += C.GOODBALL
-#             elif p.client_selection == 'B':
-#                 # 產品 B：根據產品 B 的品質決定
-#                 if subsession.product_b_quality == '低品質':
-#                     if rnd <= 0.4:
-#                         payoff += C.GOODBALL
-#                 elif subsession.product_b_quality == '高品質':
-#                     if rnd <= 0.8:
-#                         payoff += C.GOODBALL
-
-#             # print(f"{rnd = }")
-#         # 記錄當回合報酬（轉換為 Currency 型態）
-#         p.round_payoff = cu(payoff)
-
-#         # Compute cumulative (round sum) payoff.
-#         if p.round_number == 1:
-#             p.roundsum_payoff = p.round_payoff
-#         else:
-#             previous_round = p.in_round(p.round_number - 1)
-#             p.roundsum_payoff = previous_round.roundsum_payoff + p.round_payoff
-        
-#         p.participant.experiment_payoff = p.roundsum_payoff
-
-#     for p in group.get_players():
-#         partner = p.get_others_in_group()[0] if p.get_others_in_group() else None
-#         p.partner_payoff = partner.round_payoff if partner else None
-
 
 #Pages
     
@@ -483,42 +437,6 @@ class RecommendationPage(Page):
             window_end = window_end,
         )
 
-# class RecommendationPage(Page):
-
-#     form_model = 'group'
-#     form_fields = ['recommendation']
-
-#     @staticmethod
-#     def is_displayed(player):
-#         return player.role == C.ADVISOR_ROLE
-    
-
-#     @staticmethod
-#     def vars_for_template(player: Player):
-#         subsession = player.subsession
-        
-#         previous_decision_record = {
-#             (p.round_number, p.id_in_group): {
-#                 "round_number": p.round_number,
-#                 "id_in_group": p.id_in_group,
-#                 "advisor_recommendation": p.advisor_recommendation,
-#                 "client_selection": p.client_selection,
-#                 "commission_product": p.subsession.commission_product,
-#                 "product_b_quality": p.subsession.product_b_quality,
-#                 "quality_signal": p.subsession.quality_signal,
-#                 "round_payoff": p.round_payoff,
-#                 "roundsum_payoff": p.roundsum_payoff,
-#                 "quality_image": 'ProductB_high.png' if p.subsession.product_b_quality == "高品質" else 'ProductB_low.png',
-#                 "signal_image": 'blue_65.png' if p.subsession.quality_signal == "$65" else 'red_0.png',
-#                 "producta_image": 'ProductA.png',
-#                 "partner_payoff": p.partner_payoff,
-#             }
-#             for p in player.in_previous_rounds()
-#         }
-        
-#         return dict(commission_product=subsession.commission_product,
-#                     previous_decision_record=previous_decision_record,
-#                     )
 
 class WaitforAdvisor(WaitPage):
     title_text = "請稍候"
@@ -570,92 +488,6 @@ class SelectionPage(Page):
             window_start = window_start,
             window_end = window_end,
         )
-
-# class SelectionPage(Page):
-
-#     form_model = 'group'
-#     form_fields = ['selection']
-    
-#     @staticmethod
-#     def is_displayed(player):
-#         return player.role == C.CLIENT_ROLE
-
-#     @staticmethod
-#     def vars_for_template(player: Player):
-#         group = player.group
-
-#         # === 以 10 回合為一段，並依目前回合切換視窗 ===
-#         window_start = ((player.round_number - 1) // 10) * 10 + 1
-#         window_end = min(window_start + 9, C.NUM_ROUNDS)
-
-#         # 只取「上一輪之前」且落在該視窗內的回合
-#         prev_in_window = [
-#             p for p in player.in_previous_rounds()
-#             if window_start <= p.round_number <= window_end
-#         ]
-#         # 倒序：新 → 舊
-#         prev_in_window.sort(key=lambda r: r.round_number, reverse=True)
-
-#         decision_list = []
-#         for p in prev_in_window:
-#             decision_list.append({
-#                 "round_number": p.round_number,
-#                 "id_in_group": p.id_in_group,
-#                 "advisor_recommendation": p.advisor_recommendation,
-#                 "client_selection": p.client_selection,
-#                 "commission_product": p.subsession.commission_product,
-#                 "product_b_quality": p.subsession.product_b_quality,
-#                 "quality_signal": p.subsession.quality_signal,
-#                 "round_payoff": p.round_payoff,
-#                 "roundsum_payoff": p.roundsum_payoff,
-#                 "quality_image": 'ProductB_high.png' if p.subsession.product_b_quality == "高品質" else 'ProductB_low.png',
-#                 "signal_image": 'blue_65.png' if p.subsession.quality_signal == "$65" else 'red_0.png',
-#                 "producta_image": 'ProductA.png',
-#                 "partner_payoff": p.partner_payoff,
-#             })
-
-#         return dict(
-#             recommendation=group.recommendation, 
-#             decision_list=decision_list,
-#             window_start=window_start,
-#             window_end=window_end,
-#         )
-
-# class SelectionPage(Page):
-
-#     form_model = 'group'
-#     form_fields = ['selection']
-    
-#     @staticmethod
-#     def is_displayed(player):
-#         return player.role == C.CLIENT_ROLE
-
-#     @staticmethod
-#     def vars_for_template(player: Player):
-#         group = player.group
-
-#         previous_decision_record = {
-#             (p.round_number, p.id_in_group): {
-#                 "round_number": p.round_number,
-#                 "id_in_group": p.id_in_group,
-#                 "advisor_recommendation": p.advisor_recommendation,
-#                 "client_selection": p.client_selection,
-#                 "commission_product": p.subsession.commission_product,
-#                 "product_b_quality": p.subsession.product_b_quality,
-#                 "quality_signal": p.subsession.quality_signal,
-#                 "round_payoff": p.round_payoff,
-#                 "roundsum_payoff": p.roundsum_payoff,
-#                 "quality_image": 'ProductB_high.png' if p.subsession.product_b_quality == "高品質" else 'ProductB_low.png',
-#                 "signal_image": 'blue_65.png' if p.subsession.quality_signal == "$65" else 'red_0.png',
-#                 "producta_image": 'ProductA.png',
-#                 "partner_payoff": p.partner_payoff,
-#             }
-#             for p in player.in_previous_rounds()
-#         }
-
-#         return dict(recommendation=group.recommendation, 
-#                     previous_decision_record=previous_decision_record,
-#                     )
     
 class WaitforClient(WaitPage):
     title_text = "請稍候"
@@ -665,7 +497,7 @@ class ResultsWaitPage(WaitPage):
     after_all_players_arrive = set_payoffs
 
 class HistoryPage(Page):
-    
+
     @staticmethod
     def vars_for_template(player: Player):
         window_start = ((player.round_number - 1) // C.BLOCK_SIZE) * C.BLOCK_SIZE + 1
@@ -675,13 +507,12 @@ class HistoryPage(Page):
             p for p in player.in_all_rounds()
             if window_start <= p.round_number <= window_end
         ]
-        # 改成倒序：回合大的在前面
         rounds_in_window.sort(key=lambda r: r.round_number, reverse=True)
 
         decision_list = []
         for p in rounds_in_window:
             decision_list.append({
-                "round_number": display_round_no(p.round_number),  # 顯示 1–10
+                "round_number": display_round_no(p.round_number),
                 "id_in_group": p.id_in_group,
                 "advisor_recommendation": p.advisor_recommendation,
                 "client_selection": p.client_selection,
@@ -696,38 +527,28 @@ class HistoryPage(Page):
                 "partner_payoff": p.partner_payoff,
             })
 
+        # ✅ 本回合 record：欄位結構跟 decision_list 每列完全一致
+        this_round_record = {
+            "round_number": display_round_no(player.round_number),
+            "quality_image": 'ProductB_high.png' if player.group.product_b_quality == "高品質" else 'ProductB_low.png',
+            "commission_product": player.group.commission_product,
+            "signal_image": 'blue_65.png' if player.group.quality_signal == "$200" else 'red_0.png',
+            "advisor_recommendation": player.advisor_recommendation,
+            "client_selection": player.client_selection,
+            "round_payoff": player.round_payoff,
+            "partner_payoff": player.partner_payoff,
+        }
+
+
         return dict(
-            decision_list=decision_list,
-            display_round = display_round_no(player.round_number),
-            block_idx = block_index(player.round_number),
-            window_start = window_start,
-            window_end = window_end,
-        )
-    
-    # @staticmethod
-    # def vars_for_template(player: Player):
+        decision_list=decision_list,
+        this_round_record=this_round_record,  # ✅ 新增
+        display_round=display_round_no(player.round_number),
+        block_idx=block_index(player.round_number),
+        window_start=window_start,
+        window_end=window_end,
+    )
 
-    #     decision_record = {
-    #         (p.round_number, p.id_in_group): {
-    #             "round_number": p.round_number,
-    #             "id_in_group": p.id_in_group,
-    #             "advisor_recommendation": p.advisor_recommendation,
-    #             "client_selection": p.client_selection,
-    #             "commission_product": p.subsession.commission_product,
-    #             "product_b_quality": p.subsession.product_b_quality,
-    #             "quality_signal": p.subsession.quality_signal,
-    #             "round_payoff": p.round_payoff,
-    #             "roundsum_payoff": p.roundsum_payoff,
-    #             "quality_image": 'ProductB_high.png' if p.subsession.product_b_quality == "高品質" else 'ProductB_low.png',
-    #             "signal_image": 'blue_65.png' if p.subsession.quality_signal == "$65" else 'red_0.png',
-    #             "producta_image": 'ProductA.png',
-    #             "partner_payoff": p.partner_payoff,
-    #         }
-    #         for p in player.in_all_rounds()
-    #     }
-    #     # print(decision_record)        
-
-    #     return dict(decision_record=decision_record)
     
     
 class ShuffleWaitPage(WaitPage):
@@ -735,20 +556,6 @@ class ShuffleWaitPage(WaitPage):
     title_text = "請稍候"
     body_text = "正在等待所有人準備完成，請耐心等候其他參與者。"
 
-    # group_by_arrival_time = True
-
-    # @staticmethod
-    # def after_all_players_arrive(subsession: Subsession):
-    #     # # subsession.group_randomly(fixed_id_in_group=True)
-    #     pass
-
-
-# class ShufflePage(Page):
-#     group_by_arrival_time = True
-
-#     @staticmethod
-#     def is_displayed(player):
-#         return player.round_number > 1
 
 #PageSequence
 page_sequence = [

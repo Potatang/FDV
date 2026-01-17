@@ -1,0 +1,83 @@
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+
+<style>
+  .step { display: none; margin-top: 18px; }
+  .step.shown { display: block; }
+  .otree-btn-next { display: none !important; } /* 藏預設 Next */
+</style>
+
+
+<!-- ✅ 角色顯示：放在 step1 前面 -->
+<div class="role-badge">
+  您在本回合的身分：{{ player.role }}
+</div>
+
+<div id="step1" class="step shown">
+  <h3>步驟 1：決定產品 Y 的品質</h3>
+  <p>本回合產品 Y 的品質為：<b>{{ player.group.product_b_quality }}</b></p>
+  <img src="{% static product_image %}" style="width:240px;">
+</div>
+
+<div id="step2" class="step">
+  <h3>步驟 2：推薦人抽球結果</h3>
+  <p>推薦人抽到：<b>{{ player.group.advisor_ball_color }}</b></p>
+  <img src="{% static advisor_ball_image %}" style="width:80px;">
+</div>
+
+<div id="step3" class="step">
+  <h3>步驟 3：客戶被分配到的產品</h3>
+  <p>客戶本回合使用的產品：<b>{{ player.group.client_product }}</b></p>
+
+  {% if player.group.client_product == 'X' %}
+    <img src="{% static productX_image %}" style="width:240px;">
+  {% else %}
+    <p>產品 Y 品質：<b>{{ player.group.client_product_quality }}</b></p>
+    <img src="{% static product_image %}" style="width:240px;">
+  {% endif %}
+</div>
+
+<div id="step4" class="step">
+  <h3>步驟 4：客戶抽球結果與本回合報酬</h3>
+  <p>客戶抽到：<b>{{ player.group.client_ball_color }}</b></p>
+  <img src="{% static client_ball_image %}" style="width:80px;">
+
+  <hr>
+
+  <p><b>本回合報酬：</b>{{ round_payoff }} 法幣</p>
+  <p><b>累積報酬（至本回合）：</b>{{ total_payoff }} 法幣</p>
+
+  <p style="margin-top:12px;"><b>說明：</b>{{ explanation }}</p>
+</div>
+
+<div style="margin-top:22px;">
+<button type="button" class="btn btn-primary" id="btn" style="float:right">下一步</button>
+{{ next_button }}
+</div>
+
+<script>
+  (function () {
+    const steps = ["step1", "step2", "step3", "step4"];
+    let idx = 0; // step1 已顯示，所以 idx=0 代表目前已開到 step1
+
+    const btn = document.getElementById("btn");
+
+    btn.addEventListener("click", function () {
+      idx += 1;
+
+      if (idx < steps.length) {
+        document.getElementById(steps[idx]).classList.add("shown");
+
+        if (idx === steps.length - 1) {
+          btn.textContent = "下一步（完成）";
+        }
+      } else {
+        const realNext = document.querySelector(".otree-btn-next");
+        if (realNext) realNext.click();
+      }
+    });
+  })();
+</script>
+
+
+{% endblock %}
