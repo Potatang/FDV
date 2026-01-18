@@ -587,7 +587,20 @@ class HistoryPage(Page):
         # 回合倒序（最新在上）
         history_records.sort(key=lambda r: r["round_number"], reverse=True)
 
-        return dict(history_records=history_records)
+                # ✅ 本回合 record：欄位結構跟 decision_list 每列完全一致
+        this_round_record = {
+            "round_number": player.round_number,
+            "quality_image": 'ProductB_high.png' if player.group.product_b_quality == "高品質" else 'ProductB_low.png',
+            "commission_product": player.group.commission_product,
+            "signal_image": 'blue_65.png' if player.group.quality_signal == "$200" else 'red_0.png',
+            "advisor_recommendation": player.advisor_recommendation,
+            "client_selection": player.client_selection,
+            "round_payoff": player.round_payoff,
+            "partner_payoff": player.partner_payoff,
+        }
+
+        return dict(history_records=history_records,
+                    this_round_record=this_round_record,)  # ✅ 新增
 
 
 class ShuffleWaitPage(WaitPage):

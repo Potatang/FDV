@@ -441,6 +441,29 @@ class RecommendationPage(Page):
 class WaitforAdvisor(WaitPage):
     title_text = "請稍候"
     body_text = "正在等待推薦人做出推薦，請耐心等候。"
+    template_name = "choice/WaitforAdvisor.html"
+
+    @staticmethod
+    def vars_for_template(player: Player):
+        history_records = [
+            {
+                "round_number": p.round_number,
+                "advisor_recommendation": p.advisor_recommendation,
+                "client_selection": p.client_selection,
+                "commission_product": p.group.commission_product,
+                "product_b_quality": p.group.product_b_quality,
+                "quality_signal": p.group.quality_signal,
+                "round_payoff": p.round_payoff,
+                "roundsum_payoff": p.roundsum_payoff,
+                "partner_payoff": p.partner_payoff,
+                "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
+                "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
+                "producta_image": 'ProductA.png',
+            }
+            for p in player.in_previous_rounds()
+        ]
+        history_records.sort(key=lambda r: r["round_number"], reverse=True)
+        return dict(history_records=history_records)
 
 class SelectionPage(Page):
 
@@ -492,6 +515,28 @@ class SelectionPage(Page):
 class WaitforClient(WaitPage):
     title_text = "請稍候"
     body_text = "正在等待客戶做出選擇，請耐心等候。"
+    template_name = "choice/WaitforClient.html"
+    @staticmethod
+    def vars_for_template(player: Player):
+        history_records = [
+            {
+                "round_number": p.round_number,
+                "advisor_recommendation": p.advisor_recommendation,
+                "client_selection": p.client_selection,
+                "commission_product": p.group.commission_product,
+                "product_b_quality": p.group.product_b_quality,
+                "quality_signal": p.group.quality_signal,
+                "round_payoff": p.round_payoff,
+                "roundsum_payoff": p.roundsum_payoff,
+                "partner_payoff": p.partner_payoff,
+                "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
+                "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
+                "producta_image": 'ProductA.png',
+            }
+            for p in player.in_previous_rounds()
+        ]
+        history_records.sort(key=lambda r: r["round_number"], reverse=True)
+        return dict(history_records=history_records)
 
 class ResultsWaitPage(WaitPage):    
     after_all_players_arrive = set_payoffs
@@ -555,6 +600,28 @@ class ShuffleWaitPage(WaitPage):
     wait_for_all_groups = True
     title_text = "請稍候"
     body_text = "正在等待所有人準備完成，請耐心等候其他參與者。"
+    template_name = "choice/WaitforAll.html"
+    @staticmethod
+    def vars_for_template(player: Player):
+        history_records = [
+            {
+                "round_number": p.round_number,
+                "advisor_recommendation": p.advisor_recommendation,
+                "client_selection": p.client_selection,
+                "commission_product": p.group.commission_product,
+                "product_b_quality": p.group.product_b_quality,
+                "quality_signal": p.group.quality_signal,
+                "round_payoff": p.round_payoff,
+                "roundsum_payoff": p.roundsum_payoff,
+                "partner_payoff": p.partner_payoff,
+                "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
+                "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
+                "producta_image": 'ProductA.png',
+            }
+            for p in player.in_all_rounds()
+        ]
+        history_records.sort(key=lambda r: r["round_number"], reverse=True)
+        return dict(history_records=history_records)
 
 
 #PageSequence

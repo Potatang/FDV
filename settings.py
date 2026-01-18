@@ -8,8 +8,8 @@ SESSION_CONFIGS = [
         app_sequence=[
             'start_app',
             # 'moralcost_IF',
-            'experiment_IF',
-            # 'choice',
+            # 'experiment_IF',
+            'choice',
             # 'guessquality_IF',
             # 'moralcost2',
             # 'guessproportion_IF',
