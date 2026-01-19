@@ -1,4 +1,5 @@
 {{ block title }} 第 {{ subsession.round_number }} 回合， 總共 {{ C.NUM_ROUNDS }} 回合 {{ endblock }}
+
 {{ block content }}
 
 <h4>本回合結果</h4>
@@ -7,12 +8,23 @@
     <tr>
       <th style="width: 50px;">回合</th>
       <th style="width: 110px;">產品B實際品質</th>
-      <th style="width: 100px;">推薦人看到的抽球結果資訊</th>
-      <th style="width: 100px;">推薦人看到的產品指派資訊</th>
-      <th style="width: 100px;">推薦人決策</th>
-      <th style="width: 100px;">客戶決策</th>
-      <th style="width: 100px;">您本回合報酬</th>
-      <th style="width: 120px;">對方本回合報酬</th>
+      <th style="width: 120px;">推薦人看到的抽球結果資訊</th>
+      <th style="width: 120px;">推薦人看到的產品指派資訊</th>
+      <th style="width: 90px;">推薦人決策</th>
+      <th style="width: 90px;">客戶決策</th>
+      {{ if is_advisor }}
+        <th style="width: 90px;">翻牌成本</th>
+      {{ endif }}
+      {{ if is_advisor }}
+        <th style="width: 140px;">您本回合報酬 (未扣除翻牌成本)</th>
+      {{ else }}
+        <th style="width: 100px;">您本回合報酬</th>
+      {{ endif }}
+      {{ if is_advisor }}
+        <th style="width: 100px;">對方本回合報酬</th>
+      {{ else }}
+        <th style="width: 140px;">對方本回合報酬 (未扣除翻牌成本)</th>
+      {{ endif }}
     </tr>
   </thead>
   <tbody>
@@ -23,8 +35,11 @@
       <td>{{ this_round_record.commission_product }}</td>
       <td>產品{{ this_round_record.advisor_recommendation }}</td>
       <td>產品{{ this_round_record.client_selection }}</td>
-      <td>{{ this_round_record.round_payoff }}</td>
-      <td>{{ this_round_record.partner_payoff }}</td>
+      {{ if is_advisor }}
+        <td>{{ this_round_record.flip_cost }}</td>
+      {{ endif }}
+      <td>{{ this_round_record.round_payoff_display }}</td>
+      <td>{{ this_round_record.partner_payoff_display }}</td>
     </tr>
   </tbody>
 </table>
@@ -40,11 +55,22 @@
             <th style="width: 50px;">回合</th>
             <th style="width: 110px;">產品B實際品質</th>
             <th style="width: 120px;">推薦人看到的抽球結果資訊</th>
-            <th style="width: 100px;">推薦人看到的產品指派資訊</th>
-            <th style="width: 100px;">推薦人決策</th>
-            <th style="width: 100px;">客戶決策</th>
-            <th style="width: 100px;">您本回合報酬</th>
-            <th style="width: 120px;">對方本回合報酬</th>
+            <th style="width: 120px;">推薦人看到的產品指派資訊</th>
+            <th style="width: 90px;">推薦人決策</th>
+            <th style="width: 90px;">客戶決策</th>
+            {{ if is_advisor }}
+              <th style="width: 90px;">翻牌成本</th>
+            {{ endif }}
+            {{ if is_advisor }}
+              <th style="width: 140px;">您本回合報酬 (未扣除翻牌成本)</th>
+            {{ else }}
+              <th style="width: 100px;">您本回合報酬</th>
+            {{ endif }}
+            {{ if is_advisor }}
+              <th style="width: 100px;">對方本回合報酬</th>
+            {{ else }}
+              <th style="width: 140px;">對方本回合報酬 (未扣除翻牌成本)</th>
+            {{ endif }}
         </tr>
         </thead>
         <tbody>
@@ -56,13 +82,18 @@
             <td>{{ record.commission_product }}</td>
             <td>產品{{ record.advisor_recommendation }}</td>
             <td>產品{{ record.client_selection }}</td>
-            <td>{{ record.round_payoff }}</td>
-            <td>{{ record.partner_payoff }}</td>
+            {{ if is_advisor }}
+              <td>{{ record.flip_cost }}</td>
+            {{ endif }}
+            <td>{{ record.round_payoff_display }}</td>
+            <td>{{ record.partner_payoff_display }}</td>
             </tr>
         {{ endfor }}
         </tbody>
     </table>
     </div>
+
+
 <!-- 中文的下一頁按鈕 -->
 <button class="otree-btn-next btn btn-primary">下一頁</button>
 
