@@ -1,8 +1,21 @@
 {{ block title }}歡迎參加實驗{{ endblock }}
 {{ block content }}
+<style>
+  /* 壓縮標題區跟內容的距離（oTree/Bootstrap 常見是 h1 + 下方大 margin） */
+  .otree-title,
+  .page-header,
+  h1 {
+    margin-bottom: 8px !important;
+  }
 
-<div style="
-  min-height: 80vh;
+  /* 讓內容不要佔滿 80vh，避免被往下推得太誇張 */
+  .welcome-wrap{
+    min-height: 68vh;      /* 80vh -> 68vh，可再調 */
+    margin-top: -10px;     /* 往上拉一點點 */
+  }
+</style>
+
+<div class="welcome-wrap" style="
   display: flex;
   justify-content: center;
   align-items: center;
@@ -21,9 +34,7 @@
   </div>
 </div>
 
-
-<br>
-<br>
+<div style="height: 12px;"></div>
 
 <button class="otree-btn-next btn btn-primary" id="btn" style='float:right'>開始實驗(60)</button>
 <script>
