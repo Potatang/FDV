@@ -120,9 +120,9 @@ class Player(BasePlayer):
     question5 = models.StringField(
         label='5. 以下敘述何者正確？',
         choices=[
-            ('A', '(A) 產品 B 包含4 顆藍色球（$200）和 1 顆紅色球（$0）（如果其為高品質），或是包含2 顆藍色球（$200）和 3 顆紅色球（$0）（如果其為低品質）。'),
-            ('B', '(B) 產品 B 包含3 顆藍色球（$200）和 2 顆紅色球（$0）（如果其為高品質），或是包含3 顆藍色球（$200）和 2 顆紅色球（$0）（如果其為低品質）。'),
-            ('C', '(C) 產品 B 包含5 顆藍色球（$200）和 0 顆紅色球（$0）（如果其為高品質），或是包含0 顆藍色球（$200）和 5 顆紅色球（$0）（如果其為低品質）。'),
+            ('A', '(A) 產品 B 包含 4 顆藍色球（$200）和 1 顆紅色球（$0）（如果其為高品質），或是包含 2 顆藍色球（$200）和 3 顆紅色球（$0）（如果其為低品質）。'),
+            ('B', '(B) 產品 B 包含 3 顆藍色球（$200）和 2 顆紅色球（$0）（如果其為高品質），或是包含 3 顆藍色球（$200）和 2 顆紅色球（$0）（如果其為低品質）。'),
+            ('C', '(C) 產品 B 包含 5 顆藍色球（$200）和 0 顆紅色球（$0）（如果其為高品質），或是包含 0 顆藍色球（$200）和 5 顆紅色球（$0）（如果其為低品質）。'),
         ],
         widget=widgets.RadioSelect
     )
@@ -463,7 +463,10 @@ class WaitforAdvisor(WaitPage):
             for p in player.in_previous_rounds()
         ]
         history_records.sort(key=lambda r: r["round_number"], reverse=True)
-        return dict(history_records=history_records)
+        return dict(history_records=history_records,
+                                is_advisor = (player.role == C.ADVISOR_ROLE),  # 或 '推薦人'
+                                is_client = (player.role == C.CLIENT_ROLE),    # 或 '客戶'
+                               )
 
 class SelectionPage(Page):
 
@@ -536,7 +539,10 @@ class WaitforClient(WaitPage):
             for p in player.in_previous_rounds()
         ]
         history_records.sort(key=lambda r: r["round_number"], reverse=True)
-        return dict(history_records=history_records)
+        return dict(history_records=history_records,
+                    is_advisor=(player.role == C.ADVISOR_ROLE),  # 或 '推薦人'
+                    is_client=(player.role == C.CLIENT_ROLE),    # 或 '客戶'
+                   )
 
 class ResultsWaitPage(WaitPage):    
     after_all_players_arrive = set_payoffs
@@ -621,7 +627,10 @@ class ShuffleWaitPage(WaitPage):
             for p in player.in_all_rounds()
         ]
         history_records.sort(key=lambda r: r["round_number"], reverse=True)
-        return dict(history_records=history_records)
+        return dict(history_records=history_records,
+                                is_advisor = (player.role == C.ADVISOR_ROLE),  # 或 '推薦人'
+                                is_client = (player.role == C.CLIENT_ROLE),    # 或 '客戶'
+                               )
 
 
 #PageSequence
