@@ -49,5 +49,7 @@ class ComputerPage(Page):
         if player.seat == 99:
             return 'end_app'  # make sure this matches the app name in app_sequence
 
+class RolePage(Page):
+    pass
 
-page_sequence = [ComputerPage]
+page_sequence = [ComputerPage, RolePage]

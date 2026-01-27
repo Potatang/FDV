@@ -1,0 +1,58 @@
+{{ block title }}歡迎參加實驗{{ endblock }}
+{{ block content }}
+
+<div style="
+  min-height: 80vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+">
+  <div style="max-width: 900px; font-size: 16px; line-height: 1.7;">
+      <div style="margin-bottom: 18px;">
+        感謝您參加本場實驗，請將手機關機或靜音。
+      </div>
+      <div style="margin-bottom: 18px;">
+        請等待實驗人員指示再開始使用電腦，使用的時候也請遵照螢幕上的指示，不要自行開啟其他應用程式或關閉實驗分頁。
+      </div>
+      <div>
+        實驗過程如果有任何問題請舉手在座位上安靜等候，實驗人員會前往協助。
+      </div>
+  </div>
+</div>
+
+<!-- <p style="font-size: 24px;">
+  您在本場實驗中擔任的角色為：
+  <b>
+    {% if participant.who %}
+      推薦人
+    {% else %}
+      客戶
+    {% endif %}
+  </b>
+</p> -->
+
+<br>
+<br>
+
+<button class="otree-btn-next btn btn-primary" id="btn" style='float:right'>開始實驗(60)</button>
+<script>
+    var btn = document.getElementById('btn'); //获取元素
+    var secs = 60; //设定了倒计时为60秒
+    btn.disabled=true; //禁止点击
+    for (var i=1; i<=secs; i++) {
+        window.setTimeout("update(" + i + ")", i * 1000);
+    } //每1秒执行一次update函数
+    function update(num) {
+        if (num==secs) { //倒计时结束，按键的文本改变，并且可以点击
+            btn.textContent = "開始實驗";
+            btn.disabled = false;
+        }
+        else { //倒计时中，实时更新文本里面的数字
+            var printnr = secs - num;
+            btn.textContent = "即將開始實驗 (" + printnr + ")";
+        }
+    }
+</script>
+
+{{ endblock }}

@@ -341,46 +341,102 @@
 {% block scripts %}
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        let allRadios = document.querySelectorAll('input[type=radio]');
-        let allAdditionalChoiceSpans = document.querySelectorAll('span[id^="additional-choice-"]');
-        let allMessages = document.querySelectorAll('div[id^="messages-"]');
-    
-        for (let radio of allRadios) {
-            radio.addEventListener('change', onRadioClick);
+        const allAdditionalChoiceSpans = document.querySelectorAll('span[id^="additional-choice-"]');
+        const allMessages = document.querySelectorAll('div[id^="messages-"]');
+
+        function getRadio(row, side) {
+            // side: 'left' or 'right'
+            return document.querySelector(`input[type=radio][name="${row}"][value="${side}"]`);
         }
-    
-        function onRadioClick(evt) {
-            let clickedRadio = evt.target;
-            let afterClickedRadio = false;
-            let clickedRightRadio = clickedRadio.value === 'right';
-    
-            for (let aRadio of allRadios) {
-                if (aRadio === clickedRadio) {
-                    afterClickedRadio = true;
-                    continue;
-                }
-                if (clickedRightRadio && afterClickedRadio && aRadio.value === 'right') {
-                    aRadio.checked = true;
-                }
-                if (!clickedRightRadio && !afterClickedRadio && aRadio.value === 'left') {
-                    aRadio.checked = true;
-                }
-            }
-    
-            // 隱藏全部下拉和訊息
+
+        function hideAllExtra() {
             allAdditionalChoiceSpans.forEach(span => span.style.display = 'none');
             allMessages.forEach(msg => msg.style.display = 'none');
-    
-            // 顯示目前這一行的
-            let amount = parseInt(clickedRadio.dataset.amount);
-            if (clickedRightRadio && amount > 0) {
-                document.getElementById('additional-choice-' + (amount - 1)).style.display = 'inline-block';
-                document.getElementById('messages-' + (amount - 1)).style.display = 'block';
-            } else if (!clickedRightRadio && amount >= 0) {
-                document.getElementById('additional-choice-' + amount).style.display = 'inline-block';
-                document.getElementById('messages-' + amount).style.display = 'block';
+        }
+
+        function showIntervalBySwitchPoint(switchPoint) {
+            // switchPoint = 第一個選「福袋」(right) 的行數
+            // 需要顯示的區間行 = switchPoint - 1（也就是落在 (switchPoint-1)*10 ~ switchPoint*10）
+            const idx = switchPoint - 1;
+
+            hideAllExtra();
+
+            if (idx >= 0 && idx <= 9) {
+                const span = document.getElementById(`additional-choice-${idx}`);
+                const msg  = document.getElementById(`messages-${idx}`);
+                if (span) span.style.display = 'inline-block';
+                if (msg)  msg.style.display = 'block';
             }
         }
+
+        function applySwitchPoint(switchPoint) {
+            // 0..switchPoint-1 => left, switchPoint..10 => right
+            for (let i = 0; i <= 10; i++) {
+                const leftRadio = getRadio(i, 'left');
+                const rightRadio = getRadio(i, 'right');
+
+                if (i < switchPoint) {
+                    if (leftRadio && !leftRadio.disabled) {
+                        leftRadio.checked = true;
+                    } else if (rightRadio && !rightRadio.disabled) {
+                        rightRadio.checked = true;
+                    }
+                } else {
+                    if (rightRadio && !rightRadio.disabled) {
+                        rightRadio.checked = true;
+                    } else if (leftRadio && !leftRadio.disabled) {
+                        leftRadio.checked = true;
+                    }
+                }
+            }
+            showIntervalBySwitchPoint(switchPoint);
+        }
+
+        function onRadioClick(evt) {
+            const clicked = evt.target;
+            const k = parseInt(clicked.dataset.amount, 10);
+
+            // 點 left：分界點在 k+1；點 right：分界點在 k
+            const switchPoint = (clicked.value === 'left') ? (k + 1) : k;
+
+            applySwitchPoint(switchPoint);
+        }
+
+        // 綁定所有 radio
+        document.querySelectorAll('input[type=radio]').forEach(r => {
+            r.addEventListener('change', onRadioClick);
+        });
+
+        // 進頁面：只固定端點，其他行全部清空
+        function initOnlyEndpoints() {
+            // 固定第0行：left 勾選（right 是 disabled）
+            const r0L = getRadio(0, 'left');
+            const r0R = getRadio(0, 'right');
+            if (r0L) r0L.checked = true;
+            if (r0R) r0R.checked = false;
+
+            // 固定第10行：right 勾選（left 是 disabled）
+            const r10L = getRadio(10, 'left');
+            const r10R = getRadio(10, 'right');
+            if (r10R) r10R.checked = true;
+            if (r10L) r10L.checked = false;
+
+            // 第1~9行：全部不勾
+            for (let i = 1; i <= 9; i++) {
+                const l = getRadio(i, 'left');
+                const r = getRadio(i, 'right');
+                if (l) l.checked = false;
+                if (r) r.checked = false;
+            }
+
+            // 先不要顯示下拉與訊息
+            hideAllExtra();
+        }
+
+        // 原本你可能有：applySwitchPoint(10);
+        // 改成：
+        initOnlyEndpoints();
+
     });
     
     document.addEventListener("DOMContentLoaded", function () {
