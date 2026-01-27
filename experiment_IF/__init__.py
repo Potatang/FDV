@@ -441,7 +441,7 @@ class RecommendationPage(Page):
 class WaitforAdvisor(WaitPage):
     title_text = "請稍候"
     body_text = "正在等待推薦人做出推薦，請耐心等候。"
-    template_name = "choice/WaitforAdvisor.html"
+    template_name = "experiment_IF/WaitforAdvisor.html"
 
     @staticmethod
     def vars_for_template(player: Player):
@@ -464,8 +464,6 @@ class WaitforAdvisor(WaitPage):
         ]
         history_records.sort(key=lambda r: r["round_number"], reverse=True)
         return dict(history_records=history_records,
-                                is_advisor = (player.role == C.ADVISOR_ROLE),  # 或 '推薦人'
-                                is_client = (player.role == C.CLIENT_ROLE),    # 或 '客戶'
                                )
 
 class SelectionPage(Page):
@@ -518,7 +516,7 @@ class SelectionPage(Page):
 class WaitforClient(WaitPage):
     title_text = "請稍候"
     body_text = "正在等待客戶做出選擇，請耐心等候。"
-    template_name = "choice/WaitforClient.html"
+    template_name = "experiment_IF/WaitforClient.html"
     @staticmethod
     def vars_for_template(player: Player):
         history_records = [
@@ -540,8 +538,6 @@ class WaitforClient(WaitPage):
         ]
         history_records.sort(key=lambda r: r["round_number"], reverse=True)
         return dict(history_records=history_records,
-                    is_advisor=(player.role == C.ADVISOR_ROLE),  # 或 '推薦人'
-                    is_client=(player.role == C.CLIENT_ROLE),    # 或 '客戶'
                    )
 
 class ResultsWaitPage(WaitPage):    
@@ -606,7 +602,7 @@ class ShuffleWaitPage(WaitPage):
     wait_for_all_groups = True
     title_text = "請稍候"
     body_text = "正在等待所有人準備完成，請耐心等候其他參與者。"
-    template_name = "choice/WaitforAll.html"
+    template_name = "experiment_IF/WaitforAll.html"
     @staticmethod
     def vars_for_template(player: Player):
         history_records = [
@@ -628,8 +624,6 @@ class ShuffleWaitPage(WaitPage):
         ]
         history_records.sort(key=lambda r: r["round_number"], reverse=True)
         return dict(history_records=history_records,
-                                is_advisor = (player.role == C.ADVISOR_ROLE),  # 或 '推薦人'
-                                is_client = (player.role == C.CLIENT_ROLE),    # 或 '客戶'
                                )
 
 
