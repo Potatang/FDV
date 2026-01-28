@@ -143,6 +143,12 @@ def display_round_no(round_number: int) -> int:
 def block_index(round_number: int) -> int:
     # 第 1 段=1（1–10 回合），第 2 段=2（11–20 回合）
     return ((round_number - 1) // C.BLOCK_SIZE) + 1
+
+def window_bounds(round_number: int):
+    window_start = ((round_number - 1) // C.BLOCK_SIZE) * C.BLOCK_SIZE + 1
+    window_end   = min(window_start + C.BLOCK_SIZE - 1, C.NUM_ROUNDS)
+    return window_start, window_end
+
     
 #FUNCTION
 # note: this function goes at the module level, not inside the WaitPage.
@@ -445,9 +451,17 @@ class WaitforAdvisor(WaitPage):
 
     @staticmethod
     def vars_for_template(player: Player):
+        window_start, window_end = window_bounds(player.round_number)
+
+        history_rounds = [
+            p for p in player.in_previous_rounds()
+            if window_start <= p.round_number <= window_end
+        ]
+        history_rounds.sort(key=lambda p: p.round_number, reverse=True)
+
         history_records = [
             {
-                "round_number": p.round_number,
+                "round_number": display_round_no(p.round_number),  # ✅ 顯示 1–10（或 11–20 顯示 1–10）
                 "advisor_recommendation": p.advisor_recommendation,
                 "client_selection": p.client_selection,
                 "commission_product": p.group.commission_product,
@@ -460,11 +474,16 @@ class WaitforAdvisor(WaitPage):
                 "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
                 "producta_image": 'ProductA.png',
             }
-            for p in player.in_previous_rounds()
+            for p in history_rounds
         ]
-        history_records.sort(key=lambda r: r["round_number"], reverse=True)
-        return dict(history_records=history_records,
-                               )
+
+        return dict(
+            history_records=history_records,
+            window_start=window_start,
+            window_end=window_end,
+            block_idx=block_index(player.round_number),
+        )
+
 
 class SelectionPage(Page):
 
@@ -517,11 +536,20 @@ class WaitforClient(WaitPage):
     title_text = "請稍候"
     body_text = "正在等待客戶做出選擇，請耐心等候。"
     template_name = "experiment_IF/WaitforClient.html"
+
     @staticmethod
     def vars_for_template(player: Player):
+        window_start, window_end = window_bounds(player.round_number)
+
+        history_rounds = [
+            p for p in player.in_previous_rounds()
+            if window_start <= p.round_number <= window_end
+        ]
+        history_rounds.sort(key=lambda p: p.round_number, reverse=True)
+
         history_records = [
             {
-                "round_number": p.round_number,
+                "round_number": display_round_no(p.round_number),
                 "advisor_recommendation": p.advisor_recommendation,
                 "client_selection": p.client_selection,
                 "commission_product": p.group.commission_product,
@@ -534,11 +562,16 @@ class WaitforClient(WaitPage):
                 "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
                 "producta_image": 'ProductA.png',
             }
-            for p in player.in_previous_rounds()
+            for p in history_rounds
         ]
-        history_records.sort(key=lambda r: r["round_number"], reverse=True)
-        return dict(history_records=history_records,
-                   )
+
+        return dict(
+            history_records=history_records,
+            window_start=window_start,
+            window_end=window_end,
+            block_idx=block_index(player.round_number),
+        )
+
 
 class ResultsWaitPage(WaitPage):    
     after_all_players_arrive = set_payoffs
@@ -603,11 +636,20 @@ class ShuffleWaitPage(WaitPage):
     title_text = "請稍候"
     body_text = "正在等待所有人準備完成，請耐心等候其他參與者。"
     template_name = "experiment_IF/WaitforAll.html"
+
     @staticmethod
     def vars_for_template(player: Player):
+        window_start, window_end = window_bounds(player.round_number)
+
+        rounds_in_window = [
+            p for p in player.in_all_rounds()
+            if window_start <= p.round_number <= window_end
+        ]
+        rounds_in_window.sort(key=lambda p: p.round_number, reverse=True)
+
         history_records = [
             {
-                "round_number": p.round_number,
+                "round_number": display_round_no(p.round_number),
                 "advisor_recommendation": p.advisor_recommendation,
                 "client_selection": p.client_selection,
                 "commission_product": p.group.commission_product,
@@ -620,11 +662,16 @@ class ShuffleWaitPage(WaitPage):
                 "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
                 "producta_image": 'ProductA.png',
             }
-            for p in player.in_all_rounds()
+            for p in rounds_in_window
         ]
-        history_records.sort(key=lambda r: r["round_number"], reverse=True)
-        return dict(history_records=history_records,
-                               )
+
+        return dict(
+            history_records=history_records,
+            window_start=window_start,
+            window_end=window_end,
+            block_idx=block_index(player.round_number),
+        )
+
 
 
 #PageSequence
