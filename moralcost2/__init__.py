@@ -217,9 +217,9 @@ class MoralWaitPage(WaitPage):
             participant.moral2_bonus_recommendation = selected_reco     # 這個人對應到的推薦內容
             participant.moral2_bonus_recommended_Y = (selected_reco == 'Y')
 
-            print(f"{participant.moral2_bonus_round_number = }")
-            print(f"{participant.moral2_bonus_recommendation = }")
-            print(f"{participant.moral2_bonus_recommended_Y = }")
+            # print(f"{participant.moral2_bonus_round_number = }")
+            # print(f"{participant.moral2_bonus_recommendation = }")
+            # print(f"{participant.moral2_bonus_recommended_Y = }")
 
         # 設 flag，避免重複跑
         subsession.been_chosen = True

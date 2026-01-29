@@ -30,16 +30,20 @@ class Subsession(BaseSubsession):
     def creating_session(self):
         # 你要保證每組都是 (who=True 的人, who=False 的人)
         if self.round_number == 1:
-            players = self.get_players()
-            advisors = [p for p in players if p.participant.who is True]
-            clients = [p for p in players if p.participant.who is False]
-            random.shuffle(advisors)
-            random.shuffle(clients)
+            # players = self.get_players()
+            # advisors = [p for p in players if p.participant.who is True]
+            # clients = [p for p in players if p.participant.who is False]
+            # random.shuffle(advisors)
+            # random.shuffle(clients)
 
-            # 保險：人數不平衡時，以較小者為準（實驗時你應該確保各半）
-            n = min(len(advisors), len(clients))
-            matrix = [[advisors[i], clients[i]] for i in range(n)]
-            self.set_group_matrix(matrix)
+            # # 保險：人數不平衡時，以較小者為準（實驗時你應該確保各半）
+            # n = min(len(advisors), len(clients))
+            # matrix = [[advisors[i], clients[i]] for i in range(n)]
+            # self.set_group_matrix(matrix)
+            
+            players = self.get_players()
+            random.shuffle(players)
+            self.group_randomly()
         else:
             self.group_like_round(1)
 
@@ -64,14 +68,21 @@ class Player(BasePlayer):
 
     @property
     def role(self):
-        """
-        round 1: who == True -> advisor, who == False -> client
-        round 2: 角色對調
-        """
-        if self.round_number == 1:
-            return C.ADVISOR_ROLE if self.participant.who else C.CLIENT_ROLE
+        # """
+        # round 1: who == True -> advisor, who == False -> client
+        # round 2: 角色對調
+        # """
+        # if self.round_number == 1:
+        #     return C.ADVISOR_ROLE if self.participant.who else C.CLIENT_ROLE
+        # else:
+        #     return C.CLIENT_ROLE if self.participant.who else C.ADVISOR_ROLE
+
+        # round 1: 1=advisor, 2=client
+        # round 2: 對調
+        if self.round_number % 2 == 1:
+            return C.ADVISOR_ROLE if self.id_in_group == 1 else C.CLIENT_ROLE
         else:
-            return C.CLIENT_ROLE if self.participant.who else C.ADVISOR_ROLE
+            return C.CLIENT_ROLE if self.id_in_group == 1 else C.ADVISOR_ROLE
 
 
 def _get_advisor_and_participant(group: Group):
