@@ -56,6 +56,9 @@ class Group(BaseGroup):
     product_b_quality = models.StringField(blank=True)
     product_b_good_ball_probability = models.FloatField(blank=True)
     quality_signal = models.StringField(blank=True)
+    # ✅ 新增：客戶「實際抽球結果」用來顯示圖片
+    client_draw_result = models.StringField(blank=True)  # "$200" or "$0"
+    client_draw_image  = models.StringField(blank=True)  # 'blue_65.png' or 'red_0.png'
 
 
 class Player(BasePlayer):
@@ -110,16 +113,18 @@ class Player(BasePlayer):
     #         return 'IF'
         
     question1 = models.StringField(
-        label='1. 紅色卡片代表接下來出現的兩則資訊的順序為何？',
+        label='1. 如何決定本回合兩則資訊的實際呈現順序？？',
         choices=[
-            ('A', '(A) 先看到「產品指派資訊」，再看到「抽球結果資訊」'),
-            ('B', '(B) 先看到「抽球結果資訊」，再看到「產品指派資訊」'),
+            ('A', '(A) 由推薦人自行選定一張卡片作為結果'),
+            ('B', '(B) 由電腦從四張卡片中隨機抽出一張並依其顏色決定順序'),
+            ('C', '(C) 由客戶自行選定一張卡片作為結果'),
+            ('D', '(D) 依照最左邊那張卡片的顏色決定順序'),
         ],
         widget=widgets.RadioSelect
     )
 
     question2 = models.StringField(
-        label='2. 假設有一個人選擇將四張卡片調整為「紅紅紅黑」，請問他待會先看到「產品指派資訊」的機率為何？',
+        label='2. 假設有一個人將四張卡片調整為「紅紅紅黑」，請問他先看到「產品指派資訊」的機率為何？',
         choices=[
             ('A', '(A) 25%'),
             ('B', '(B) 50%'),
@@ -129,7 +134,7 @@ class Player(BasePlayer):
     )
 
     question3 = models.StringField(
-        label='3. 假設有一個人選擇將四張卡片調整為四張黑色，請問他需要支付額外法幣嗎？若是需要，請問支付多少法幣？',
+        label='3. 假設有一個人將四張卡片調整為四張黑色，請問他需要支付額外法幣嗎？若是需要，請問支付多少法幣？',
         choices=[
             ('A', '(A) 不需要'),
             ('B', '(B) 需要。 支付 5 法幣'),
@@ -236,22 +241,25 @@ def set_payoffs(group: Group):
         elif p.role == C.CLIENT_ROLE:
             payoff = 0
             rnd = random.random()
+
+            won = False  # ✅ 新增：是否抽到 $200
+
             if p.client_selection == 'A':
-                if rnd <= 0.6:
-                    payoff += C.GOODBALL
+                won = (rnd <= C.PRODUCT_A_SUCCESS_PROB)
+
             elif p.client_selection == 'B':
-                if group.product_b_quality == '低品質':
-                    if rnd <= 0.4:
-                        payoff += C.GOODBALL
-                elif group.product_b_quality == '高品質':
-                    if rnd <= 0.8:
-                        payoff += C.GOODBALL
+                prob = C.PRODUCT_B_SUCCESS_PROB_H if group.product_b_quality == '高品質' else C.PRODUCT_B_SUCCESS_PROB_L
+                won = (rnd <= prob)
+
+            if won:
+                payoff += C.GOODBALL
+
+            # ✅ 新增：存客戶抽球結果（所有人後面都能顯示）
+            group.client_draw_result = "$200" if won else "$0"
+            group.client_draw_image  = 'blue_65.png' if won else 'red_0.png'
 
             p.gross_payoff = cu(payoff)  # client 顯示/實際相同
             p.flip_cost = cu(0)
-
-        # 存 net 到 round_payoff（你後面 roundsum_payoff 才會正確把成本算進總報酬）
-        p.round_payoff = cu(payoff)
 
         if p.round_number == 1:
             p.roundsum_payoff = p.round_payoff
@@ -307,6 +315,7 @@ def build_history_records(player: Player, rounds='previous'):
             "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
             "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
             "producta_image": 'ProductA.png',
+            "client_draw_image": p.group.client_draw_image,
         })
 
     records.sort(key=lambda r: r["round_number"], reverse=True)
@@ -423,7 +432,7 @@ class ComprehensionCheck(Page):
         # values 是使用者在這個 form 裡填的所有欄位
         # 比如 values['question1'] 就是 question1 的答案
         correct_answers = {
-            'question1': 'A',
+            'question1': 'B',
             'question2': 'C',
             'question3': 'B',
         }
@@ -658,6 +667,7 @@ class HistoryPage(Page):
                 "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
                 "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
                 "producta_image": 'ProductA.png',
+                "client_draw_image": p.group.client_draw_image,
 
                 # ✅ 新增：翻牌成本（推薦人）
                 "flip_cost": adv.flip_cost,
@@ -678,6 +688,7 @@ class HistoryPage(Page):
             "signal_image": 'blue_65.png' if player.group.quality_signal == "$200" else 'red_0.png',
             "advisor_recommendation": player.advisor_recommendation,
             "client_selection": player.client_selection,
+            "client_draw_image": player.group.client_draw_image,
 
             # ✅ 本回合：翻牌成本與顯示用 payoff
             "flip_cost": advisor_in_round(player).flip_cost,

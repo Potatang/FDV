@@ -56,6 +56,9 @@ class Group(BaseGroup):
     product_b_quality = models.StringField(blank=True)
     product_b_good_ball_probability = models.FloatField(blank=True)
     quality_signal = models.StringField(blank=True)
+    # ✅ 新增：客戶實際抽球結果（用來顯示圖片）
+    client_draw_result = models.StringField(blank=True)  # "$200" or "$0"
+    client_draw_image  = models.StringField(blank=True)  # 'blue_65.png' or 'red_0.png'
 
 class Player(BasePlayer):
     advisor_recommendation = models.StringField(blank=True)
@@ -209,16 +212,22 @@ def set_payoffs(group: Group):
         elif p.role == C.CLIENT_ROLE:
             payoff = 0
             rnd = random.random()
+
+            won = False  # ✅ 新增：這回合客戶是否抽到 $200
+
             if p.client_selection == 'A':
-                if rnd <= 0.6:
-                    payoff += C.GOODBALL
+                won = (rnd <= C.PRODUCT_A_SUCCESS_PROB)
+
             elif p.client_selection == 'B':
-                if group.product_b_quality == '低品質':
-                    if rnd <= 0.4:
-                        payoff += C.GOODBALL
-                elif group.product_b_quality == '高品質':
-                    if rnd <= 0.8:
-                        payoff += C.GOODBALL
+                prob = 0.8 if group.product_b_quality == '高品質' else 0.4
+                won = (rnd <= prob)
+
+            if won:
+                payoff += C.GOODBALL
+
+            # ✅ 新增：把客戶抽球結果存到 group，讓 advisor/client 都能在 history table 看到
+            group.client_draw_result = "$200" if won else "$0"
+            group.client_draw_image  = 'blue_65.png' if won else 'red_0.png'
 
         p.round_payoff = cu(payoff)
 
@@ -430,6 +439,7 @@ class RecommendationPage(Page):
                 "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
                 "producta_image": 'ProductA.png',
                 "partner_payoff": p.partner_payoff,
+                "client_draw_image": p.group.client_draw_image
             })
 
         return dict(
@@ -473,6 +483,7 @@ class WaitforAdvisor(WaitPage):
                 "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
                 "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
                 "producta_image": 'ProductA.png',
+                "client_draw_image": p.group.client_draw_image
             }
             for p in history_rounds
         ]
@@ -522,6 +533,7 @@ class SelectionPage(Page):
                 "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
                 "producta_image": 'ProductA.png',
                 "partner_payoff": p.partner_payoff,
+                "client_draw_image": p.group.client_draw_image
             })
 
         return dict(
@@ -561,6 +573,7 @@ class WaitforClient(WaitPage):
                 "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
                 "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
                 "producta_image": 'ProductA.png',
+                "client_draw_image": p.group.client_draw_image
             }
             for p in history_rounds
         ]
@@ -605,6 +618,7 @@ class HistoryPage(Page):
                 "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
                 "producta_image": 'ProductA.png',
                 "partner_payoff": p.partner_payoff,
+                "client_draw_image": p.group.client_draw_image,
             })
 
         # ✅ 本回合 record：欄位結構跟 decision_list 每列完全一致
@@ -617,6 +631,7 @@ class HistoryPage(Page):
             "client_selection": player.client_selection,
             "round_payoff": player.round_payoff,
             "partner_payoff": player.partner_payoff,
+            "client_draw_image": player.group.client_draw_image,
         }
 
 
@@ -661,6 +676,7 @@ class ShuffleWaitPage(WaitPage):
                 "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
                 "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
                 "producta_image": 'ProductA.png',
+                "client_draw_image": p.group.client_draw_image
             }
             for p in rounds_in_window
         ]

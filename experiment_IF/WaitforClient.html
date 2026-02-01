@@ -22,6 +22,7 @@
           <th style="width: 120px;">推薦人看到的產品指派資訊</th>
           <th style="width: 100px;">推薦人決策</th>
           <th style="width: 100px;">客戶決策</th>
+          <th style="width: 100px;">客戶抽球結果</th>
           <th style="width: 100px;">您本回合報酬</th>
           <th style="width: 120px;">對方本回合報酬</th>
         </tr>
@@ -35,6 +36,7 @@
             <td>{{ r.commission_product }}</td>
             <td>{{ r.advisor_recommendation }}</td>
             <td>{{ r.client_selection }}</td>
+            <td><img src="{{ static r.client_draw_image }}" width="40px"></td>
             <td>{{ r.round_payoff }}</td>
             <td>{{ r.partner_payoff }}</td>
           </tr>

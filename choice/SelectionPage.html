@@ -15,7 +15,7 @@
         <th style="width: 100px;">推薦人看到的產品指派資訊</th>
         <th style="width: 100px;">推薦人決策</th>
         <th style="width: 100px;">客戶決策</th>
-
+        <th style="width: 100px;">客戶抽球結果</th>
         {{ if is_advisor }}
           <th style="width: 110px;">翻牌成本</th>
           <th style="width: 180px;">您本回合報酬 (未扣除翻牌成本)</th>
@@ -40,6 +40,7 @@
           <td>{{ record.commission_product }}</td>
           <td>產品{{ record.advisor_recommendation }}</td>
           <td>產品{{ record.client_selection }}</td>
+          <td><img src="{{ static record.client_draw_image }}" width="40px"></td>
 
           {{ if is_advisor }}
             <td>{{ record.flip_cost }}</td>
