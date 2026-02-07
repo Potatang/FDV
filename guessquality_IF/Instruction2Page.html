@@ -13,10 +13,10 @@
 
     {{ formfields }}
 <!-- 中文的下一頁按鈕 -->
-<button class="otree-btn-next btn btn-primary" id="btn" style='float:right'>下一頁(60)</button>
+<button class="otree-btn-next btn btn-primary" id="btn" style='float:right'>下一頁(150)</button>
 <script>
     var btn = document.getElementById('btn'); //获取元素
-    var secs = 60; //设定了倒计时为60秒
+    var secs = 150; //设定了倒计时为150秒
     btn.disabled=true; //禁止点击
     for (var i=1; i<=secs; i++) {
         window.setTimeout("update(" + i + ")", i * 1000);
