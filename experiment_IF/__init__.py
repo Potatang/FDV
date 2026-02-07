@@ -280,11 +280,20 @@ class InstructionPage2(Page):
     def is_displayed(player):
         return player.round_number == 1
     
+    @staticmethod
+    def vars_for_template(player: Player):
+        image_path = 'ProductAB.png'
+        return dict(image_path=image_path)
+    
 class InstructionPage3(Page):
     @staticmethod
     def is_displayed(player):
         return player.round_number == 11
-
+    @staticmethod
+    def vars_for_template(player: Player):
+        image_path = 'ProductAB.png'
+        return dict(image_path=image_path)
+    
 class ComprehensionCheck(Page):
     form_model = 'player'
     form_fields = ['question1', 'question2', 'question3', 'question4', 'question5']

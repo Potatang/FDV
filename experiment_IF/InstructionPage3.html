@@ -1,10 +1,18 @@
 {{ block title }}實驗說明{{ endblock }}
+{% load static %}
 {{ block content }}
+        <p>
+            <img src="{% static image_path %}" width="100px" />
+        </p>
 <p>請您暫時<b>不要按下一頁</b>，仔細聆聽實驗說明。</p>
 <p>
     本部分總共有 10 回合，每一回合開始時，電腦會重新隨機配對推薦人和客戶。
 </p>
-
+<div style="text-align:center; margin: 16px 0;">
+    <img src="{% static 'ProductAB.png' %}"
+         alt="productAB"
+         style="max-width: 3500px; width: 50%; height: auto;">
+</div>
 
     {{ formfields }}
 <!-- 中文的下一頁按鈕 -->
