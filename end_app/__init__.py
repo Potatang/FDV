@@ -66,6 +66,16 @@ class ResultPage(Page):
         player.twd_payoff = twd_payoff
         player.participant.twd_payoff = twd_payoff
 
+        # 5) order_global（存在 session）決定網址
+        #    你若是存在 session.vars，用 session.vars.get(...)
+        #    你若是寫在 session.config，用 session.config.get(...)
+        order_global = player.session.vars.get('order_global')  # 0 或 1
+
+        if int(order_global) == 1:
+            qualtrics_url = "https://tassel.syd1.qualtrics.com/jfe/form/SV_9QDnVwTToLQRgsS"
+        else:
+            qualtrics_url = "https://tassel.syd1.qualtrics.com/jfe/form/SV_9ykf0SkSWw934LI"
+
         return dict(
             role=role,
             points_per_ntd=points_per_ntd,
@@ -75,6 +85,7 @@ class ResultPage(Page):
             total_payoff=player.participant.total_payoff,
             qualitypayoff_twd=qualitypayoff_twd,
             twd_payoff=player.participant.twd_payoff,
+            qualtrics_url=qualtrics_url,        # 建議 template 用這個
         )
 
 class OutPage(Page):
