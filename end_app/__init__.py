@@ -24,6 +24,51 @@ class Player(BasePlayer):
     total_payoff = models.CurrencyField(initial=0)
     twd_payoff = models.CurrencyField(initial=0)
 
+    # Demographics
+    gender = models.StringField(
+        label="請問您的生理性別為?",
+        choices=[("Male", "男性"), ("Female", "女性"), ("Other", "不便透露")],
+        widget=widgets.RadioSelect
+    )
+    age = models.IntegerField(label="請問您的年齡為?", min=10, max=120)
+    ethnicity = models.LongStringField(label="請問您的族裔為?")
+
+    # Difficulty / feedback
+    difficulty = models.StringField(
+        label="您在理解實驗說明時是否遇到困難?",
+        choices=[("Yes", "有"), ("No", "沒有")],
+        widget=widgets.RadioSelect
+    )
+    unclear = models.LongStringField(label="如果有，請問哪裡不清楚?", blank=True)
+    comments = models.LongStringField(label="請在此留下任何意見或建議（可選填）。", blank=True)
+
+    difference = models.StringField(
+        label="在本場實驗抽球的過程中，請問您對於\"參加者親自抽取\"與\"電腦代抽\"這兩者是否有差別？",
+        choices=[("有差別", "有差別"), ("沒有差別", "沒有差別")],
+        widget=widgets.RadioSelect
+    )
+    difference_reason = models.LongStringField(
+        label="請簡單說明您認為兩者有／沒有差別的主要原因或考量是什麼？"
+    )
+
+    # Role-specific questions
+    advisor_decision_rule = models.LongStringField(
+        label="當您必須在產品 A 和產品 B 之間做出選擇時，您是如何決定要推薦哪一個的？"
+    )
+
+    advisor_decision_reason = models.LongStringField(
+        label="請簡單說明您做出上述推薦決策的主要原因／考量是什麼？"
+    )
+
+    client_follow_advice = models.StringField(
+        label="整體而言您是否會按照收到的推薦進行選擇？",
+        choices=[("會", "會"), ("不會", "不會")],
+        widget=widgets.RadioSelect
+    )
+
+    client_follow_reason = models.LongStringField(
+        label="請簡單說明您是否會按照推薦選擇的主要原因／考量是什麼？"
+    )
 
 # PAGES
 class BeforeResultPage(Page):
@@ -66,15 +111,11 @@ class ResultPage(Page):
         player.twd_payoff = twd_payoff
         player.participant.twd_payoff = twd_payoff
 
-        # 5) order_global（存在 session）決定網址
-        #    你若是存在 session.vars，用 session.vars.get(...)
-        #    你若是寫在 session.config，用 session.config.get(...)
-        order_global = player.session.vars.get('order_global')  # 0 或 1
-
-        if int(order_global) == 1:
-            qualtrics_url = "https://tassel.syd1.qualtrics.com/jfe/form/SV_9QDnVwTToLQRgsS"
-        else:
-            qualtrics_url = "https://tassel.syd1.qualtrics.com/jfe/form/SV_9ykf0SkSWw934LI"
+        # 固定使用同一個 Qualtrics 連結（不分 treatment）
+        qualtrics_url = (
+            "https://tassel.syd1.qualtrics.com/jfe/form/SV_9QDnVwTToLQRgsS"
+            f"?label={player.participant.seat}&payoff={player.participant.twd_payoff}"
+        )
 
         return dict(
             role=role,
@@ -88,11 +129,37 @@ class ResultPage(Page):
             qualtrics_url=qualtrics_url,        # 建議 template 用這個
         )
 
+class DemographicsPage(Page):
+    form_model = 'player'
+
+    @staticmethod
+    def is_displayed(player):
+        return player.participant.seat < 99
+
+    @staticmethod
+    def get_form_fields(player):
+        role = 'advisor' if bool(player.participant.who) else 'client'
+        base = ['gender', 'age', 'ethnicity', 'difficulty', 'unclear', 'comments', 'difference', 'difference_reason']
+
+        if role == 'advisor':
+            base += ['advisor_decision_rule', 'advisor_decision_reason']
+        else:
+            base += ['client_follow_advice', 'client_follow_reason']
+
+        return base
+
+    @staticmethod
+    def vars_for_template(player):
+        role = 'advisor' if bool(player.participant.who) else 'client'
+        return dict(role=role)
+
+    
 class OutPage(Page):
     @staticmethod
     def is_displayed(player):
         return player.participant.seat == 99
 
 page_sequence = [BeforeResultPage,
-                 ResultPage,
+                 DemographicsPage,
+                 ResultPage,                 
                  OutPage]
