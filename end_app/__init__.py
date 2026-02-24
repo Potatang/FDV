@@ -113,7 +113,7 @@ class ResultPage(Page):
 
         # 固定使用同一個 Qualtrics 連結（不分 treatment）
         qualtrics_url = (
-            "https://tassel.syd1.qualtrics.com/jfe/form/SV_9QDnVwTToLQRgsS"
+            "https://tassel.syd1.qualtrics.com/jfe/form/SV_0lENJGFC0hpxcB8"
             f"?label={player.participant.seat}&payoff={player.participant.twd_payoff}"
         )
 
