@@ -152,6 +152,53 @@ def window_bounds(round_number: int):
     window_end   = min(window_start + C.BLOCK_SIZE - 1, C.NUM_ROUNDS)
     return window_start, window_end
 
+def payoff_headers_for(viewer: Player):
+    """Return (col1_label, col2_label) based on viewer role."""
+    if viewer.role == C.ADVISOR_ROLE:
+        return ("推薦人推薦產品的報酬", "客戶選擇產品的報酬")
+    else:
+        return ("客戶選擇產品的報酬", "推薦人推薦產品的報酬")
+
+
+def payoffs_for_round(viewer: Player, any_player_in_that_round: Player):
+    """
+    Given a viewer (current page player) and a Player object p from the target round,
+    return (payoff_col_1, payoff_col_2) aligned with viewer's column order.
+    """
+    ps = any_player_in_that_round.group.get_players()
+    a = next((pp for pp in ps if pp.role == C.ADVISOR_ROLE), None)
+    c = next((pp for pp in ps if pp.role == C.CLIENT_ROLE), None)
+
+    if viewer.role == C.ADVISOR_ROLE:
+        return (a.round_payoff if a else None, c.round_payoff if c else None)
+    else:
+        return (c.round_payoff if c else None, a.round_payoff if a else None)
+
+
+def build_history_rows(viewer: Player, rounds: list[Player]):
+    """
+    Build rows for templates. Each row contains standardized fields, including:
+    payoff_col_1, payoff_col_2 and payoff_col_1_label, payoff_col_2_label in vars_for_template.
+    """
+    rows = []
+    for p in rounds:
+        payoff_col_1, payoff_col_2 = payoffs_for_round(viewer, p)
+        rows.append({
+            "round_number": display_round_no(p.round_number),
+            "advisor_recommendation": p.advisor_recommendation,
+            "client_selection": p.client_selection,
+            "commission_product": p.group.commission_product,
+            "product_b_quality": p.group.product_b_quality,
+            "quality_signal": p.group.quality_signal,
+            "roundsum_payoff": p.roundsum_payoff,
+            "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
+            "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
+            "client_draw_image": p.group.client_draw_image,
+            "payoff_col_1": payoff_col_1,
+            "payoff_col_2": payoff_col_2,
+        })
+    return rows
+
     
 #FUNCTION
 # note: this function goes at the module level, not inside the WaitPage.
@@ -409,7 +456,6 @@ class IncentivePage2(Page):
         return dict(commission_product=group.commission_product)
 
 class RecommendationPage(Page):
-
     form_model = 'group'
     form_fields = ['recommendation']
 
@@ -420,48 +466,27 @@ class RecommendationPage(Page):
     @staticmethod
     def vars_for_template(player: Player):
         group = player.group
+        window_start, window_end = window_bounds(player.round_number)
 
-        window_start = ((player.round_number - 1) // C.BLOCK_SIZE) * C.BLOCK_SIZE + 1
-        window_end   = min(window_start + C.BLOCK_SIZE - 1, C.NUM_ROUNDS)
-
-        # 只取「上一輪之前」且位於該視窗的回合
         prev_in_window = [
             p for p in player.in_previous_rounds()
             if window_start <= p.round_number <= window_end
         ]
-        # 倒序（新 → 舊）
         prev_in_window.sort(key=lambda r: r.round_number, reverse=True)
 
-        decision_list = []
-        for p in prev_in_window:
-            decision_list.append({
-                "round_number": display_round_no(p.round_number),  # 顯示 1–10
-                "id_in_group": p.id_in_group,
-                "advisor_recommendation": p.advisor_recommendation,
-                "client_selection": p.client_selection,
-                "commission_product": p.group.commission_product,
-                "product_b_quality": p.group.product_b_quality,
-                "quality_signal": p.group.quality_signal,
-                "round_payoff": p.round_payoff,
-                "roundsum_payoff": p.roundsum_payoff,
-                "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
-                "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
-                "producta_image": 'ProductA.png',
-                "partner_payoff": p.partner_payoff,
-                "client_draw_image": p.group.client_draw_image
-            })
+        payoff_col_1_label, payoff_col_2_label = payoff_headers_for(player)
+        decision_list = build_history_rows(player, prev_in_window)
 
         return dict(
             commission_product=group.commission_product,
             decision_list=decision_list,
-            # window_start=window_start,
-            # window_end=window_end,
-            display_round = display_round_no(player.round_number),
-            block_idx = block_index(player.round_number),
-            window_start = window_start,
-            window_end = window_end,
+            payoff_col_1_label=payoff_col_1_label,
+            payoff_col_2_label=payoff_col_2_label,
+            display_round=display_round_no(player.round_number),
+            block_idx=block_index(player.round_number),
+            window_start=window_start,
+            window_end=window_end,
         )
-
 
 class WaitforAdvisor(WaitPage):
     title_text = "請稍候"
@@ -478,47 +503,29 @@ class WaitforAdvisor(WaitPage):
         ]
         history_rounds.sort(key=lambda p: p.round_number, reverse=True)
 
-        history_records = [
-            {
-                "round_number": display_round_no(p.round_number),  # ✅ 顯示 1–10（或 11–20 顯示 1–10）
-                "advisor_recommendation": p.advisor_recommendation,
-                "client_selection": p.client_selection,
-                "commission_product": p.group.commission_product,
-                "product_b_quality": p.group.product_b_quality,
-                "quality_signal": p.group.quality_signal,
-                "round_payoff": p.round_payoff,
-                "roundsum_payoff": p.roundsum_payoff,
-                "partner_payoff": p.partner_payoff,
-                "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
-                "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
-                "producta_image": 'ProductA.png',
-                "client_draw_image": p.group.client_draw_image
-            }
-            for p in history_rounds
-        ]
+        payoff_col_1_label, payoff_col_2_label = payoff_headers_for(player)
+        history_records = build_history_rows(player, history_rounds)
 
         return dict(
             history_records=history_records,
+            payoff_col_1_label=payoff_col_1_label,
+            payoff_col_2_label=payoff_col_2_label,
             window_start=window_start,
             window_end=window_end,
             block_idx=block_index(player.round_number),
         )
 
-
 class SelectionPage(Page):
-
     form_model = 'player'
     form_fields = ['selection_if_A', 'selection_if_B']
-    
+
     @staticmethod
     def is_displayed(player):
         return player.role == C.CLIENT_ROLE
 
     @staticmethod
     def vars_for_template(player: Player):
-        # === 十回合視窗 + 倒序（跟你前面一致） ===
-        window_start = ((player.round_number - 1) // C.BLOCK_SIZE) * C.BLOCK_SIZE + 1
-        window_end   = min(window_start + C.BLOCK_SIZE - 1, C.NUM_ROUNDS)
+        window_start, window_end = window_bounds(player.round_number)
 
         prev_in_window = [
             p for p in player.in_previous_rounds()
@@ -526,31 +533,17 @@ class SelectionPage(Page):
         ]
         prev_in_window.sort(key=lambda r: r.round_number, reverse=True)
 
-        decision_list = []
-        for p in prev_in_window:
-            decision_list.append({
-                "round_number": display_round_no(p.round_number),  # 顯示 1–10
-                "id_in_group": p.id_in_group,
-                "advisor_recommendation": p.advisor_recommendation,
-                "client_selection": p.client_selection,  # 這是已「實現」的選擇
-                "commission_product": p.group.commission_product,
-                "product_b_quality": p.group.product_b_quality,
-                "quality_signal": p.group.quality_signal,
-                "round_payoff": p.round_payoff,
-                "roundsum_payoff": p.roundsum_payoff,
-                "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
-                "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
-                "producta_image": 'ProductA.png',
-                "partner_payoff": p.partner_payoff,
-                "client_draw_image": p.group.client_draw_image
-            })
+        payoff_col_1_label, payoff_col_2_label = payoff_headers_for(player)
+        decision_list = build_history_rows(player, prev_in_window)
 
         return dict(
             decision_list=decision_list,
-            display_round = display_round_no(player.round_number),
-            block_idx = block_index(player.round_number),
-            window_start = window_start,
-            window_end = window_end,
+            payoff_col_1_label=payoff_col_1_label,
+            payoff_col_2_label=payoff_col_2_label,
+            display_round=display_round_no(player.round_number),
+            block_idx=block_index(player.round_number),
+            window_start=window_start,
+            window_end=window_end,
         )
     
 class WaitforClient(WaitPage):
@@ -568,42 +561,25 @@ class WaitforClient(WaitPage):
         ]
         history_rounds.sort(key=lambda p: p.round_number, reverse=True)
 
-        history_records = [
-            {
-                "round_number": display_round_no(p.round_number),
-                "advisor_recommendation": p.advisor_recommendation,
-                "client_selection": p.client_selection,
-                "commission_product": p.group.commission_product,
-                "product_b_quality": p.group.product_b_quality,
-                "quality_signal": p.group.quality_signal,
-                "round_payoff": p.round_payoff,
-                "roundsum_payoff": p.roundsum_payoff,
-                "partner_payoff": p.partner_payoff,
-                "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
-                "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
-                "producta_image": 'ProductA.png',
-                "client_draw_image": p.group.client_draw_image
-            }
-            for p in history_rounds
-        ]
+        payoff_col_1_label, payoff_col_2_label = payoff_headers_for(player)
+        history_records = build_history_rows(player, history_rounds)
 
         return dict(
             history_records=history_records,
+            payoff_col_1_label=payoff_col_1_label,
+            payoff_col_2_label=payoff_col_2_label,
             window_start=window_start,
             window_end=window_end,
             block_idx=block_index(player.round_number),
         )
 
-
 class ResultsWaitPage(WaitPage):    
     after_all_players_arrive = set_payoffs
 
 class HistoryPage(Page):
-
     @staticmethod
     def vars_for_template(player: Player):
-        window_start = ((player.round_number - 1) // C.BLOCK_SIZE) * C.BLOCK_SIZE + 1
-        window_end   = min(window_start + C.BLOCK_SIZE - 1, C.NUM_ROUNDS)
+        window_start, window_end = window_bounds(player.round_number)
 
         rounds_in_window = [
             p for p in player.in_all_rounds()
@@ -611,26 +587,11 @@ class HistoryPage(Page):
         ]
         rounds_in_window.sort(key=lambda r: r.round_number, reverse=True)
 
-        decision_list = []
-        for p in rounds_in_window:
-            decision_list.append({
-                "round_number": display_round_no(p.round_number),
-                "id_in_group": p.id_in_group,
-                "advisor_recommendation": p.advisor_recommendation,
-                "client_selection": p.client_selection,
-                "commission_product": p.group.commission_product,
-                "product_b_quality": p.group.product_b_quality,
-                "quality_signal": p.group.quality_signal,
-                "round_payoff": p.round_payoff,
-                "roundsum_payoff": p.roundsum_payoff,
-                "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
-                "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
-                "producta_image": 'ProductA.png',
-                "partner_payoff": p.partner_payoff,
-                "client_draw_image": p.group.client_draw_image,
-            })
+        payoff_col_1_label, payoff_col_2_label = payoff_headers_for(player)
+        decision_list = build_history_rows(player, rounds_in_window)
 
-        # ✅ 本回合 record：欄位結構跟 decision_list 每列完全一致
+        # 本回合 record：用 player 自己（此 round 的 player 物件）去算 payoff 欄位
+        payoff_col_1, payoff_col_2 = payoffs_for_round(player, player)
         this_round_record = {
             "round_number": display_round_no(player.round_number),
             "quality_image": 'ProductB_high.png' if player.group.product_b_quality == "高品質" else 'ProductB_low.png',
@@ -638,22 +599,21 @@ class HistoryPage(Page):
             "signal_image": 'blue_65.png' if player.group.quality_signal == "$200" else 'red_0.png',
             "advisor_recommendation": player.advisor_recommendation,
             "client_selection": player.client_selection,
-            "round_payoff": player.round_payoff,
-            "partner_payoff": player.partner_payoff,
             "client_draw_image": player.group.client_draw_image,
+            "payoff_col_1": payoff_col_1,
+            "payoff_col_2": payoff_col_2,
         }
 
-
         return dict(
-        decision_list=decision_list,
-        this_round_record=this_round_record,  # ✅ 新增
-        display_round=display_round_no(player.round_number),
-        block_idx=block_index(player.round_number),
-        window_start=window_start,
-        window_end=window_end,
-    )
-
-    
+            decision_list=decision_list,
+            this_round_record=this_round_record,
+            payoff_col_1_label=payoff_col_1_label,
+            payoff_col_2_label=payoff_col_2_label,
+            display_round=display_round_no(player.round_number),
+            block_idx=block_index(player.round_number),
+            window_start=window_start,
+            window_end=window_end,
+        )
     
 class ShuffleWaitPage(WaitPage):
     wait_for_all_groups = True
@@ -671,33 +631,17 @@ class ShuffleWaitPage(WaitPage):
         ]
         rounds_in_window.sort(key=lambda p: p.round_number, reverse=True)
 
-        history_records = [
-            {
-                "round_number": display_round_no(p.round_number),
-                "advisor_recommendation": p.advisor_recommendation,
-                "client_selection": p.client_selection,
-                "commission_product": p.group.commission_product,
-                "product_b_quality": p.group.product_b_quality,
-                "quality_signal": p.group.quality_signal,
-                "round_payoff": p.round_payoff,
-                "roundsum_payoff": p.roundsum_payoff,
-                "partner_payoff": p.partner_payoff,
-                "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
-                "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
-                "producta_image": 'ProductA.png',
-                "client_draw_image": p.group.client_draw_image
-            }
-            for p in rounds_in_window
-        ]
+        payoff_col_1_label, payoff_col_2_label = payoff_headers_for(player)
+        history_records = build_history_rows(player, rounds_in_window)
 
         return dict(
             history_records=history_records,
+            payoff_col_1_label=payoff_col_1_label,
+            payoff_col_2_label=payoff_col_2_label,
             window_start=window_start,
             window_end=window_end,
             block_idx=block_index(player.round_number),
         )
-
-
 
 #PageSequence
 page_sequence = [

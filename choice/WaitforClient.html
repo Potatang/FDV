@@ -23,19 +23,15 @@
         <th style="width: 100px;">推薦人決策</th>
         <th style="width: 100px;">客戶決策</th>
         <th style="width: 100px;">客戶抽球結果</th>
-
-        {% if is_advisor %}
-          <th style="width: 110px;">翻牌成本</th>
-          <th style="width: 180px;">您本回合報酬 (未扣除翻牌成本)</th>
-        {% else %}
-          <th style="width: 100px;">您本回合報酬</th>
-        {% endif %}
-
-      {{ if is_advisor }}
-        <th style="width: 100px;">對方本回合報酬</th>
-      {{ else }}
-        <th style="width: 140px;">對方本回合報酬 (未扣除翻牌成本)</th>
-      {{ endif }}
+        {{ if is_advisor }}
+          <th style="width: 140px;">{{ payoff_col_1_label }}</th>
+          <th style="width: 90px;">翻牌成本</th>
+          <th style="width: 140px;">{{ payoff_col_2_label }}</th>
+        {{ else }}
+          <th style="width: 140px;">{{ payoff_col_1_label }}</th>
+          <th style="width: 140px;">{{ payoff_col_2_label }}</th>
+          <th style="width: 90px;">對方翻牌成本</th>
+        {{ endif }}
       </tr>
     </thead>
 
@@ -49,13 +45,15 @@
           <td>產品{{ r.advisor_recommendation }}</td>
           <td>產品{{ r.client_selection }}</td>
           <td><img src="{{ static r.client_draw_image }}" width="40px"></td>
-
-          {% if is_advisor %}
-            <td>{{ r.flip_cost }}</td>
-          {% endif %}
-
-          <td>{{ r.round_payoff_display }}</td>
-          <td>{{ r.partner_payoff_display }}</td>
+        {{ if is_advisor }}
+          <td>{{ r.payoff_col_1 }}</td>
+          <td>{{ r.flip_cost }}</td>
+          <td>{{ r.payoff_col_2 }}</td>
+        {{ else }}
+          <td>{{ r.payoff_col_1 }}</td>
+          <td>{{ r.payoff_col_2 }}</td>
+          <td>不顯示</td>
+        {{ endif }}
         </tr>
       {% endfor %}
     </tbody>

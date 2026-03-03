@@ -92,8 +92,8 @@
             <th style="width: 100px;">推薦人決策</th>
             <th style="width: 100px;">客戶決策</th>
             <th style="width: 100px;">客戶抽球結果</th>
-            <th style="width: 100px;">您本回合報酬</th>
-            <th style="width: 120px;">對方本回合報酬</th>
+            <th style="width: 140px;">{{ payoff_col_1_label }}</th>
+            <th style="width: 140px;">{{ payoff_col_2_label }}</th>
         </tr>
         </thead>
         <tbody>
@@ -106,8 +106,8 @@
             <td>產品{{ record.advisor_recommendation }}</td>
             <td>產品{{ record.client_selection }}</td>
             <td><img src="{{ static record.client_draw_image }}" width="40px"></td>
-            <td>{{ record.round_payoff }}</td>
-            <td>{{ record.partner_payoff }}</td>
+            <td>{{ record.payoff_col_1 }}</td>
+            <td>{{ record.payoff_col_2 }}</td>
             </tr>
         {{ endfor }}
         </tbody>

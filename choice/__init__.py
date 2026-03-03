@@ -261,6 +261,9 @@ def set_payoffs(group: Group):
             p.gross_payoff = cu(payoff)  # client 顯示/實際相同
             p.flip_cost = cu(0)
 
+        # ✅ 必須補：把 payoff 寫回 round_payoff
+        p.round_payoff = cu(payoff)
+
         if p.round_number == 1:
             p.roundsum_payoff = p.round_payoff
         else:
@@ -274,117 +277,76 @@ def set_payoffs(group: Group):
         partner = p.get_others_in_group()[0] if p.get_others_in_group() else None
         p.partner_payoff = partner.round_payoff if partner else None
 
-def build_history_records(player: Player, rounds='previous'):
-    """
-    rounds: 'previous' -> player.in_previous_rounds()
-           'all'      -> player.in_all_rounds()
-    """
-    if rounds == 'all':
-        ps = player.in_all_rounds()
+def payoff_headers_for(viewer: Player):
+    # viewer = 目前正在看 table 的那個人
+    if viewer.role == C.ADVISOR_ROLE:
+        return ("推薦人推薦產品的報酬", "客戶選擇產品的報酬")
     else:
-        ps = player.in_previous_rounds()
+        return ("客戶選擇產品的報酬", "推薦人推薦產品的報酬")
 
-    def get_advisor(p_in_round: Player):
-        g = p_in_round.group
-        return next(pp for pp in g.get_players() if pp.role == C.ADVISOR_ROLE)
 
-    records = []
-    for p in ps:
-        adv = get_advisor(p)
-        partner = p.get_others_in_group()[0] if p.get_others_in_group() else None
+def roles_in_round(p_in_round: Player):
+    """給任何一個 round 裡的 player，回傳 (advisor_player, client_player)。"""
+    ps = p_in_round.group.get_players()
+    advisor = next((pp for pp in ps if pp.role == C.ADVISOR_ROLE), None)
+    client  = next((pp for pp in ps if pp.role == C.CLIENT_ROLE), None)
+    return advisor, client
 
-        records.append({
+
+def payoff_and_flip_for_round(viewer: Player, p_in_round: Player):
+    """
+    回傳 (payoff_col_1, payoff_col_2, flip_cost)
+    - payoff 使用 gross_payoff（未扣翻牌成本）作為顯示
+    - flip_cost 永遠顯示推薦人該回合 flip_cost（client 看也要顯示）
+    """
+    advisor, client = roles_in_round(p_in_round)
+
+    flip_cost = advisor.flip_cost if advisor else None
+
+    if viewer.role == C.ADVISOR_ROLE:
+        # advisor view: (advisor gross, client gross, flip_cost 放中間由模板決定位置)
+        return (
+            advisor.gross_payoff if advisor else None,
+            client.gross_payoff if client else None,
+            flip_cost,
+        )
+    else:
+        # client view: (client gross, advisor gross, flip_cost)
+        return (
+            client.gross_payoff if client else None,
+            advisor.gross_payoff if advisor else None,
+            flip_cost,
+        )
+
+
+def build_history_rows(viewer: Player, rounds_list):
+    """
+    rounds_list 必須是 Player list（例如 player.in_previous_rounds() / in_all_rounds()）
+    回傳 list[dict]，每列都含 payoff_col_1/2 + flip_cost，模板可依角色排欄位順序。
+    """
+    rows = []
+    for p in rounds_list:
+        payoff_col_1, payoff_col_2, flip_cost = payoff_and_flip_for_round(viewer, p)
+
+        rows.append({
             "round_number": p.round_number,
-            "id_in_group": getattr(p, "id_in_group", None),
             "advisor_recommendation": p.advisor_recommendation,
             "client_selection": p.client_selection,
             "commission_product": p.group.commission_product,
             "product_b_quality": p.group.product_b_quality,
             "quality_signal": p.group.quality_signal,
-
-            # ✅ 顯示用 payoff（advisor=未扣翻牌成本；client=原本）
-            "round_payoff_display": p.gross_payoff,
-            "roundsum_payoff": p.roundsum_payoff,
-
-            # ✅ partner 顯示用 payoff
-            "partner_payoff_display": partner.gross_payoff if partner else None,
-
-            # ✅ 翻牌成本（每回合都帶，但 template 只給 advisor 看）
-            "flip_cost": adv.flip_cost,
-
             "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
             "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
-            "producta_image": 'ProductA.png',
             "client_draw_image": p.group.client_draw_image,
+
+            # ✅ 三個關鍵欄位
+            "payoff_col_1": payoff_col_1,
+            "payoff_col_2": payoff_col_2,
+            "flip_cost": flip_cost,
         })
 
-    records.sort(key=lambda r: r["round_number"], reverse=True)
-    return records
-
-# def set_payoffs(group: Group):
-#     subsession = group.subsession
-
-#     # === 先根據推薦把客戶的實現選擇決定出來（strategy method）===
-#     players = group.get_players()
-#     advisor = next((p for p in players if p.role == C.ADVISOR_ROLE), None)
-#     client  = next((p for p in players if p.role == C.CLIENT_ROLE), None)
-
-#     if advisor and client:
-#         # advisor_recommendation 由 RecommendationPage 決定：group.recommendation
-#         realized_selection = client.selection_if_A if group.recommendation == 'A' else client.selection_if_B
-
-#         # 設定 group 與雙方 player 的當回合「行為」紀錄
-#         group.selection = realized_selection
-#         advisor.advisor_recommendation = group.recommendation
-#         client.client_selection = realized_selection
-
-#     # === 以下維持你原本的計算（含卡片費）===
-#     for p in group.get_players():
-#         p.advisor_recommendation = group.recommendation
-#         p.client_selection = group.selection
-
-#         if p.role == C.ADVISOR_ROLE:
-#             payoff = C.WAGE
-#             # 小心：commission_product 是 '產品A'/'產品B'，recommendation 是 'A'/'B'
-#             if p.advisor_recommendation == group.commission_product.replace("產品", ""):
-#                 payoff += C.COMMISSION
-
-#             # 依是否改色計費（最多 2 邊）
-#             left_once  = 1 if getattr(p, "left_changed", 0)  else 0
-#             right_once = 1 if getattr(p, "right_changed", 0) else 0
-#             fee_sides = left_once + right_once
-#             payoff -= C.CARD_CLICK_FEE * fee_sides
-
-#         elif p.role == C.CLIENT_ROLE:
-#             payoff = 0
-#             rnd = random.random()
-#             if p.client_selection == 'A':
-#                 if rnd <= 0.6:
-#                     payoff += C.GOODBALL
-#             elif p.client_selection == 'B':
-#                 if group.product_b_quality == '低品質':
-#                     if rnd <= 0.4:
-#                         payoff += C.GOODBALL
-#                 elif group.product_b_quality == '高品質':
-#                     if rnd <= 0.8:
-#                         payoff += C.GOODBALL
-
-#         p.round_payoff = cu(payoff)
-
-#         if p.round_number == 1:
-#             p.roundsum_payoff = p.round_payoff
-#         else:
-#             previous_round = p.in_round(p.round_number - 1)
-#             p.roundsum_payoff = previous_round.roundsum_payoff + p.round_payoff
-
-#         # 對應你原本的命名
-#         p.participant.choice_payoff = p.roundsum_payoff
-
-#     # 記錄對手報酬（用於歷史顯示）
-#     for p in group.get_players():
-#         partner = p.get_others_in_group()[0] if p.get_others_in_group() else None
-#         p.partner_payoff = partner.round_payoff if partner else None
-
+    rows.sort(key=lambda r: r["round_number"], reverse=True)
+    return rows
 
 #Pages
     
@@ -576,12 +538,15 @@ class RecommendationPage(Page):
     @staticmethod
     def vars_for_template(player: Player):
         group = player.group
-        history_records = build_history_records(player, rounds='previous')
+
+        payoff_col_1_label, payoff_col_2_label = payoff_headers_for(player)
+        history_records = build_history_rows(player, player.in_previous_rounds())
 
         return dict(
-            commission_product=group.commission_product,
             history_records=history_records,
-            is_advisor=True,   # 這頁一定是 advisor
+            payoff_col_1_label=payoff_col_1_label,
+            payoff_col_2_label=payoff_col_2_label,
+            is_advisor=(player.role == C.ADVISOR_ROLE),
         )
 
 
@@ -592,9 +557,12 @@ class WaitforAdvisor(WaitPage):
 
     @staticmethod
     def vars_for_template(player: Player):
-        history_records = build_history_records(player, rounds='previous')
+        payoff_col_1_label, payoff_col_2_label = payoff_headers_for(player)
+        history_records = build_history_rows(player, player.in_previous_rounds())
         return dict(
             history_records=history_records,
+            payoff_col_1_label=payoff_col_1_label,
+            payoff_col_2_label=payoff_col_2_label,
             is_advisor=(player.role == C.ADVISOR_ROLE),
         )
 
@@ -610,12 +578,14 @@ class SelectionPage(Page):
     @staticmethod
     def vars_for_template(player: Player):
         group = player.group
-        history_records = build_history_records(player, rounds='previous')
+        payoff_col_1_label, payoff_col_2_label = payoff_headers_for(player)
+        history_records = build_history_rows(player, player.in_previous_rounds())
 
         return dict(
-            recommendation=group.recommendation,
             history_records=history_records,
-            is_advisor=False,   # 這頁一定是 client
+            payoff_col_1_label=payoff_col_1_label,
+            payoff_col_2_label=payoff_col_2_label,
+            is_advisor=(player.role == C.ADVISOR_ROLE),
         )
 
 class WaitforClient(WaitPage):
@@ -625,9 +595,12 @@ class WaitforClient(WaitPage):
 
     @staticmethod
     def vars_for_template(player: Player):
-        history_records = build_history_records(player, rounds='previous')
+        payoff_col_1_label, payoff_col_2_label = payoff_headers_for(player)
+        history_records = build_history_rows(player, player.in_previous_rounds())
         return dict(
             history_records=history_records,
+            payoff_col_1_label=payoff_col_1_label,
+            payoff_col_2_label=payoff_col_2_label,
             is_advisor=(player.role == C.ADVISOR_ROLE),
         )
 
@@ -639,48 +612,12 @@ class HistoryPage(Page):
 
     @staticmethod
     def vars_for_template(player: Player):
+        payoff_col_1_label, payoff_col_2_label = payoff_headers_for(player)
 
-        def advisor_in_round(p_in_round: Player):
-            g = p_in_round.group
-            return next(pp for pp in g.get_players() if pp.role == C.ADVISOR_ROLE)
+        history_records = build_history_rows(player, player.in_all_rounds())
 
-        def display_payoff(p_in_round: Player):
-            # 顯示用：advisor 用 gross(50/65)，client 用 gross(=實際)
-            return p_in_round.gross_payoff
-
-        def display_partner_payoff(p_in_round: Player):
-            partner = p_in_round.get_others_in_group()[0]
-            return partner.gross_payoff
-
-        history_records = []
-        for p in player.in_all_rounds():
-            adv = advisor_in_round(p)
-
-            history_records.append({
-                "round_number": p.round_number,
-                "id_in_group": p.id_in_group,
-                "advisor_recommendation": p.advisor_recommendation,
-                "client_selection": p.client_selection,
-                "commission_product": p.group.commission_product,
-                "product_b_quality": p.group.product_b_quality,
-                "quality_signal": p.group.quality_signal,
-                "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
-                "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
-                "producta_image": 'ProductA.png',
-                "client_draw_image": p.group.client_draw_image,
-
-                # ✅ 新增：翻牌成本（推薦人）
-                "flip_cost": adv.flip_cost,
-
-                # ✅ 顯示用 payoff（你要的 50/65）
-                "round_payoff_display": display_payoff(p),
-
-                # ✅ 顯示用 partner payoff（若 partner 是推薦人，也會顯示 50/65）
-                "partner_payoff_display": display_partner_payoff(p),
-            })
-
-        history_records.sort(key=lambda r: r["round_number"], reverse=True)
-
+        # 本回合 record：用同一個 helper
+        payoff_col_1, payoff_col_2, flip_cost = payoff_and_flip_for_round(player, player)
         this_round_record = {
             "round_number": player.round_number,
             "quality_image": 'ProductB_high.png' if player.group.product_b_quality == "高品質" else 'ProductB_low.png',
@@ -690,15 +627,16 @@ class HistoryPage(Page):
             "client_selection": player.client_selection,
             "client_draw_image": player.group.client_draw_image,
 
-            # ✅ 本回合：翻牌成本與顯示用 payoff
-            "flip_cost": advisor_in_round(player).flip_cost,
-            "round_payoff_display": player.gross_payoff,
-            "partner_payoff_display": player.get_others_in_group()[0].gross_payoff,
+            "payoff_col_1": payoff_col_1,
+            "payoff_col_2": payoff_col_2,
+            "flip_cost": flip_cost,
         }
 
         return dict(
             history_records=history_records,
             this_round_record=this_round_record,
+            payoff_col_1_label=payoff_col_1_label,
+            payoff_col_2_label=payoff_col_2_label,
             is_advisor=(player.role == C.ADVISOR_ROLE),
         )
 
@@ -710,9 +648,12 @@ class ShuffleWaitPage(WaitPage):
 
     @staticmethod
     def vars_for_template(player: Player):
-        history_records = build_history_records(player, rounds='all')
+        payoff_col_1_label, payoff_col_2_label = payoff_headers_for(player)
+        history_records = build_history_rows(player, player.in_previous_rounds())
         return dict(
             history_records=history_records,
+            payoff_col_1_label=payoff_col_1_label,
+            payoff_col_2_label=payoff_col_2_label,
             is_advisor=(player.role == C.ADVISOR_ROLE),
         )
 
