@@ -31,7 +31,7 @@ class Player(BasePlayer):
         widget=widgets.RadioSelect
     )
     age = models.IntegerField(label="請問您的年齡為?", min=10, max=120)
-    ethnicity = models.LongStringField(label="請問您的族裔為?")
+    ethnicity = models.LongStringField(label="請問您的族裔為? (範例：亞洲人、白人、黑人、拉丁裔等)", blank=True)
 
     # Difficulty / feedback
     difficulty = models.StringField(

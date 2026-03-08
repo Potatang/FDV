@@ -113,7 +113,7 @@ class Player(BasePlayer):
     #         return 'IF'
         
     question1 = models.StringField(
-        label='1. 如何決定本回合兩則資訊的實際呈現順序？？',
+        label='1. 如何決定本回合兩則資訊的實際呈現順序？',
         choices=[
             ('A', '(A) 由推薦人自行選定一張卡片作為結果'),
             ('B', '(B) 由電腦從四張卡片中隨機抽出一張並依其顏色決定順序'),

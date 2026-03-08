@@ -43,7 +43,6 @@ class Group(BaseGroup):
 
 
 class Player(BasePlayer):
-    showA = models.BooleanField(initial = False)
     show_ai_first = models.BooleanField(initial = False)
     show_bi_first = models.BooleanField(initial = False)
 
@@ -62,7 +61,6 @@ import random
 
 def creating_session(subsession: Subsession):
     for p in subsession.get_players():
-        p.showA = random.choice([True, False])
         p.show_ai_first = random.choice([True, False])
         p.show_bi_first = random.choice([True, False])
 
@@ -241,24 +239,19 @@ class BIPagecopy(Page):
     @staticmethod
     def is_displayed(player):
         return not player.show_bi_first    
-    # @staticmethod
-    # def is_displayed(player):
-    #     return not player.showA and not player.show_bi_first
-    
-class ResultsWaitPage(WaitPage):    
-    pass
-#     after_all_players_arrive = set_payoffs
 
-class Results(Page):
-    pass
+class ResultsWaitPage(WaitPage):
+    wait_for_all_groups = True
+    body_text = "請稍候，正在等待所有參與者完成本部分。"
 
 
-page_sequence = [Instruction4Page,
-                AIPage,
-                AQPage,
-                AIPagecopy,
-                BIPage,
-                BQPage,
-                BIPagecopy,
-                # Results
-                ]
+page_sequence = [
+    Instruction4Page,
+    AIPage,
+    AQPage,
+    AIPagecopy,
+    BIPage,
+    BQPage,
+    BIPagecopy,
+    ResultsWaitPage,
+]

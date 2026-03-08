@@ -255,7 +255,7 @@ def build_explanation(player: Player) -> str:
     if player.role == C.ADVISOR_ROLE:
         if player.round_payoff > 0:
             return (
-                f"您在本回合被抽中為推薦人。先前部分被抽中的那一次您推薦了產品 Y，"
+                f"本回合您的組別被抽中為支付組。先前部分被抽中的那一次您推薦了產品 Y，"
                 f"且本回合從產品中抽出的球為黃色球，因此您在本回合獲得 15 法幣。"
             )
         else:
@@ -265,12 +265,12 @@ def build_explanation(player: Player) -> str:
                 reason = "本回合從產品中抽出的球不是黃色球"
             else:
                 reason = "支付條件未同時滿足"
-            return f"您在本回合被抽中為推薦人，但由於{reason}，因此本回合您的報酬為 0 法幣。"
+            return f"本回合您的組別被抽中為支付組，但由於{reason}，因此本回合您的報酬為 0 法幣。"
 
     # client
     if player.round_payoff > 0:
         return (
-            f"您在本回合被抽中為客戶。由於與您配對的推薦人在先前被抽中的那次推薦中選擇產品 Y，"
+            f"本回合您的組別被抽中為支付組。由於與您配對的推薦人在先前被抽中的那次推薦中選擇產品 Y，"
             f"且本回合他抽到黃色球，同時您在本回合從自己的產品中抽到綠球，因此您在本回合獲得 200 法幣。"
         )
     else:
@@ -280,7 +280,7 @@ def build_explanation(player: Player) -> str:
             reason = "您本回合從產品中抽出的球不是綠球"
         else:
             reason = "支付條件未同時滿足"
-        return f"您在本回合被抽中為客戶，但由於{reason}，因此本回合您的報酬為 0 法幣。"
+        return f"本回合您的組別被抽中為支付組，但由於{reason}，因此本回合您的報酬為 0 法幣。"
 
 class InstructionPage(Page):
     @staticmethod
@@ -310,8 +310,8 @@ class PayoffOnePage(Page):
         rec_is_Y, x_case = _bonus_flags_for_round(advisor_participant, player.round_number)
         productX_image = f'ProductX{x_case}.png'
 
-        # round title：你要的「第一部分 / 第五部分」
-        title = "第一部分報酬" if player.round_number == 1 else "第五部分報酬"
+        # round title：你要的「第一部分 / 第六部分」
+        title = "第一部分報酬" if player.round_number == 1 else "第六部分報酬"
 
         return dict(
             page_title=title,
