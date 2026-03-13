@@ -85,15 +85,15 @@
     <table class="table table-sm">
         <thead>
         <tr>
-            <th style="width: 50px;">回合</th>
-            <th style="width: 110px;">產品B實際品質</th>
-            <th style="width: 100px;">推薦人看到的抽球結果資訊</th>
-            <th style="width: 100px;">推薦人看到的產品指派資訊</th>
-            <th style="width: 100px;">推薦人決策</th>
-            <th style="width: 100px;">客戶決策</th>
-            <th style="width: 100px;">客戶抽球結果</th>
-            <th style="width: 140px;">{{ payoff_col_1_label }}</th>
-            <th style="width: 140px;">{{ payoff_col_2_label }}</th>
+          <th style="width: 40px;">回合</th>
+          <th style="width: 120px;">產品 B 實際品質</th>
+          <th style="width: 100px;">推薦人看到的抽球結果資訊</th>
+          <th style="width: 100px;">推薦人看到的產品指派資訊</th>
+          <th style="width: 90px;">推薦人決定</th>
+          <th style="width: 90px;">客戶決定</th>
+          <th style="width: 100px;">客戶抽球結果</th>
+          <th style="width: 120px;">{{ payoff_col_1_label }}</th>
+          <th style="width: 120px;">{{ payoff_col_2_label }}</th>
         </tr>
         </thead>
         <tbody>
@@ -103,8 +103,8 @@
             <td><img src="{{ static record.quality_image }}" width="60px"></td>
             <td><img src="{{ static record.signal_image }}" width="40px"></td>
             <td>{{ record.commission_product }}</td>
-            <td>產品{{ record.advisor_recommendation }}</td>
-            <td>產品{{ record.client_selection }}</td>
+            <td>產品 {{ record.advisor_recommendation }}</td>
+            <td>產品 {{ record.client_selection }}</td>
             <td><img src="{{ static record.client_draw_image }}" width="40px"></td>
             <td>{{ record.payoff_col_1 }}</td>
             <td>{{ record.payoff_col_2 }}</td>
