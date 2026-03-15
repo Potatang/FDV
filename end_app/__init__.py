@@ -27,11 +27,36 @@ class Player(BasePlayer):
     # Demographics
     gender = models.StringField(
         label="請問您的生理性別為?",
-        choices=[("Male", "男性"), ("Female", "女性"), ("Other", "不便透露")],
-        widget=widgets.RadioSelect
+        choices=[
+            ("Male", "男性"),
+            ("Female", "女性"),
+            ("Other", "其他"),
+            ("Prefer_not_to_say", "不便透露"),
+        ],
     )
-    age = models.IntegerField(label="請問您的年齡為?", min=10, max=120)
-    ethnicity = models.LongStringField(label="請問您的族裔為? (範例：亞洲人、白人、黑人、拉丁裔等)", blank=True)
+
+    age = models.IntegerField(
+        label="請問您的年齡為?",
+        choices=[[i, str(i)] for i in range(18, 41)],
+    )
+
+    ethnicity = models.StringField(
+        label="請問您的族群為?",
+        choices=[
+            ("閩南", "閩南"),
+            ("客家", "客家"),
+            ("外省", "外省"),
+            ("原住民", "原住民"),
+            ("新住民", "新住民"),
+            ("其他", "其他"),
+            ("不便透露", "不便透露"),
+        ],
+    )
+
+    ethnicity_other = models.StringField(
+        label="若您選擇「其他」，請填寫：",
+        blank=True
+    )
 
     # Difficulty / feedback
     difficulty = models.StringField(
@@ -39,14 +64,23 @@ class Player(BasePlayer):
         choices=[("Yes", "有"), ("No", "沒有")],
         widget=widgets.RadioSelect
     )
-    unclear = models.LongStringField(label="如果有，請問哪裡不清楚?", blank=True)
-    comments = models.LongStringField(label="請在此留下任何意見或建議（可選填）。", blank=True)
+
+    unclear = models.LongStringField(
+        label="如果有，請問哪裡不清楚?",
+        blank=True
+    )
+
+    comments = models.LongStringField(
+        label="請在此留下任何意見或建議（可選填）。",
+        blank=True
+    )
 
     difference = models.StringField(
-        label="在本場實驗抽球的過程中，請問您對於\"參加者親自抽取\"與\"電腦代抽\"這兩者是否有差別？",
+        label='在本場實驗抽球的過程中，請問您對於"參加者親自抽取"與"電腦代抽"這兩者是否有差別？',
         choices=[("有差別", "有差別"), ("沒有差別", "沒有差別")],
         widget=widgets.RadioSelect
     )
+
     difference_reason = models.LongStringField(
         label="請簡單說明您認為兩者有／沒有差別的主要原因或考量是什麼？"
     )
@@ -139,7 +173,17 @@ class DemographicsPage(Page):
     @staticmethod
     def get_form_fields(player):
         role = 'advisor' if bool(player.participant.who) else 'client'
-        base = ['gender', 'age', 'ethnicity', 'difficulty', 'unclear', 'comments', 'difference', 'difference_reason']
+        base = [
+            'gender',
+            'age',
+            'ethnicity',
+            'ethnicity_other',
+            'difficulty',
+            'unclear',
+            'comments',
+            'difference',
+            'difference_reason',
+        ]
 
         if role == 'advisor':
             base += ['advisor_decision_rule', 'advisor_decision_reason']
@@ -147,6 +191,14 @@ class DemographicsPage(Page):
             base += ['client_follow_advice', 'client_follow_reason']
 
         return base
+
+    @staticmethod
+    def error_message(player, values):
+        if values.get('ethnicity') == '其他' and not (values.get('ethnicity_other') or '').strip():
+            return '若您選擇「其他」，請填寫您的族群。'
+
+        if values.get('difficulty') == 'Yes' and not (values.get('unclear') or '').strip():
+            return '若您選擇「有」，請說明哪裡不清楚。'
 
     @staticmethod
     def vars_for_template(player):

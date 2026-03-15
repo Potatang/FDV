@@ -1,21 +1,50 @@
 {% load static %}
 {{ block title }} 電腦從產品 B 中抽出的球 {{ endblock }}
+
 {{ block content }}
-{{ load static }}
-    <p>
-        本回合中，電腦從產品 B 中抽出的球是：<img src="{{ static image_path }}" width="80px" />
-    </p>
-    <br>
-    <br>
-    <p>
-        對應到上述情境，並依據您在該情境中的決策，您在本部分獲得的報酬是新台幣{{ qualitypayoff_twd }}元。
-    </p>
 
+<p>
+    本回合中，電腦從產品 B 中抽出的球是：
+    <img src="{% static image_path %}" width="80px" />
+</p>
 
-{{ formfields }}
 <br>
 
-<!-- 中文的下一頁按鈕 -->
+<p>
+    本部分是根據您在
+    {% if payoff_source == "blue" %}
+        藍球情境
+    {% else %}
+        紅球情境
+    {% endif %}
+    中的回答來決定支付。
+</p>
+
+<p>
+    電腦抽中第 <strong>{{ selected_row_index }}</strong> 行
+</p>
+
+{% if selected_action == "lottery" %}
+    <p>
+        在這一行中，您選擇的是：<strong>福袋</strong>
+    </p>
+{% elif selected_action == "prediction" %}
+    <p>
+        在這一行中，您選擇的是：<strong>預測</strong>
+    </p>
+    <p>
+        您填寫的數字為：<strong>{{ selected_belief }}%</strong>
+    </p>
+{% endif %}
+
+<br>
+
+<p>
+    對應到上述情境，並依據您在該情境中的決策，您在本部分獲得的報酬是新台幣 {{ qualitypayoff_twd }} 元。
+</p>
+
+<br>
+
 <button class="otree-btn-next btn btn-primary">下一頁</button>
 
 {{ endblock }}

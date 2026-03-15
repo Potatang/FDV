@@ -4,30 +4,28 @@
 <style>
   .step { display: none; margin-top: 18px; }
   .step.shown { display: block; }
-  .otree-btn-next { display: none !important; } /* 藏預設 Next */
+  .otree-btn-next { display: none !important; }
 </style>
 
-
-<!-- ✅ 角色顯示：放在 step1 前面 -->
 <div class="role-badge">
-  您在本回合的身分：{{ player.role }}
+  您在本回合的角色：{{ player.role }}
 </div>
 
 <div id="step1" class="step shown">
-  <h3>步驟 1：決定產品 Y 的品質</h3>
+  <h3>步驟 1：電腦擲一枚公正硬幣決定產品 Y 的品質</h3>
   <p>本回合產品 Y 的品質為：<b>{{ player.group.product_b_quality }}</b></p>
   <img src="{% static product_image %}" style="width:240px;">
 </div>
 
 <div id="step2" class="step">
-  <h3>步驟 2：推薦人抽球結果</h3>
-  <p>推薦人抽到：<b>{{ player.group.advisor_ball_color }}</b></p>
+  <h3>步驟 2：電腦從產品 Y 中隨機抽出一顆球，做為推薦人的球色</h3>
+  <p>電腦抽出：<b>{{ player.group.advisor_ball_color }}</b></p>
   <img src="{% static advisor_ball_image %}" style="width:80px;">
 </div>
 
 <div id="step3" class="step">
-  <h3>步驟 3：客戶被分配到的產品</h3>
-  <p>客戶本回合使用的產品：<b>{{ player.group.client_product }}</b></p>
+  <h3>步驟 3：電腦根據第一部分的表一選出產品 X 或 Y 給客戶</h3>
+  <p>選出的產品為：<b>產品 {{ player.group.client_product }}</b></p>
 
   {% if player.group.client_product == 'X' %}
     <img src="{% static productX_image %}" style="width:240px;">
@@ -38,27 +36,28 @@
 </div>
 
 <div id="step4" class="step">
-  <h3>步驟 4：客戶抽球結果與本回合報酬</h3>
+  <h3>步驟 4：電腦從步驟三選出的產品中隨機抽出一顆球，做為客戶的球色</h3>
   <p>客戶抽到：<b>{{ player.group.client_ball_color }}</b></p>
   <img src="{% static client_ball_image %}" style="width:80px;">
 
-  <hr>
+</div>
 
+<div id="step5" class="step">
+  <h3>步驟 5：本回合報酬</h3>
+  <p style="margin-top:12px;"><b>說明：</b>{{ explanation }}</p>
   <p><b>本回合報酬：</b>{{ round_payoff }} 法幣</p>
   <p><b>累積報酬（至本回合）：</b>{{ total_payoff }} 法幣</p>
-
-  <p style="margin-top:12px;"><b>說明：</b>{{ explanation }}</p>
 </div>
 
 <div style="margin-top:22px;">
-<button type="button" class="btn btn-primary" id="btn" style="float:right">下一步</button>
-{{ next_button }}
+  <button type="button" class="btn btn-primary" id="btn" style="float:right">下一步</button>
+  {{ next_button }}
 </div>
 
 <script>
   (function () {
-    const steps = ["step1", "step2", "step3", "step4"];
-    let idx = 0; // step1 已顯示，所以 idx=0 代表目前已開到 step1
+    const steps = ["step1", "step2", "step3", "step4", "step5"];
+    let idx = 0;
 
     const btn = document.getElementById("btn");
 
@@ -78,6 +77,5 @@
     });
   })();
 </script>
-
 
 {% endblock %}

@@ -43,12 +43,12 @@ class Subsession(BaseSubsession):
 
 class Group(BaseGroup):
     recommendation = models.StringField(
-        choices=[['A', '產品A'], ['B', '產品B']],
+        choices=[['A', '產品 A'], ['B', '產品 B']],
         widget=widgets.RadioSelect,
         label="我推薦：",
     )
     selection = models.StringField(
-        choices=[['A', '產品A'], ['B', '產品B']],
+        choices=[['A', '產品 A'], ['B', '產品 B']],
         widget=widgets.RadioSelect,
         label="我選擇：",
     )
@@ -67,26 +67,30 @@ class Player(BasePlayer):
     # advisor_preference = models.StringField(blank=True)
     client_selection = models.StringField(blank=True)
     selection_if_A = models.StringField(
-        choices=[['A','產品A'], ['B','產品B']],
+        choices=[['A','產品 A'], ['B','產品 B']],
         widget=widgets.RadioSelect,
-        label='1. 如果這回合推薦人推薦「產品A」，你會選擇哪一個產品？'
+        label='1. 如果這回合推薦人推薦「產品 A」，你會選擇哪一個產品？'
     )
     selection_if_B = models.StringField(
-        choices=[['A','產品A'], ['B','產品B']],
+        choices=[['A','產品 A'], ['B','產品 B']],
         widget=widgets.RadioSelect,
-        label='2. 如果這回合推薦人推薦「產品B」，你會選擇哪一個產品？'
+        label='2. 如果這回合推薦人推薦「產品 B」，你會選擇哪一個產品？'
     )
-    round_payoff = models.CurrencyField(initial=0)
-    roundsum_payoff = models.CurrencyField(initial=0)
+
+    round_payoff = models.CurrencyField(initial=0)          # 該回合原始實現報酬
+    paid_round_payoff = models.CurrencyField(initial=0)     # 真正計入支付的報酬
+    roundsum_payoff = models.CurrencyField(initial=0)       # 累積「實際支付」報酬
     partner_payoff = models.CurrencyField(initial=0)
+
+    is_selected_for_payment = models.BooleanField(initial=False)  # client 該回合是否被抽中計酬
 
     # --- Player fields ---
     left_changed  = models.IntegerField(initial=0)   # 左卡是否不同於原色（0/1）
     right_changed = models.IntegerField(initial=0)   # 右卡是否不同於原色（0/1})
 
     choice_1 = models.StringField(choices=['Quality','Incentive'], initial='Incentive')  # 左
-    choice_2 = models.StringField(choices=['Quality','Incentive','Blank'], initial='Blank')   # 中左
-    choice_3 = models.StringField(choices=['Quality','Incentive','Blank'], initial='Blank')   # 中右
+    choice_2 = models.StringField(choices=['Quality','Incentive'], blank=True)
+    choice_3 = models.StringField(choices=['Quality','Incentive'], blank=True)
     choice_4 = models.StringField(choices=['Quality','Incentive'], initial='Quality')    # 右
     # 存「這回合」抽到的資訊順序：'IF' 或 'QF'
     treatment_draw = models.StringField(blank=True)
@@ -194,9 +198,20 @@ def creating_session(subsession: Subsession):
     # else:
     #     subsession.quality_signal = "$0"
 
-def set_payoffs(group: Group):
-    subsession = group.subsession
+def select_paid_rounds_for_client(player: Player):
+    """
+    對 client 隨機抽出 10 回合中的 5 回合作為計酬回合，
+    並把結果寫進每一回合的 is_selected_for_payment。
+    """
+    if player.role != C.CLIENT_ROLE:
+        return
 
+    selected_round_numbers = random.sample(range(1, C.NUM_ROUNDS + 1), 5)
+
+    for p in player.in_all_rounds():
+        p.is_selected_for_payment = (p.round_number in selected_round_numbers)
+
+def set_payoffs(group: Group):
     # === 先根據推薦把客戶的實現選擇決定出來（strategy method）===
     players = group.get_players()
     advisor = next((p for p in players if p.role == C.ADVISOR_ROLE), None)
@@ -208,7 +223,7 @@ def set_payoffs(group: Group):
         advisor.advisor_recommendation = group.recommendation
         client.client_selection = realized_selection
 
-    # === payoff 計算 ===
+    # === 先算本回合原始 payoff ===
     for p in group.get_players():
         p.advisor_recommendation = group.recommendation
         p.client_selection = group.selection
@@ -217,36 +232,35 @@ def set_payoffs(group: Group):
         # Advisor payoff
         # -------------------------
         if p.role == C.ADVISOR_ROLE:
-            # (A) gross：未扣翻牌成本
             gross = C.WAGE
-            if p.advisor_recommendation == group.commission_product.replace("產品", ""):
+            if p.advisor_recommendation == group.commission_product.replace("產品 ", ""):
                 gross += C.COMMISSION
 
-            # (B) flip cost
-            left_once  = 1 if getattr(p, "left_changed", 0)  else 0
+            left_once  = 1 if getattr(p, "left_changed", 0) else 0
             right_once = 1 if getattr(p, "right_changed", 0) else 0
             fee_sides = left_once + right_once
             flip_fee = C.CARD_CLICK_FEE * fee_sides
 
-            # (C) net：實際計入總報酬（扣掉翻牌成本）
             net = gross - flip_fee
 
             p.gross_payoff = cu(gross)
             p.flip_cost = cu(flip_fee)
-            payoff = net
+
+            # advisor 每回合都支付
+            p.round_payoff = cu(net)
+            p.paid_round_payoff = p.round_payoff
+            p.is_selected_for_payment = True
 
         # -------------------------
-        # Client payoff (no flip cost)
+        # Client payoff
         # -------------------------
         elif p.role == C.CLIENT_ROLE:
             payoff = 0
             rnd = random.random()
-
-            won = False  # ✅ 新增：是否抽到 $200
+            won = False
 
             if p.client_selection == 'A':
                 won = (rnd <= C.PRODUCT_A_SUCCESS_PROB)
-
             elif p.client_selection == 'B':
                 prob = C.PRODUCT_B_SUCCESS_PROB_H if group.product_b_quality == '高品質' else C.PRODUCT_B_SUCCESS_PROB_L
                 won = (rnd <= prob)
@@ -254,28 +268,39 @@ def set_payoffs(group: Group):
             if won:
                 payoff += C.GOODBALL
 
-            # ✅ 新增：存客戶抽球結果（所有人後面都能顯示）
             group.client_draw_result = "$200" if won else "$0"
             group.client_draw_image  = 'blue_65.png' if won else 'red_0.png'
 
-            p.gross_payoff = cu(payoff)  # client 顯示/實際相同
+            p.gross_payoff = cu(payoff)
             p.flip_cost = cu(0)
 
-        # ✅ 必須補：把 payoff 寫回 round_payoff
-        p.round_payoff = cu(payoff)
+            # 先記錄原始 payoff；是否真的支付，等第 10 回合再決定
+            p.round_payoff = cu(payoff)
+            p.paid_round_payoff = cu(0)
 
-        if p.round_number == 1:
-            p.roundsum_payoff = p.round_payoff
-        else:
-            previous_round = p.in_round(p.round_number - 1)
-            p.roundsum_payoff = previous_round.roundsum_payoff + p.round_payoff
+    # === 到最後一回合時，對 client 抽 5/10 計酬，並寫進資料庫 ===
+    any_player = group.get_players()[0]
+    if any_player.round_number == C.NUM_ROUNDS:
+        for p in group.get_players():
+            if p.role == C.CLIENT_ROLE:
+                select_paid_rounds_for_client(p)
 
+                for rp in p.in_all_rounds():
+                    if rp.is_selected_for_payment:
+                        rp.paid_round_payoff = rp.round_payoff
+                    else:
+                        rp.paid_round_payoff = cu(0)
+
+    # === 重算 cumulative payoff ===
+    for p in group.get_players():
+        all_rounds = p.in_rounds(1, p.round_number)
+        p.roundsum_payoff = sum((rp.paid_round_payoff for rp in all_rounds), cu(0))
         p.participant.choice_payoff = p.roundsum_payoff
 
-    # partner payoff（這裡仍然存 net，顯示時再用 gross_payoff）
+    # === partner payoff ===
     for p in group.get_players():
         partner = p.get_others_in_group()[0] if p.get_others_in_group() else None
-        p.partner_payoff = partner.round_payoff if partner else None
+        p.partner_payoff = partner.paid_round_payoff if partner else None
 
 def payoff_headers_for(viewer: Player):
     # viewer = 目前正在看 table 的那個人
@@ -360,7 +385,7 @@ class MyWaitPage(WaitPage):
         import random
 
         # 50-50 決定哪一個商品能獲得佣金
-        commission_product = random.choice(['產品A', '產品B'])
+        commission_product = random.choice(['產品 A', '產品 B'])
         group.commission_product = commission_product
 
         # 50-50 決定 product B 的品質：高或低
@@ -384,6 +409,34 @@ class InstructionPage(Page):
     @staticmethod
     def is_displayed(player):
         return player.round_number == 1
+
+    @staticmethod
+    def vars_for_template(player: Player):
+        prior_history = player.participant.vars.get('part23_history', [])
+        prior_role = player.participant.vars.get('part23_role', player.role)
+
+        part2_history = [row for row in prior_history if row.get("block_idx") == 1]
+        part3_history = [row for row in prior_history if row.get("block_idx") == 2]
+
+        # 跟 Part2/3 的 history table 一樣，依最近回合在上面
+        part2_history.sort(key=lambda r: r["display_round_number"], reverse=True)
+        part3_history.sort(key=lambda r: r["display_round_number"], reverse=True)
+
+        if prior_role == C.ADVISOR_ROLE:
+            payoff_col_1_label = "推薦人推薦產品的報酬"
+            payoff_col_2_label = "客戶選擇產品的報酬"
+        else:
+            payoff_col_1_label = "客戶選擇產品的報酬"
+            payoff_col_2_label = "推薦人推薦產品的報酬"
+
+        return dict(
+            part2_history=part2_history,
+            part3_history=part3_history,
+            prior_role=prior_role,
+            payoff_col_1_label=payoff_col_1_label,
+            payoff_col_2_label=payoff_col_2_label,
+            is_advisor=(prior_role == C.ADVISOR_ROLE),
+        )
 
 class ComprehensionCheck(Page):
     form_model = 'player'
@@ -440,12 +493,13 @@ class ChoicePage(Page):
 
     @staticmethod
     def error_message(player, values):
-        if values.get('choice_2') == 'Blank' or values.get('choice_3') == 'Blank':
-            return "請做出選擇"
+        if not values.get('choice_2') or not values.get('choice_3'):
+            return "請選擇中間兩張卡片要放入兩張紅色或兩張黑色。"
 
         labels = [values.get(f'choice_{i}') for i in range(1, 5)]
-        red_cnt   = sum(x == 'Incentive' for x in labels)
-        black_cnt = sum(x == 'Quality'   for x in labels)
+        red_cnt = sum(x == 'Incentive' for x in labels)
+        black_cnt = sum(x == 'Quality' for x in labels)
+
         if red_cnt == 2 and black_cnt == 2:
             return "不得為兩紅兩黑，請修改卡片組合。"
 
@@ -604,6 +658,21 @@ class WaitforClient(WaitPage):
             is_advisor=(player.role == C.ADVISOR_ROLE),
         )
 
+class DecisionWaitPage(WaitPage):
+    title_text = "請稍候"
+    body_text = "正在等待另一位參與者完成本回合決策，請耐心等候。"
+    template_name = "choice/WaitforAll.html"
+
+    @staticmethod
+    def vars_for_template(player: Player):
+        payoff_col_1_label, payoff_col_2_label = payoff_headers_for(player)
+        history_records = build_history_rows(player, player.in_previous_rounds())
+        return dict(
+            history_records=history_records,
+            payoff_col_1_label=payoff_col_1_label,
+            payoff_col_2_label=payoff_col_2_label,
+            is_advisor=(player.role == C.ADVISOR_ROLE),
+        )
     
 class ResultsWaitPage(WaitPage):    
     after_all_players_arrive = set_payoffs
@@ -643,13 +712,13 @@ class HistoryPage(Page):
 class ShuffleWaitPage(WaitPage):
     wait_for_all_groups = True
     title_text = "請稍候"
-    body_text = "正在等待所有人準備完成，請耐心等候其他參與者。"
+    body_text = "正在等待所有人完成，請耐心等候其他參與者。"
     template_name = "choice/WaitforAll.html"
 
     @staticmethod
     def vars_for_template(player: Player):
         payoff_col_1_label, payoff_col_2_label = payoff_headers_for(player)
-        history_records = build_history_rows(player, player.in_previous_rounds())
+        history_records = build_history_rows(player, player.in_all_rounds())
         return dict(
             history_records=history_records,
             payoff_col_1_label=payoff_col_1_label,
@@ -672,9 +741,8 @@ page_sequence = [
     QualityPage2,
     IncentivePage2,
     RecommendationPage,
-    WaitforAdvisor,
     SelectionPage,
-    WaitforClient,
+    DecisionWaitPage,
     ResultsWaitPage,
     HistoryPage,
     ShuffleWaitPage,

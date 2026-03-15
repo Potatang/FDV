@@ -11,8 +11,8 @@ SESSION_CONFIGS = [
             'experiment_IF',
             'choice',
             'guessquality_IF',
-            'moralcost2',
             'guessproportion_IF',
+            'moralcost2',
             'realizemoralcost',
             'end_app',
         ],
@@ -46,7 +46,7 @@ SESSION_CONFIGS = [
 SESSION_CONFIG_DEFAULTS = dict(
     real_world_currency_per_point=5.00, participation_fee=300, doc="",
     advisor_points_per_ntd=6,  # advisor ratio 1:6
-    client_points_per_ntd=12,   # client ratio 1:12
+    client_points_per_ntd=6,   # client ratio 1:6
 )
 
 PARTICIPANT_FIELDS = dict(

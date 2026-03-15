@@ -311,7 +311,7 @@ class PayoffOnePage(Page):
         productX_image = f'ProductX{x_case}.png'
 
         # round title：你要的「第一部分 / 第六部分」
-        title = "第一部分報酬" if player.round_number == 1 else "第六部分報酬"
+        title = "第一回合決定第一部分的報酬" if player.round_number == 1 else "第二回合決定第六部分的報酬"
 
         return dict(
             page_title=title,

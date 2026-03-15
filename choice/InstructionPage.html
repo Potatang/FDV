@@ -1,5 +1,6 @@
 {{ block title }}實驗說明{{ endblock }}
 {{ block content }}
+
 <p>請您暫時<b>不要按下一頁</b>，仔細聆聽實驗說明。</p>
 <p>
     本部分總共有 10 回合，每一回合開始時，電腦會重新隨機配對推薦人和客戶。
@@ -8,26 +9,119 @@
     在本部分，推薦人可以<u><b>自己選擇</b></u><b>「產品指派資訊」</b>和<b>「抽球結果資訊」</b>的呈現順序，並據此做出推薦。
 </p>
 <p>下一頁會有理解測驗，完成後才正式開始實驗。</p>
+<p>沒有問題請點擊下一頁。</p>
 
-    {{ formfields }}
-<!-- 中文的下一頁按鈕 -->
-<button class="otree-btn-next btn btn-primary" id="btn" style='float:right'>下一頁(60)</button>
+<hr>
+
+<h4>第二部分歷史紀錄</h4>
+<table class="table table-sm">
+    <thead>
+        <tr>
+            <th style="width: 40px;">回合</th>
+            <th style="width: 120px;">產品 B 實際品質</th>
+            <th style="width: 100px;">抽球結果資訊</th>
+            <th style="width: 100px;">產品指派資訊</th>
+            <th style="width: 90px;">推薦人決策</th>
+            <th style="width: 90px;">客戶決策</th>
+            <th style="width: 100px;">客戶抽球結果</th>
+            <th style="width: 120px;">{{ payoff_col_1_label }}</th>
+            <th style="width: 120px;">{{ payoff_col_2_label }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{ for row in part2_history }}
+        <tr>
+            <td>{{ row.display_round_number }}</td>
+
+            <td>
+                <img src="{% static row.quality_image %}" style="width:60px;">
+            </td>
+
+            <td>
+                <img src="{% static row.signal_image %}" style="width:40px;">
+            </td>
+
+            <td>{{ row.commission_product }}</td>
+            <td>產品 {{ row.advisor_recommendation }}</td>
+            <td>產品 {{ row.client_selection }}</td>
+
+            <td>
+                <img src="{% static row.client_draw_image %}" style="width:40px;">
+            </td>
+
+            <td>{{ row.payoff_col_1 }}</td>
+            <td>{{ row.payoff_col_2 }}</td>
+        </tr>
+        {{ endfor }}
+    </tbody>
+</table>
+
+<br>
+
+<h4>第三部分歷史紀錄</h4>
+<table class="table table-sm">
+    <thead>
+        <tr>
+            <th style="width: 40px;">回合</th>
+            <th style="width: 120px;">產品 B 實際品質</th>
+            <th style="width: 100px;">抽球結果資訊</th>
+            <th style="width: 100px;">產品指派資訊</th>
+            <th style="width: 90px;">推薦人決策</th>
+            <th style="width: 90px;">客戶決策</th>
+            <th style="width: 100px;">客戶抽球結果</th>
+            <th style="width: 120px;">{{ payoff_col_1_label }}</th>
+            <th style="width: 120px;">{{ payoff_col_2_label }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{ for row in part3_history }}
+        <tr>
+            <td>{{ row.display_round_number }}</td>
+
+            <td>
+                <img src="{% static row.quality_image %}" style="width:60px;">
+            </td>
+
+            <td>
+                <img src="{% static row.signal_image %}" style="width:40px;">
+            </td>
+
+            <td>{{ row.commission_product }}</td>
+            <td>產品 {{ row.advisor_recommendation }}</td>
+            <td>產品 {{ row.client_selection }}</td>
+
+            <td>
+                <img src="{% static row.client_draw_image %}" style="width:40px;">
+            </td>
+
+            <td>{{ row.payoff_col_1 }}</td>
+            <td>{{ row.payoff_col_2 }}</td>
+        </tr>
+        {{ endfor }}
+    </tbody>
+</table>
+
+{{ formfields }}
+
+<button class="otree-btn-next btn btn-primary" id="btn" style="float:right">下一頁(60)</button>
+
 <script>
-    var btn = document.getElementById('btn'); //获取元素
-    var secs = 60; //设定了倒计时为60秒
-    btn.disabled=true; //禁止点击
-    for (var i=1; i<=secs; i++) {
+    var btn = document.getElementById('btn');
+    var secs = 60;
+    btn.disabled = true;
+    for (var i = 1; i <= secs; i++) {
         window.setTimeout("update(" + i + ")", i * 1000);
-    } //每1秒执行一次update函数
+    }
     function update(num) {
-        if (num==secs) { //倒计时结束，按键的文本改变，并且可以点击
+        if (num == secs) {
             btn.textContent = "開始實驗";
             btn.disabled = false;
         }
-        else { //倒计时中，实时更新文本里面的数字
+        else {
             var printnr = secs - num;
             btn.textContent = "請仔細聆聽實驗說明 (" + printnr + ")";
         }
     }
 </script>
+
 {{ endblock }}

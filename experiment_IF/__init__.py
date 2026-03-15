@@ -330,6 +330,34 @@ def set_payoffs(group: Group):
         partner = p.get_others_in_group()[0] if p.get_others_in_group() else None
         p.partner_payoff = partner.paid_round_payoff if partner else None
 
+def export_part23_history(player: Player):
+    rows = []
+
+    for p in player.in_all_rounds():
+        payoff_col_1, payoff_col_2 = payoffs_for_round(player, p)
+
+        rows.append({
+            "real_round_number": p.round_number,
+            "display_round_number": display_round_no(p.round_number),
+            "block_idx": block_index(p.round_number),
+
+            "advisor_recommendation": p.advisor_recommendation,
+            "client_selection": p.client_selection,
+
+            "commission_product": p.group.commission_product,
+            "product_b_quality": p.group.product_b_quality,
+            "quality_signal": p.group.quality_signal,
+
+            "quality_image": 'ProductB_high.png' if p.group.product_b_quality == "高品質" else 'ProductB_low.png',
+            "signal_image": 'blue_65.png' if p.group.quality_signal == "$200" else 'red_0.png',
+            "client_draw_image": p.group.client_draw_image,
+
+            "payoff_col_1": float(payoff_col_1) if payoff_col_1 is not None else None,
+            "payoff_col_2": float(payoff_col_2) if payoff_col_2 is not None else None,
+        })
+
+    return rows
+
 #Pages
     
 class MyWaitPage(WaitPage):
@@ -688,6 +716,14 @@ class ShuffleWaitPage(WaitPage):
     template_name = "experiment_IF/WaitforAll.html"
 
     @staticmethod
+    def after_all_players_arrive(subsession):
+        # 只在最後一回合存一次
+        if subsession.round_number == C.NUM_ROUNDS:
+            for p in subsession.get_players():
+                p.participant.vars['part23_history'] = export_part23_history(p)
+                p.participant.vars['part23_role'] = p.role
+
+    @staticmethod
     def vars_for_template(player: Player):
         window_start, window_end = window_bounds(player.round_number)
 
@@ -708,6 +744,7 @@ class ShuffleWaitPage(WaitPage):
             window_end=window_end,
             block_idx=block_index(player.round_number),
         )
+
 
 #PageSequence
 page_sequence = [

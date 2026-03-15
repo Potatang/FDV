@@ -69,8 +69,9 @@
 {{ endblock }}
 
 {{ block content }}
-
-<p><b>如果您推薦{{ group.commission_product }}，您可以額外獲得15法幣</b>。</p>
+<p>
+  如果您推薦{{ group.commission_product }}，您可以額外獲得 15 法幣。
+</p>
 <br></br>
 <p style="text-align:center; font-weight:700; margin-top: 20px;">
   您會推薦哪項產品給客戶？
@@ -81,39 +82,41 @@
 <br></br>
 
 {{ if history_records }}
-  <h4>歷史回合</h4>
-  <table class="table table-sm">
-    <thead>
-      <tr>
-        <th style="width: 50px;">回合</th>
-        <th style="width: 110px;">產品B實際品質</th>
-        <th style="width: 120px;">推薦人看到的抽球結果資訊</th>
-        <th style="width: 100px;">推薦人看到的產品指派資訊</th>
-        <th style="width: 100px;">推薦人決策</th>
-        <th style="width: 100px;">客戶決策</th>
-        <th style="width: 100px;">客戶抽球結果</th>
-        {{ if is_advisor }}
-          <th style="width: 140px;">{{ payoff_col_1_label }}</th>
-          <th style="width: 90px;">翻牌成本</th>
-          <th style="width: 140px;">{{ payoff_col_2_label }}</th>
-        {{ else }}
-          <th style="width: 140px;">{{ payoff_col_1_label }}</th>
-          <th style="width: 140px;">{{ payoff_col_2_label }}</th>
-          <th style="width: 90px;">對方翻牌成本</th>
-        {{ endif }}
-      </tr>
-    </thead>
+<h4>歷史回合</h4>
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th style="width: 50px;">回合</th>
+      <th style="width: 120px;">產品 B 實際品質</th>
+      <th style="width: 100px;">推薦人看到的抽球結果資訊</th>
+      <th style="width: 100px;">推薦人看到的產品指派資訊</th>
+      <th style="width: 90px;">推薦人決策</th>
+      <th style="width: 90px;">客戶決策</th>
+      <th style="width: 100px;">客戶抽球結果</th>
 
-    <tbody>
-      {{ for record in history_records }}
-        <tr>
-          <td>{{ record.round_number }}</td>
-          <td><img src="{{ static record.quality_image }}" width="60px"></td>
-          <td><img src="{{ static record.signal_image }}" width="40px"></td>
-          <td>{{ record.commission_product }}</td>
-          <td>產品{{ record.advisor_recommendation }}</td>
-          <td>產品{{ record.client_selection }}</td>
-          <td><img src="{{ static record.client_draw_image }}" width="40px"></td>
+      {{ if is_advisor }}
+        <th style="width: 120px;">{{ payoff_col_1_label }}</th>
+        <th style="width: 90px;">翻牌成本</th>
+        <th style="width: 120px;">{{ payoff_col_2_label }}</th>
+      {{ else }}
+        <th style="width: 120px;">{{ payoff_col_1_label }}</th>
+        <th style="width: 120px;">{{ payoff_col_2_label }}</th>
+        <th style="width: 90px;">對方翻牌成本</th>
+      {{ endif }}
+    </tr>
+  </thead>
+
+  <tbody>
+    {{ for record in history_records }}
+      <tr>
+        <td>{{ record.round_number }}</td>
+        <td><img src="{{ static record.quality_image }}" width="60px"></td>
+        <td><img src="{{ static record.signal_image }}" width="40px"></td>
+        <td>{{ record.commission_product }}</td>
+        <td>產品{{ record.advisor_recommendation }}</td>
+        <td>產品{{ record.client_selection }}</td>
+        <td><img src="{{ static record.client_draw_image }}" width="40px"></td>
+
         {{ if is_advisor }}
           <td>{{ record.payoff_col_1 }}</td>
           <td>{{ record.flip_cost }}</td>
@@ -123,10 +126,10 @@
           <td>{{ record.payoff_col_2 }}</td>
           <td>不顯示</td>
         {{ endif }}
-        </tr>
-      {{ endfor }}
-    </tbody>
-  </table>
+      </tr>
+    {{ endfor }}
+  </tbody>
+</table>
 {{ endif }}
 
 

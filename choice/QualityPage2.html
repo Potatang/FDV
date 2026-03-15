@@ -3,12 +3,15 @@
 {{ block content }}
 {{ load static }}
     <p>
-        本回合中，從 B 產品隨機抽出的球的金額是：<img src="{{ static image_path }}" width="80px" />
+        <p><b>本回合，電腦從<u>產品 B </u>中隨機抽出的球是：</b></p>
+        <p>
+        <img src="{{ static image_path }}" width="60px" />
+        </p>
     </p>
 
 
 {{ formfields }}
-<br>
+<br></br>
 
 <!-- 中文的下一頁按鈕 -->
 <button class="otree-btn-next btn btn-primary">下一頁</button>

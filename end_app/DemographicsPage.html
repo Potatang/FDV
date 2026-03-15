@@ -4,46 +4,98 @@
 
 {{ block content }}
 
-<p>感謝您參與本實驗，您的報酬將於現場以現金支付。首先，我們想請教您的一些個人資訊，這些資訊僅供實驗者分析，不會外傳，請放心填寫。</p>
+<p>
+    感謝您參與本實驗，您的報酬將於現場以現金支付。首先，我們想請教您一些個人資訊，
+    這些資訊僅供實驗者分析，不會外傳，請放心填寫。
+</p>
 
-{{ formfield 'gender' }}
-{{ formfield 'age' }}
-{{ formfield 'ethnicity' }}
+<div class="mb-3">
+    {{ formfield 'gender' }}
+</div>
 
-{{ formfield 'difficulty' }}
-{{ formfield 'unclear' }}
+<div class="mb-3">
+    {{ formfield 'age' }}
+</div>
 
+<div class="mb-3">
+    {{ formfield 'ethnicity' }}
+</div>
+
+<div class="mb-3" id="ethnicity_other_box" style="display:none;">
+    {{ formfield 'ethnicity_other' }}
+</div>
+
+<div class="mb-3">
+    {{ formfield 'difficulty' }}
+</div>
+
+<div class="mb-3" id="unclear_box" style="display:none;">
+    {{ formfield 'unclear' }}
+</div>
 
 {{ if role == 'advisor' }}
-    {{ formfield 'advisor_decision_rule' }}
-    {{ formfield 'advisor_decision_reason' }}
+    <div class="mb-3">
+        {{ formfield 'advisor_decision_rule' }}
+    </div>
+    <div class="mb-3">
+        {{ formfield 'advisor_decision_reason' }}
+    </div>
 {{ endif }}
 
 {{ if role == 'client' }}
-    {{ formfield 'client_follow_advice' }}
-    {{ formfield 'client_follow_reason' }}
+    <div class="mb-3">
+        {{ formfield 'client_follow_advice' }}
+    </div>
+    <div class="mb-3">
+        {{ formfield 'client_follow_reason' }}
+    </div>
 {{ endif }}
 
-{{ formfield 'difference' }}
-{{ formfield 'difference_reason' }}
+<div class="mb-3">
+    {{ formfield 'difference' }}
+</div>
 
-{{ formfield 'comments' }}
-<p>下一頁將顯示您在本場實驗中獲得的總報酬，以及一份問卷的連結。請點選該連結並完成問卷填寫。</p>
+<div class="mb-3">
+    {{ formfield 'difference_reason' }}
+</div>
+
+<div class="mb-3">
+    {{ formfield 'comments' }}
+</div>
+
+<p>
+    下一頁將顯示您在本場實驗中獲得的總報酬。
+</p>
+
 <button class="otree-btn-next btn btn-primary">下一頁</button>
 
 <script>
 (function () {
-  function toggleUnclear() {
-    const yes = document.querySelector('input[name="difficulty"][value="Yes"]');
-    const box = document.getElementById('unclear_box');
-    if (!yes || !box) return;
-    box.style.display = yes.checked ? 'block' : 'none';
-  }
+    function toggleUnclear() {
+        const yes = document.querySelector('input[name="difficulty"][value="Yes"]');
+        const box = document.getElementById('unclear_box');
+        if (!yes || !box) return;
+        box.style.display = yes.checked ? 'block' : 'none';
+    }
 
-  document.querySelectorAll('input[name="difficulty"]').forEach(el => {
-    el.addEventListener('change', toggleUnclear);
-  });
-  toggleUnclear();
+    function toggleEthnicityOther() {
+        const ethnicity = document.querySelector('select[name="ethnicity"]');
+        const box = document.getElementById('ethnicity_other_box');
+        if (!ethnicity || !box) return;
+        box.style.display = ethnicity.value === '其他' ? 'block' : 'none';
+    }
+
+    document.querySelectorAll('input[name="difficulty"]').forEach(function (el) {
+        el.addEventListener('change', toggleUnclear);
+    });
+
+    const ethnicitySelect = document.querySelector('select[name="ethnicity"]');
+    if (ethnicitySelect) {
+        ethnicitySelect.addEventListener('change', toggleEthnicityOther);
+    }
+
+    toggleUnclear();
+    toggleEthnicityOther();
 })();
 </script>
 

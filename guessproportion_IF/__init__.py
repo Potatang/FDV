@@ -19,15 +19,13 @@ class C(BaseConstants):
     # Product B: 依據品質狀態決定抽到 $2 的機率
     PRODUCT_B_SUCCESS_PROB_H = 0.8
     PRODUCT_B_SUCCESS_PROB_L = 0.4
-    # wage
-    WAGE = 50
-    # commission price
-    COMMISSION = 15
-    # 球的價值
-    GOODBALL = 200
-    BADBALL = 0  
 
-    # probability of recommendation the inccentivized product.
+    WAGE = 50
+    COMMISSION = 15
+    GOODBALL = 200
+    BADBALL = 0
+
+    # probability of recommendation the incentivized product
     A_IF = 0.4
     A_QF = 0.6
     B_IF = 0.4
@@ -43,91 +41,11 @@ class Group(BaseGroup):
 
 
 class Player(BasePlayer):
-    show_ai_first = models.BooleanField(initial = False)
-    show_bi_first = models.BooleanField(initial = False)
+    belief_ai = models.IntegerField(initial=None)
+    belief_bi = models.IntegerField(initial=None)
+    belief_aq = models.IntegerField(initial=None)
+    belief_bq = models.IntegerField(initial=None)
 
-    belief_ai = models.IntegerField(initial = None)
-    belief_aq = models.IntegerField(initial = None)
-    belief_bi = models.IntegerField(initial = None)   
-    belief_bq = models.IntegerField(initial = None)
-
-    # ai_payoff = models.CurrencyField(initial=0)
-    # aq_payoff = models.CurrencyField(initial=0)
-    # bi_payoff = models.CurrencyField(initial=0)
-    # bq_payoff = models.CurrencyField(initial=0)
-    # part4_payoff = models.CurrencyField(initial=0)
-
-import random
-
-def creating_session(subsession: Subsession):
-    for p in subsession.get_players():
-        p.show_ai_first = random.choice([True, False])
-        p.show_bi_first = random.choice([True, False])
-
-# def set_payoffs(group: Group): 
-#     import random  
-#     for p in group.get_players():
-#         p.ai_payoff = cu(0)
-#         stoobid = random.choice(range(0, 101, 1))
-#         # print(f'{stoobid=}')
-
-#         if p.belief_ai > stoobid:
-#             if random.random() <= C.LOW:
-#                 p.ai_payoff = cu(150)
-#         else:
-#             import math
-#             # print(f"{math.floor(stoobid / 10) / 10 = }")
-#             if random.random() <= math.floor(stoobid / 10) / 10:
-#                 p.ai_payoff = cu(150)
-
-#     for p in group.get_players():
-#         p.aq_payoff = cu(0)
-#         stoobid = random.choice(range(0, 101, 1))
-#         # print(f'{stoobid=}')
-
-#         if p.belief_aq > stoobid:
-#             if random.random() <= C.LOW:
-#                 p.aq_payoff = cu(150)
-#         else:
-#             import math
-#             # print(f"{math.floor(stoobid / 10) / 10 = }")
-#             if random.random() <= math.floor(stoobid / 10) / 10:
-#                 p.aq_payoff = cu(150)
-
-#     for p in group.get_players():
-#         p.bi_payoff = cu(0)
-#         stoobid = random.choice(range(0, 101, 1))
-#         # print(f'{stoobid=}')
-
-#         if p.belief_bi > stoobid:
-#             if random.random() <= C.LOW:
-#                 p.bi_payoff = cu(150)
-#         else:
-#             import math
-#             # print(f"{math.floor(stoobid / 10) / 10 = }")
-#             if random.random() <= math.floor(stoobid / 10) / 10:
-#                 p.bi_payoff = cu(150)
-
-#     for p in group.get_players():
-#         p.bq_payoff = cu(0)
-#         stoobid = random.choice(range(0, 101, 1))
-#         # print(f'{stoobid=}')
-
-#         if p.belief_bq > stoobid:
-#             if random.random() <= C.LOW:
-#                 p.bq_payoff = cu(150)
-#         else:
-#             import math
-#             # print(f"{math.floor(stoobid / 10) / 10 = }")
-#             if random.random() <= math.floor(stoobid / 10) / 10:
-#                 p.bq_payoff = cu(150)
-
-#     if p.subsession.ball_color == "65":
-#         p.part2_payoff = p.blue_payoff
-#     else:
-#         p.part2_payoff = p.red_payoff
-
-#     p.participant.part2_payoff = p.part2_payoff
 
 # PAGES
 class Instruction4Page(Page):
@@ -135,44 +53,33 @@ class Instruction4Page(Page):
 
 
 class AIPage(Page):
-
     form_model = 'player'
     form_fields = ['belief_ai']
-    
+
     @staticmethod
     def vars_for_template(player: Player):
         return dict(
             image_path1='productB.png',
             image_path2='blue_65.png',
         )
+
+
+class BIPage(Page):
+    form_model = 'player'
+    form_fields = ['belief_bi']
+
     @staticmethod
-    def is_displayed(player):
-        return player.show_ai_first
-    # @staticmethod
-    # def is_displayed(player):
-    #     return player.showA and player.show_ai_first
+    def vars_for_template(player: Player):
+        return dict(
+            image_path1='productB.png',
+            image_path2='red_0.png',
+        )
+
 
 class AQPage(Page):
-
     form_model = 'player'
     form_fields = ['belief_aq']
-    
-    @staticmethod
-    def vars_for_template(player: Player):
-        return dict(
-            image_path1='productB.png',
-            image_path2='blue_65.png',
-        )
-    
-    # @staticmethod
-    # def is_displayed(player):
-    #     return player.showA 
 
-class AIPagecopy(Page):
-
-    form_model = 'player'
-    form_fields = ['belief_ai']
-    
     @staticmethod
     def vars_for_template(player: Player):
         return dict(
@@ -180,55 +87,11 @@ class AIPagecopy(Page):
             image_path2='blue_65.png',
         )
 
-    @staticmethod
-    def is_displayed(player):
-        return not player.show_ai_first        
-    # @staticmethod
-    # def is_displayed(player):
-    #     return player.showA and not player.show_ai_first
-    
-class BIPage(Page):
-
-    form_model = 'player'
-    form_fields = ['belief_bi']
-    
-    @staticmethod
-    def vars_for_template(player: Player):
-        return dict(
-            image_path1='productB.png',
-            image_path2='red_0.png',
-        )
-    
-    @staticmethod
-    def is_displayed(player):
-        return player.show_bi_first
-    
-
-    # @staticmethod
-    # def is_displayed(player):
-    #     return not player.showA and player.show_bi_first
 
 class BQPage(Page):
-
     form_model = 'player'
     form_fields = ['belief_bq']
-    
-    @staticmethod
-    def vars_for_template(player: Player):
-        return dict(
-            image_path1='productB.png',
-            image_path2='red_0.png',
-        )
-    
-    # @staticmethod
-    # def is_displayed(player):
-    #     return not player.showA 
 
-class BIPagecopy(Page):
-
-    form_model = 'player'
-    form_fields = ['belief_bi']
-    
     @staticmethod
     def vars_for_template(player: Player):
         return dict(
@@ -236,9 +99,6 @@ class BIPagecopy(Page):
             image_path2='red_0.png',
         )
 
-    @staticmethod
-    def is_displayed(player):
-        return not player.show_bi_first    
 
 class ResultsWaitPage(WaitPage):
     wait_for_all_groups = True
@@ -248,10 +108,8 @@ class ResultsWaitPage(WaitPage):
 page_sequence = [
     Instruction4Page,
     AIPage,
-    AQPage,
-    AIPagecopy,
     BIPage,
+    AQPage,
     BQPage,
-    BIPagecopy,
     ResultsWaitPage,
 ]
