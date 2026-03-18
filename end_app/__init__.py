@@ -76,13 +76,14 @@ class Player(BasePlayer):
     )
 
     difference = models.StringField(
-        label='在本場實驗抽球的過程中，請問您對於"參加者親自抽取"與"電腦代抽"這兩者是否有差別？',
-        choices=[("有差別", "有差別"), ("沒有差別", "沒有差別")],
+        label='在本場實驗的所有抽球過程中，如果將電腦抽球改成由您親自抽取，請問這是否會影響您的決策？',
+        choices=[("會", "會"), ("不會", "不會")],
         widget=widgets.RadioSelect
     )
 
     difference_reason = models.LongStringField(
-        label="請簡單說明您認為兩者有／沒有差別的主要原因或考量是什麼？"
+        label="請簡單說明您認為兩者有差別的主要原因或考量是什麼？",
+        blank=True
     )
 
     # Role-specific questions
@@ -199,6 +200,9 @@ class DemographicsPage(Page):
 
         if values.get('difficulty') == 'Yes' and not (values.get('unclear') or '').strip():
             return '若您選擇「有」，請說明哪裡不清楚。'
+
+        if values.get('difference') == '會' and not (values.get('difference_reason') or '').strip():
+            return '若您選擇「會」，請說明主要原因或考量。'
 
     @staticmethod
     def vars_for_template(player):

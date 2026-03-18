@@ -55,7 +55,7 @@
     {{ formfield 'difference' }}
 </div>
 
-<div class="mb-3">
+<div class="mb-3" id="difference_reason_box" style="display:none;">
     {{ formfield 'difference_reason' }}
 </div>
 
@@ -85,8 +85,19 @@
         box.style.display = ethnicity.value === '其他' ? 'block' : 'none';
     }
 
+    function toggleDifferenceReason() {
+        const yes = document.querySelector('input[name="difference"][value="會"]');
+        const box = document.getElementById('difference_reason_box');
+        if (!yes || !box) return;
+        box.style.display = yes.checked ? 'block' : 'none';
+    }
+
     document.querySelectorAll('input[name="difficulty"]').forEach(function (el) {
         el.addEventListener('change', toggleUnclear);
+    });
+
+    document.querySelectorAll('input[name="difference"]').forEach(function (el) {
+        el.addEventListener('change', toggleDifferenceReason);
     });
 
     const ethnicitySelect = document.querySelector('select[name="ethnicity"]');
@@ -96,6 +107,7 @@
 
     toggleUnclear();
     toggleEthnicityOther();
+    toggleDifferenceReason();
 })();
 </script>
 

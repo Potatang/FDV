@@ -102,7 +102,7 @@ class BQPage(Page):
 
 class ResultsWaitPage(WaitPage):
     wait_for_all_groups = True
-    body_text = "請稍候，正在等待所有參與者完成本部分。"
+    body_text = "請稍候，正在等待所有人完成本部分。"
 
 
 page_sequence = [
