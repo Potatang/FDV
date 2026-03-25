@@ -7,8 +7,8 @@ SESSION_CONFIGS = [
         num_demo_participants=2,   
         app_sequence=[
             'start_app',
-            # 'moralcost_IF',
-            # 'experiment_IF',
+            'moralcost_IF',
+            'experiment_IF',
             'choice',
             'guessquality_IF',
             'guessproportion_IF',
@@ -75,6 +75,7 @@ SESSION_FIELDS = []
 LANGUAGE_CODE = 'zh-tw'
 
 # e.g. EUR, GBP, CNY, JPY
+REAL_WORLD_CURRENCY_CODE = 'TWD'
 USE_POINTS = True
 POINTS_CUSTOM_NAME = '法幣'
 
@@ -99,3 +100,4 @@ Here are some oTree games.
 SECRET_KEY = '4417453228424'
 
 INSTALLED_APPS = ['otree']
+

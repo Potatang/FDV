@@ -162,7 +162,6 @@ def payoff_headers_for(viewer: Player):
     else:
         return ("客戶選擇產品的報酬", "推薦人推薦產品的報酬")
 
-
 def payoffs_for_round(viewer: Player, any_player_in_that_round: Player):
     """
     Given a viewer (current page player) and a Player object p from the target round,
@@ -667,7 +666,9 @@ class DecisionWaitPage(WaitPage):
             block_idx=block_index(player.round_number),
         )
     
-class ResultsWaitPage(WaitPage):    
+class ResultsWaitPage(WaitPage):  
+    title_text = "請稍候"
+    body_text = "正在等待所有人完成，請耐心等候其他參與者。"
     after_all_players_arrive = set_payoffs
 
 class HistoryPage(Page):

@@ -8,14 +8,14 @@ Choice experiment
 在本實驗中，20 位受試者中 10 位為 advisor，10 位為 client。
 每回合 advisor 依據產品 B 的品質訊息與附加的佣金訊息決定推薦 A 或 B，
 client 看到 advisor 推薦後，直接選擇商品 A 或 B，
-最終支付則依據每回合抽球結果決定，並且所有 10 回合都會計入最終報酬。
+最終支付則依據抽中的計酬回合結果決定。
 """
 
 #Models
 class C(BaseConstants):
     NAME_IN_URL = 'choice'
     PLAYERS_PER_GROUP = 2
-    NUM_ROUNDS = 10
+    NUM_ROUNDS = 30
 
     ADVISOR_ROLE = '推薦人'
     CLIENT_ROLE = '客戶'
@@ -32,14 +32,12 @@ class C(BaseConstants):
     # 球的價值
     GOODBALL = 200
     BADBALL = 0   
-    # 全選 Quality 或全選 Incentive 的扣除額
-    # CHOICE_DECUCTION = 5
     # 新規則：點擊左右卡片的費用（每點一次）
-    CARD_CLICK_FEE = 5
+    CARD_CLICK_FEE = 1
+    CLIENT_PAID_ROUNDS = 15
 
 class Subsession(BaseSubsession):
     pass
-
 
 class Group(BaseGroup):
     recommendation = models.StringField(
@@ -77,10 +75,10 @@ class Player(BasePlayer):
         label='2. 如果這回合推薦人推薦「產品 B」，你會選擇哪一個產品？'
     )
 
-    round_payoff = models.CurrencyField(initial=0)          # 該回合原始實現報酬
-    paid_round_payoff = models.CurrencyField(initial=0)     # 真正計入支付的報酬
-    roundsum_payoff = models.CurrencyField(initial=0)       # 累積「實際支付」報酬
-    partner_payoff = models.CurrencyField(initial=0)
+    round_payoff = models.FloatField(initial=0)          # 該回合原始實現報酬
+    paid_round_payoff = models.FloatField(initial=0)     # 真正計入支付的報酬
+    roundsum_payoff = models.FloatField(initial=0)       # 累積「實際支付」報酬
+    partner_payoff = models.FloatField(initial=0)
 
     is_selected_for_payment = models.BooleanField(initial=False)  # client 該回合是否被抽中計酬
 
@@ -99,8 +97,7 @@ class Player(BasePlayer):
     gross_payoff = models.CurrencyField(initial=0)
 
     # 推薦人翻牌成本（每邊最多算一次，你目前用 left_changed/right_changed 0/1）
-    flip_cost = models.CurrencyField(initial=0)
-
+    flip_cost = models.FloatField(initial=0)
 
     def treatment_this_round(self):
         # 不要在這裡抽籤，這裡只回傳已經存好的結果
@@ -141,8 +138,8 @@ class Player(BasePlayer):
         label='3. 假設有一個人將四張卡片調整為四張黑色，請問他需要支付額外法幣嗎？若是需要，請問支付多少法幣？',
         choices=[
             ('A', '(A) 不需要'),
-            ('B', '(B) 需要。 支付 5 法幣'),
-            ('C', '(C) 需要。 支付 10 法幣'),
+            ('B', '(B) 需要。支付 0.5 法幣'),
+            ('C', '(C) 需要。支付 1 法幣'),
         ],
         widget=widgets.RadioSelect
     )
@@ -171,42 +168,19 @@ def creating_session(subsession: Subsession):
             p.participant.vars.setdefault('order', random.randint(0, 1))
             # print(f"[order-assign] PID={p.participant.id_in_session} order={p.participant.vars['order']}")
             
-        # # optionally propagate to clients (if they need it)
-        # for c in [p for p in g.get_players() if not is_advisor(p)]:
-        #     # tie client to their group's advisor order (pick the first advisor in the group)
-        #     c.participant.vars['advisor_order'] = advisors[0].participant.vars['order']
-
-    # # 50-50 決定哪一個商品能獲得佣金
-    # commission_product = random.choice(['產品A', '產品B'])
-    # subsession.commission_product = commission_product
-
-    # # 50-50 決定 product B 的品質：high 或 low
-    # product_b_quality = random.choice(['高品質', '低品質'])
-    # subsession.product_b_quality = product_b_quality
-
-    # # 根據產品B的品質設定抽中好球的機率：
-    # # 低品質：40% 機率抽中好球；高品質：80% 機率抽中好球
-    # if product_b_quality == '低品質':
-    #     subsession.product_b_good_ball_probability = 0.4
-    # else:
-    #     subsession.product_b_good_ball_probability = 0.8
-
-    # # 進行抽球，根據設定的機率決定抽中好球("$2")還是壞球("$0")
-    # draw = random.random()  # 生成 0 到 1 的隨機數
-    # if draw < subsession.product_b_good_ball_probability:
-    #     subsession.quality_signal = "$200"
-    # else:
-    #     subsession.quality_signal = "$0"
 
 def select_paid_rounds_for_client(player: Player):
     """
-    對 client 隨機抽出 10 回合中的 5 回合作為計酬回合，
+    對 client 隨機抽出 30 回合中的 15 回合作為計酬回合，
     並把結果寫進每一回合的 is_selected_for_payment。
     """
     if player.role != C.CLIENT_ROLE:
         return
 
-    selected_round_numbers = random.sample(range(1, C.NUM_ROUNDS + 1), 5)
+    selected_round_numbers = random.sample(
+        range(1, C.NUM_ROUNDS + 1),
+        C.CLIENT_PAID_ROUNDS
+    )
 
     for p in player.in_all_rounds():
         p.is_selected_for_payment = (p.round_number in selected_round_numbers)
@@ -239,15 +213,21 @@ def set_payoffs(group: Group):
             left_once  = 1 if getattr(p, "left_changed", 0) else 0
             right_once = 1 if getattr(p, "right_changed", 0) else 0
             fee_sides = left_once + right_once
-            flip_fee = C.CARD_CLICK_FEE * fee_sides
+
+            if fee_sides == 0:
+                flip_fee = float(0)
+            elif fee_sides == 1:
+                flip_fee = float(C.CARD_CLICK_FEE) / 2
+            else:
+                flip_fee = float(C.CARD_CLICK_FEE)
 
             net = gross - flip_fee
 
             p.gross_payoff = cu(gross)
-            p.flip_cost = cu(flip_fee)
+            p.flip_cost = float(flip_fee)
 
             # advisor 每回合都支付
-            p.round_payoff = cu(net)
+            p.round_payoff = float(net)
             p.paid_round_payoff = p.round_payoff
             p.is_selected_for_payment = True
 
@@ -271,12 +251,12 @@ def set_payoffs(group: Group):
             group.client_draw_result = "$200" if won else "$0"
             group.client_draw_image  = 'blue_65.png' if won else 'red_0.png'
 
-            p.gross_payoff = cu(payoff)
-            p.flip_cost = cu(0)
+            p.gross_payoff = float(payoff)
+            p.flip_cost = float(0)
 
             # 先記錄原始 payoff；是否真的支付，等第 10 回合再決定
-            p.round_payoff = cu(payoff)
-            p.paid_round_payoff = cu(0)
+            p.round_payoff = float(payoff)
+            p.paid_round_payoff = float(0)
 
     # === 到最後一回合時，對 client 抽 5/10 計酬，並寫進資料庫 ===
     any_player = group.get_players()[0]
@@ -289,12 +269,12 @@ def set_payoffs(group: Group):
                     if rp.is_selected_for_payment:
                         rp.paid_round_payoff = rp.round_payoff
                     else:
-                        rp.paid_round_payoff = cu(0)
+                        rp.paid_round_payoff = float(0)
 
     # === 重算 cumulative payoff ===
     for p in group.get_players():
         all_rounds = p.in_rounds(1, p.round_number)
-        p.roundsum_payoff = sum((rp.paid_round_payoff for rp in all_rounds), cu(0))
+        p.roundsum_payoff = sum((rp.paid_round_payoff for rp in all_rounds), float(0))
         p.participant.choice_payoff = p.roundsum_payoff
 
     # === partner payoff ===
@@ -674,7 +654,9 @@ class DecisionWaitPage(WaitPage):
             is_advisor=(player.role == C.ADVISOR_ROLE),
         )
     
-class ResultsWaitPage(WaitPage):    
+class ResultsWaitPage(WaitPage):  
+    title_text = "請稍候"
+    body_text = "正在等待所有人完成，請耐心等候其他參與者。"  
     after_all_players_arrive = set_payoffs
 
 class HistoryPage(Page):

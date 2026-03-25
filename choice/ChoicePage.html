@@ -150,12 +150,12 @@
   }
 </style>
 
-<div class="badge">目前累積費用：<span id="fee">0</span> 法幣（最多 10）</div>
+<div class="badge">目前累積費用：<span id="fee">0</span> 法幣（最多 1）</div>
 
 <div class="cards-grid" id="cards">
   <div class="card-wrap">
     <div class="flipcard clickable" data-idx="1" tabindex="0" aria-label="左卡"></div>
-    <div class="fee-hint" id="left_hint" hidden>更改本張卡片的顏色要花費五法幣</div>
+    <div class="fee-hint" id="left_hint" hidden>更改本張卡片的顏色要花費 0.5 法幣</div>
   </div>
   <div class="card-wrap">
     <div class="flipcard" data-idx="2" aria-label="中左卡"></div>
@@ -165,7 +165,7 @@
   </div>
   <div class="card-wrap">
     <div class="flipcard clickable" data-idx="4" tabindex="0" aria-label="右卡"></div>
-    <div class="fee-hint" id="right_hint" hidden>更改本張卡片的顏色要花費五法幣</div>
+    <div class="fee-hint" id="right_hint" hidden>更改本張卡片的顏色要花費 0.5 法幣</div>
   </div>
 </div>
 
@@ -193,7 +193,7 @@
 document.addEventListener('DOMContentLoaded', function(){
   const ORIGINAL_LEFT  = 'Incentive';
   const ORIGINAL_RIGHT = 'Quality';
-  const FEE_PER_SIDE = 5;
+  const FEE_PER_SIDE = 0.5;
 
   const feeEl = document.getElementById('fee');
   const leftHint  = document.getElementById('left_hint');
