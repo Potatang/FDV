@@ -77,7 +77,7 @@ class Player(BasePlayer):
     # chosen_client = models.BooleanField(initial = False)
 
     question1 = models.StringField(
-        label='1. 產品 X 中有多少顆綠色的球？',
+        label='1. 在本部分的五組產品組合 (X, Y) 中，產品 X 有幾顆綠色球？',
         choices=[
             ('A', '(A) 2 顆'),
             ('B', '(B) 3 顆'),
@@ -118,16 +118,16 @@ class Player(BasePlayer):
         widget=widgets.RadioSelect
     )
 
-    question5 = models.StringField(
-        label='5. 假設客戶從產品中抽到黃色球，請問他的報酬為多少？',
-        choices=[
-            ('A', '(A) $0'),
-            ('B', '(B) $15'),
-            ('C', '(C) $50'),
-            ('D', '(D) $200'),
-        ],
-        widget=widgets.RadioSelect
-    )
+    # question5 = models.StringField(
+    #     label='5. 假設客戶從產品中抽到黃色球，請問他的報酬為多少？',
+    #     choices=[
+    #         ('A', '(A) $0'),
+    #         ('B', '(B) $15'),
+    #         ('C', '(C) $50'),
+    #         ('D', '(D) $200'),
+    #     ],
+    #     widget=widgets.RadioSelect
+    # )
 
 # PAGES
 class InstructionPage(Page):

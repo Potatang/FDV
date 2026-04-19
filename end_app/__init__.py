@@ -88,11 +88,11 @@ class Player(BasePlayer):
 
     # Role-specific questions
     advisor_decision_rule = models.LongStringField(
-        label="當您必須在產品 A 和產品 B 之間做出選擇時，您是如何決定要推薦哪一個的？"
+        label="當您必須在產品 A 和產品 B 之間做出推薦時，主要是依據哪些原因/考量來決定的？"
     )
 
-    advisor_decision_reason = models.LongStringField(
-        label="請簡單說明您做出上述推薦決策的主要原因／考量是什麼？"
+    advisor_preference = models.LongStringField(
+        label="請問您在第四部分中決定「產品指派資訊」和「抽球結果資訊」出現順序時，主要的原因／考量是什麼？"
     )
 
     client_follow_advice = models.StringField(
@@ -128,14 +128,14 @@ class ResultPage(Page):
 
         # 2) who 決定匯率（用 bool() 兼容 True/False 或 1/0）
         if bool(player.participant.who):
-            points_per_ntd = player.session.config['advisor_points_per_ntd']  # 6
+            points_per_ntd = player.session.config['advisor_points_per_ntd']  
             role = 'advisor'
         else:
-            points_per_ntd = player.session.config['client_points_per_ntd']   # 12
+            points_per_ntd = player.session.config['client_points_per_ntd']   
             role = 'client'
 
         # 3) 先把 points -> 台幣，再加 participation fee
-        participation_fee = player.session.config['participation_fee']  # 250
+        participation_fee = player.session.config['participation_fee']  
         twd_from_points = round(float(total_points) / points_per_ntd)
 
         # 4) 加上 quality app 的「台幣」金額（若沒跑到該 app 就當 0）
@@ -187,7 +187,7 @@ class DemographicsPage(Page):
         ]
 
         if role == 'advisor':
-            base += ['advisor_decision_rule', 'advisor_decision_reason']
+            base += ['advisor_decision_rule', 'advisor_preference']
         else:
             base += ['client_follow_advice', 'client_follow_reason']
 

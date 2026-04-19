@@ -15,7 +15,7 @@ client 看到 advisor 推薦後，直接選擇商品 A 或 B，
 class C(BaseConstants):
     NAME_IN_URL = 'choice'
     PLAYERS_PER_GROUP = 2
-    NUM_ROUNDS = 30
+    NUM_ROUNDS = 20
 
     ADVISOR_ROLE = '推薦人'
     CLIENT_ROLE = '客戶'
@@ -33,8 +33,8 @@ class C(BaseConstants):
     GOODBALL = 200
     BADBALL = 0   
     # 新規則：點擊左右卡片的費用（每點一次）
-    CARD_CLICK_FEE = 1
-    CLIENT_PAID_ROUNDS = 15
+    CARD_FLIP_FEE = 1.25
+    CLIENT_PAID_ROUNDS = 10
 
 class Subsession(BaseSubsession):
     pass
@@ -90,6 +90,11 @@ class Player(BasePlayer):
     choice_2 = models.StringField(choices=['Quality','Incentive'], blank=True)
     choice_3 = models.StringField(choices=['Quality','Incentive'], blank=True)
     choice_4 = models.StringField(choices=['Quality','Incentive'], initial='Quality')    # 右
+    card_option_selected = models.StringField(
+        choices=['opt1', 'opt2', 'opt3', 'opt4'],
+        blank=True,
+    )
+    option_coin_success = models.BooleanField(initial=False)
     # 存「這回合」抽到的資訊順序：'IF' 或 'QF'
     treatment_draw = models.StringField(blank=True)
 
@@ -114,18 +119,18 @@ class Player(BasePlayer):
     #         return 'IF'
         
     question1 = models.StringField(
-        label='1. 如何決定本回合兩則資訊的實際呈現順序？',
+        label='1. 如何決定本部分每回合兩則資訊的實際呈現順序？',
         choices=[
-            ('A', '(A) 由推薦人自行選定一張卡片作為結果'),
-            ('B', '(B) 由電腦從四張卡片中隨機抽出一張並依其顏色決定順序'),
-            ('C', '(C) 由客戶自行選定一張卡片作為結果'),
+            ('A', '(A) 由推薦人自行選定一張卡片，並依其顏色決定順序'),
+            ('B', '(B) 由電腦從四張卡片中隨機抽出一張卡片，並依其顏色決定順序'),
+            ('C', '(C) 由推薦人自行選定一張卡片，並依其顏色決定順序'),
             ('D', '(D) 依照最左邊那張卡片的顏色決定順序'),
         ],
         widget=widgets.RadioSelect
     )
 
     question2 = models.StringField(
-        label='2. 假設有一個人將四張卡片調整為「紅紅紅黑」，請問他先看到「產品指派資訊」的機率為何？',
+        label='2. 假設四張卡片是「三張紅色、一張黑色」，請問先看到「產品指派資訊」的機率為何？',
         choices=[
             ('A', '(A) 25%'),
             ('B', '(B) 50%'),
@@ -135,45 +140,30 @@ class Player(BasePlayer):
     )
 
     question3 = models.StringField(
-        label='3. 假設有一個人將四張卡片調整為四張黑色，請問他需要支付額外法幣嗎？若是需要，請問支付多少法幣？',
+        label='3. 假設四張卡片最終爲四張黑色卡片，請問是否需要支付額外法幣？若需要，請問支付多少法幣？',
         choices=[
             ('A', '(A) 不需要'),
-            ('B', '(B) 需要。支付 0.5 法幣'),
-            ('C', '(C) 需要。支付 1 法幣'),
+            ('B', '(B) 需要。支付 1.25 法幣'),
+            ('C', '(C) 需要。支付 2.5 法幣'),
         ],
         widget=widgets.RadioSelect
     )
     
 #FUNCTION
-# note: this function goes at the module level, not inside the WaitPage.
-def group_by_arrival_time_method(subsession, waiting_players):    
-    # for p in waiting_players:
-    #     print(f"{p.participant.who = }")
-    #     if p.participant.who == True: p.role == C.ADVISOR_ROLE
-    #     else: p.role == C.CLIENT_ROLE
-
-    a_players = [p for p in waiting_players if p.participant.who == True]
-    c_players = [p for p in waiting_players if p.participant.who == False]
+def group_by_arrival_time_method(subsession, waiting_players):
+    a_players = [p for p in waiting_players if p.participant.who is True]
+    c_players = [p for p in waiting_players if p.participant.who is False]
 
     if len(a_players) >= 1 and len(c_players) >= 1:
         return [random.choice(a_players), random.choice(c_players)]
     
 
 def creating_session(subsession: Subsession):
-    import random
-
     if subsession.round_number == 1:
         for p in subsession.get_players():
-            # 給每個 participant 都一個獨立的 order（若已存在就不覆寫）
             p.participant.vars.setdefault('order', random.randint(0, 1))
-            # print(f"[order-assign] PID={p.participant.id_in_session} order={p.participant.vars['order']}")
-            
 
 def select_paid_rounds_for_client(player: Player):
-    """
-    對 client 隨機抽出 30 回合中的 15 回合作為計酬回合，
-    並把結果寫進每一回合的 is_selected_for_payment。
-    """
     if player.role != C.CLIENT_ROLE:
         return
 
@@ -185,11 +175,11 @@ def select_paid_rounds_for_client(player: Player):
     for p in player.in_all_rounds():
         p.is_selected_for_payment = (p.round_number in selected_round_numbers)
 
+
 def set_payoffs(group: Group):
-    # === 先根據推薦把客戶的實現選擇決定出來（strategy method）===
     players = group.get_players()
     advisor = next((p for p in players if p.role == C.ADVISOR_ROLE), None)
-    client  = next((p for p in players if p.role == C.CLIENT_ROLE), None)
+    client = next((p for p in players if p.role == C.CLIENT_ROLE), None)
 
     if advisor and client:
         realized_selection = client.selection_if_A if group.recommendation == 'A' else client.selection_if_B
@@ -197,43 +187,28 @@ def set_payoffs(group: Group):
         advisor.advisor_recommendation = group.recommendation
         client.client_selection = realized_selection
 
-    # === 先算本回合原始 payoff ===
     for p in group.get_players():
         p.advisor_recommendation = group.recommendation
         p.client_selection = group.selection
 
-        # -------------------------
-        # Advisor payoff
-        # -------------------------
         if p.role == C.ADVISOR_ROLE:
             gross = C.WAGE
             if p.advisor_recommendation == group.commission_product.replace("產品 ", ""):
                 gross += C.COMMISSION
 
-            left_once  = 1 if getattr(p, "left_changed", 0) else 0
+            left_once = 1 if getattr(p, "left_changed", 0) else 0
             right_once = 1 if getattr(p, "right_changed", 0) else 0
             fee_sides = left_once + right_once
 
-            if fee_sides == 0:
-                flip_fee = float(0)
-            elif fee_sides == 1:
-                flip_fee = float(C.CARD_CLICK_FEE) / 2
-            else:
-                flip_fee = float(C.CARD_CLICK_FEE)
-
+            flip_fee = float(fee_sides * C.CARD_FLIP_FEE)
             net = gross - flip_fee
 
             p.gross_payoff = cu(gross)
-            p.flip_cost = float(flip_fee)
-
-            # advisor 每回合都支付
+            p.flip_cost = flip_fee
             p.round_payoff = float(net)
             p.paid_round_payoff = p.round_payoff
             p.is_selected_for_payment = True
 
-        # -------------------------
-        # Client payoff
-        # -------------------------
         elif p.role == C.CLIENT_ROLE:
             payoff = 0
             rnd = random.random()
@@ -249,35 +224,26 @@ def set_payoffs(group: Group):
                 payoff += C.GOODBALL
 
             group.client_draw_result = "$200" if won else "$0"
-            group.client_draw_image  = 'blue_65.png' if won else 'red_0.png'
+            group.client_draw_image = 'blue_65.png' if won else 'red_0.png'
 
             p.gross_payoff = float(payoff)
             p.flip_cost = float(0)
-
-            # 先記錄原始 payoff；是否真的支付，等第 10 回合再決定
             p.round_payoff = float(payoff)
             p.paid_round_payoff = float(0)
 
-    # === 到最後一回合時，對 client 抽 5/10 計酬，並寫進資料庫 ===
     any_player = group.get_players()[0]
     if any_player.round_number == C.NUM_ROUNDS:
         for p in group.get_players():
             if p.role == C.CLIENT_ROLE:
                 select_paid_rounds_for_client(p)
-
                 for rp in p.in_all_rounds():
-                    if rp.is_selected_for_payment:
-                        rp.paid_round_payoff = rp.round_payoff
-                    else:
-                        rp.paid_round_payoff = float(0)
+                    rp.paid_round_payoff = rp.round_payoff if rp.is_selected_for_payment else float(0)
 
-    # === 重算 cumulative payoff ===
     for p in group.get_players():
         all_rounds = p.in_rounds(1, p.round_number)
         p.roundsum_payoff = sum((rp.paid_round_payoff for rp in all_rounds), float(0))
         p.participant.choice_payoff = p.roundsum_payoff
 
-    # === partner payoff ===
     for p in group.get_players():
         partner = p.get_others_in_group()[0] if p.get_others_in_group() else None
         p.partner_payoff = partner.paid_round_payoff if partner else None
@@ -422,10 +388,7 @@ class ComprehensionCheck(Page):
     form_model = 'player'
     form_fields = ['question1', 'question2', 'question3']
 
-    # 整頁驗證：使用 error_message 檢查是否答對
     def error_message(self, values):
-        # values 是使用者在這個 form 裡填的所有欄位
-        # 比如 values['question1'] 就是 question1 的答案
         correct_answers = {
             'question1': 'B',
             'question2': 'C',
@@ -454,7 +417,6 @@ class AdvisorPage(Page):
     def is_displayed(player):
         return player.round_number == 1 and player.role == C.ADVISOR_ROLE
 
-    
 class ClientPage(Page):
     form_model = 'player'
 
@@ -465,39 +427,90 @@ class ClientPage(Page):
     @staticmethod
     def is_displayed(player):
         return player.round_number == 1 and player.role == C.CLIENT_ROLE
-
     
 class ChoicePage(Page):
     form_model = 'player'
-    form_fields = ['choice_1','choice_2','choice_3','choice_4','left_changed','right_changed']
+    form_fields = ['card_option_selected', 'choice_1', 'choice_2', 'choice_3', 'choice_4', 'left_changed', 'right_changed']
 
     @staticmethod
     def error_message(player, values):
-        if not values.get('choice_2') or not values.get('choice_3'):
-            return "請選擇中間兩張卡片要放入兩張紅色或兩張黑色。"
-
-        labels = [values.get(f'choice_{i}') for i in range(1, 5)]
-        red_cnt = sum(x == 'Incentive' for x in labels)
-        black_cnt = sum(x == 'Quality' for x in labels)
-
-        if red_cnt == 2 and black_cnt == 2:
-            return "不得為兩紅兩黑，請修改卡片組合。"
+        if values.get('card_option_selected') not in ['opt1', 'opt2', 'opt3', 'opt4']:
+            return "請從四個選項中擇一。"
 
     @staticmethod
     def before_next_page(player: Player, timeout_happened):
-        # 走到這裡代表：已經通過 error_message，choice_2/3 不會是 Blank
-        cards = [player.choice_1, player.choice_2, player.choice_3, player.choice_4]
+        opt = player.card_option_selected
+        player.option_coin_success = False
 
-        # 等機率抽一張卡（random.choices 會回傳 list，所以取 [0]）
-        picked = random.choices(cards, k=1)[0]
+        if opt == 'opt1':
+            # 中間 2 張放入紅色卡片 -> 紅紅紅黑
+            player.choice_1 = 'Incentive'
+            player.choice_2 = 'Incentive'
+            player.choice_3 = 'Incentive'
+            player.choice_4 = 'Quality'
+            player.left_changed = 0
+            player.right_changed = 0
 
-        # 把結果存起來，後面頁面只讀這個值
-        player.treatment_draw = 'IF' if picked == 'Incentive' else 'QF'
-    
+            player.treatment_draw = 'IF' if random.random() < 0.75 else 'QF'
+
+        elif opt == 'opt2':
+            # 中間 2 張放入黑色卡片 -> 紅黑黑黑
+            player.choice_1 = 'Incentive'
+            player.choice_2 = 'Quality'
+            player.choice_3 = 'Quality'
+            player.choice_4 = 'Quality'
+            player.left_changed = 0
+            player.right_changed = 0
+
+            player.treatment_draw = 'IF' if random.random() < 0.25 else 'QF'
+
+        elif opt == 'opt3':
+            # 中間 2 張放入紅色卡片，支付 1.25 法幣讓電腦擲一枚公正硬幣：
+            # 1/2 變成紅紅紅紅；1/2 維持紅紅紅黑
+            player.left_changed = 0
+            player.right_changed = 1
+
+            coin_success = (random.random() < 0.5)
+            player.option_coin_success = coin_success
+
+            if coin_success:
+                player.choice_1 = 'Incentive'
+                player.choice_2 = 'Incentive'
+                player.choice_3 = 'Incentive'
+                player.choice_4 = 'Incentive'
+                player.treatment_draw = 'IF'
+            else:
+                player.choice_1 = 'Incentive'
+                player.choice_2 = 'Incentive'
+                player.choice_3 = 'Incentive'
+                player.choice_4 = 'Quality'
+                player.treatment_draw = 'IF' if random.random() < 0.75 else 'QF'
+
+        elif opt == 'opt4':
+            # 中間 2 張放入黑色卡片，支付 1.25 法幣讓電腦擲一枚公正硬幣：
+            # 1/2 變成黑黑黑黑；1/2 維持紅黑黑黑
+            player.left_changed = 1
+            player.right_changed = 0
+
+            coin_success = (random.random() < 0.5)
+            player.option_coin_success = coin_success
+
+            if coin_success:
+                player.choice_1 = 'Quality'
+                player.choice_2 = 'Quality'
+                player.choice_3 = 'Quality'
+                player.choice_4 = 'Quality'
+                player.treatment_draw = 'QF'
+            else:
+                player.choice_1 = 'Incentive'
+                player.choice_2 = 'Quality'
+                player.choice_3 = 'Quality'
+                player.choice_4 = 'Quality'
+                player.treatment_draw = 'IF' if random.random() < 0.25 else 'QF'
+
     @staticmethod
     def is_displayed(player):
         return player.role == C.ADVISOR_ROLE
-
 
 class IncentivePage1(Page):
 

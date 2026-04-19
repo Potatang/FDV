@@ -44,9 +44,9 @@ SESSION_CONFIGS = [
 # e.g. self.session.config['participation_fee']
 
 SESSION_CONFIG_DEFAULTS = dict(
-    real_world_currency_per_point=5.00, participation_fee=300, doc="",
-    advisor_points_per_ntd=6,  # advisor ratio 1:6
-    client_points_per_ntd=6,   # client ratio 1:6
+    real_world_currency_per_point=5.00, participation_fee=150, doc="",
+    advisor_points_per_ntd=9,  # advisor ratio 1:9
+    client_points_per_ntd=9,   # client ratio 1:9
 )
 
 PARTICIPANT_FIELDS = dict(
