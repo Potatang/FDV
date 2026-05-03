@@ -310,8 +310,8 @@ class PayoffOnePage(Page):
         rec_is_Y, x_case = _bonus_flags_for_round(advisor_participant, player.round_number)
         productX_image = f'ProductX{x_case}.png'
 
-        # round title：你要的「第一部分 / 第六部分」
-        title = "第一回合揭露第一部分的報酬" if player.round_number == 1 else "第二回合揭露第六部分的報酬"
+        # round title：你要的「第一部分 / 第七部分」
+        title = "第一回合揭露第一部分的報酬" if player.round_number == 1 else "第二回合揭露第七部分的報酬"
 
         return dict(
             page_title=title,
